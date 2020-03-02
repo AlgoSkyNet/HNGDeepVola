@@ -1,47 +1,39 @@
 % Optimizer: ImpVola to HNG Parameters
 load("dataset.mat")
-strikes = 0.9:0.025:1.1;
-maturities = 30:30:210;
-S = 1;
 r = 0.005;
-data_vec = [combvec(strikes,maturities);S*ones(1,Nmaturities*Nstrikes)]';
-Nstrikes = length(strikes);
-Ndata = 10;
-Ntrain = 3000;
-Nparameters = 5;
-prediction_data = rand(Ndata,Nmaturities,Nstrikes);
-trainings_data = rand(Ntrain,Nmaturities,Nstrikes);
-prediction_data_trafo = reshape(prediction_data,Ndata,Nmaturities*Nstrikes);
-xdata = [(1e-9),1,1000,1e-6,1].*rand(Ndata,Nparameters);
-xtrain = [(1e-9),1,1000,1e-6,1].*rand(Ntrain,Nparameters);
+data_vec = [combvec(strikes,maturities);S0*ones(1,Nmaturities*Nstrikes)]';
 %% Finding starting values:
-error = zeros(Ndata,Ntrain);
-init_params = zeros(Ndata,Nparameters);
-init_error = zeros(Ndata,1);
-for i = 1:Ndata
+error_matlab = zeros(Ntest,Ntrain);
+init_params = zeros(Ntest,Nparameters);
+init_error = zeros(Ntest,1);
+for i = 1:Ntest
     for j=1:Ntrain
-        error(i,j) = sum(sum((prediction_data(i,:,:)-trainings_data(j,:,:)).^2));
+        error_matlab(i,j) = sum(sum((prediction(i,:,:)-y_train_trafo2(j,:,:)).^2));
         if j==1
-            init_params(i,:) = xtrain(j,:);
-            init_error(i) = error(i,j);
-        elseif error(i,j)<init_error(i)
-            init_params(i,:) = xtrain(j,:);
-            init_error(i) = error(i,j);
+            init_params(i,:) = X_train(j,:);
+            init_error(i) = error_matlab(i,j);
+        elseif error_matlab(i,j)<init_error(i)
+            init_params(i,:) = X_train(j,:);
+            init_error(i) = error_matlab(i,j);
         end  
+    end
+    if mod(i,100)==0
+        disp(i)
     end
 end
 %% optimization
 lb = [0,0,-1000,1e-12,1e-12];
 ub = [1,1,1000,1000,2];
-opti_params = zeros(Ndata,Nparameters);
+opti_params = zeros(Ntrain,Nparameters);
+prediction_trafo = reshape(prediction,Ntest,Nmaturities*Nstrikes);
 %gs = GlobalSearch('XTolerance',1e-9,'StartPointsToRun','bounds-ineqs','Display','final');
 opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',20,'MaxFunctionEvaluations',150);    
-for i = 1:Ndata
+for i = 1:Ntest
     x0 = init_params(i,:);
-    f_min =@(params) fun2opti(params,prediction_data_trafo(i,:),r,data_vec);
+    f_min =@(params) fun2opti(params,prediction_trafo(i,:),r,data_vec);
     opti_params(i,:) = fmincon(f_min,x0,[],[],[],[],lb,ub,@nonlincon_nn,opt);
     %problem = createOptimProblem('fmincon','x0',x0,...
     %            'objective',f_min,'lb',lb,'ub',ub,'nonlcon',@nonlincon_nn);
     %[xmin,fmin] = run(gs,problem);    
-    
+    disp(i)
 end
