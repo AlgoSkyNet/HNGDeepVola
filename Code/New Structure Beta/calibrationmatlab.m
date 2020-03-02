@@ -1,4 +1,5 @@
 % Optimizer: ImpVola to HNG Parameters
+load("dataset.mat")
 strikes = 0.9:0.025:1.1;
 maturities = 30:30:210;
 S = 1;

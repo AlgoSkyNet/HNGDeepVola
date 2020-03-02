@@ -81,9 +81,9 @@ NN1.summary()
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
 NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
-        epochs = 1, verbose = True, shuffle=1)
+        epochs = 300, verbose = True, shuffle=1)
 
-
+NN1.save_weights("pricerweights.h5")
 # Results 
 #error plots
 
@@ -117,13 +117,11 @@ NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activatio
 NN2.add(Flatten())
 NN2.add(Dense(5,activation = 'linear',use_bias=True))
 NN2.summary()
-
-
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
 history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-    epochs=1, verbose = True, shuffle=1)
-
+    epochs=300, verbose = True, shuffle=1)
+NN2.save_weights("calibrationweights.h5")
 
 # ### 3.1 Results
 # Take care these results are on scaled parameter values and not rescaled yet!
