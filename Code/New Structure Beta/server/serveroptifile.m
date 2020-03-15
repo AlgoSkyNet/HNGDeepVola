@@ -25,7 +25,7 @@ data_vec = [combvec(strikes,maturities);S0*ones(1,Nmaturities*Nstrikes)]';
 load("init_params.mat")
 lb = [0,0,-1000,1e-12,1e-12];
 ub = [1,1,1000,1000,2];
-opti_params = zeros(Ntrain,Nparameters);
+opti_params = zeros(Ntest,Nparameters);
 prediction_trafo = reshape(prediction,Ntest,Nmaturities*Nstrikes);
 delete(gcp('nocreate'))
 pool_  = parpool('HenrikHNG',64);
@@ -40,3 +40,6 @@ for i = 1:Ntest
     %[xmin,fmin] = run(gs,problem);    
     disp(i)
 end
+%%
+save("optiparams.mat","opti_params")
+
