@@ -36,22 +36,14 @@ from add_func import ytransform, yinversetransform,myscale, myinverse
 #custom errors
 from add_func import root_mean_squared_error,root_relative_mean_squared_error,mse_constraint,rmse_constraint
 #else
-from add_func import constraint_violation,pricing_plotter
+from add_func import constraint_violation,pricing_plotter,calibration_plotter_deterministic,plotter_autoencoder
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
 from add_func import ownTimer
 t = ownTimer()
 
-# In[CNN as Encoder / Pricing Kernel]:
 
-def autoencoder(nn1,nn2):
-    def autoencoder_predict(y_values):
-        prediction = nn2.predict(y_values)
-        prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
-        forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
-        return forecast
-    return autoencoder_predict
 
 
 
@@ -79,18 +71,20 @@ NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(2,1),ac
 #NN1.add(MaxPooling2D(pool_size=(4, 1)))
 NN1.summary()
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
-NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
-        epochs = 300, verbose = True, shuffle=1)
 
-NN1.save_weights("pricerweights.h5")
+#setting
+#NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+#NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
+#        epochs = 300, verbose = True, shuffle=1)
+#NN1.save_weights("pricerweights.h5")
+NN1.load_weights("pricerweights.h5")
+
+
 # Results 
 #error plots
-
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
 prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
@@ -118,10 +112,13 @@ NN2.add(Flatten())
 NN2.add(Dense(5,activation = 'linear',use_bias=True))
 NN2.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-    epochs=300, verbose = True, shuffle=1)
-NN2.save_weights("calibrationweights.h5")
+
+#setting
+#NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
+#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+#    epochs=300, verbose = True, shuffle=1)
+#NN2.save_weights("calibrationweights.h5")
+NN2.load_weights("calibrationweights.h5")
 
 # ### 3.1 Results
 # Take care these results are on scaled parameter values and not rescaled yet!
@@ -133,425 +130,40 @@ prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
 
-
-
-
-
-### Optimization
-# work in progress
-from add_func import opti_fun_data
-
-dist = np.zeros((1,Ntrain))#np.zeros((Ntest,Ntrain))
-min_dist = np.zeros((Ntest,1))
-predictor_dist = np.zeros((Ntest,Nparameters))
-for i in range(1):#range(Ntest):
-    for j in range(Ntrain):
-        dist[i,j]  = np.mean(((y_test[i,:]-y_train[j,:])/y_test[i,:])**2)
-    min_dist[i] = np.argmin(dist[i,:])
-    predictor_dist[i,:] = X_train[int(min_dist[i][0]),:]
-    
-    
-
-
-
-
-import functools as functools
-from add_func import bsimpvola,HNC_Q
-from config import r
-"""
-def optimization_fun (prediction,x):
-    alpha = x[0]
-    beta = x[1]
-    gamma_star = x[2]
-    omega = x[3] 
-    h0 = x[4]
-    err = 0
-    for i in range(Nstrikes):
-        st = strikes[i]
-        for t in range(Nmaturities):
-            mat = maturities[t]
-            vola = prediction[t,i]
-            err += ((vola-bsimpvola(HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1),1,st,mat,r,'c'))/vola)**2
-    return err/(Nmaturities*Nstrikes)
-"""
-from py_vollib.black_scholes.implied_volatility import black_scholes
-def optimization_fun_prices (prediction,x):
-    alpha = x[0]
-    beta = x[1]
-    gamma_star = x[2]
-    omega = x[3] 
-    h0 = x[4]
-    err = 0
-    for i in range(Nstrikes):
-        st = strikes[i]
-        for t in range(Nmaturities):
-            mat = maturities[t]
-            vola = prediction[t,i]
-            err += ((black_scholes('c',1,st,mat,r,vola)-HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1))\
-                    /black_scholes('c',1,st,mat,r,vola))**2
-    return err/(Nmaturities*Nstrikes)               
-
-
-from multiprocessing import Pool
-import os
-
-def testfun(prediction,st,t,x,i):
-    alpha = x[0]
-    beta = x[1]
-    gamma_star = x[2]
-    omega = x[3] 
-    h0 = x[4]
-    mat = maturities[t]
-    vola = prediction[t,i]
-    return ((black_scholes('c',1,st,mat,r,vola)-HNC_Q(alpha, beta, gamma_star, omega, h0, 1, st, r, mat, 1))\
-                    /black_scholes('c',1,st,mat,r,vola))**2
-
-def optimization_fun_pricesparallel (prediction,x):
-    err = 0
-    for i in range(1):#range(Nstrikes):
-        st = strikes[i]
-        try:
-            pool = Pool(np.max([os.cpu_count()-1,1]))
-            err += np.sum(pool.map(functools.partial(testfun, prediction, st, t, x), range(Nmaturities)))
-        finally: # To make sure processes are closed in the end, even if errors happen
-            pool.close()
-            pool.join() 
-    return err/(Nmaturities*Nstrikes)
-
-
-x0 = predictor_dist[0,:]
-tmp = yinversetransform(prediction[0,:,:])
-    
-t.start()
-optimization_fun_pricesparallel(tmp,x0)
-t.stop()
-
-
-
-bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
-ineq_cons = {'type': 'ineq','fun' : lambda x: np.array([1 - x[0]*x[1]**2-x[1]])}
-res2 =[]
-for n in range(1):#range(Ntest):
-    x0 = predictor_dist[n,:]
-    tmp = yinversetransform(prediction[n,:,:])
-    res2.append(minimize(functools.partial(optimization_fun_prices,tmp), x0, method='SLSQP', constraints=[ineq_cons],options={'disp': 1}, bounds=bounds))
-
-x0 = predictor_dist[0,:]
-tmp = yinversetransform(prediction[0,:,:])
-    
-t.start()
-optimization_fun_prices(tmp,x0)
-t.stop()
-
-"""def cons_hng(x):
-    return x[0]**2*x[2]+x[1]
-nonlinear_constraint = NonlinearConstraint(cons_hng, -np.inf, 1)
-bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
-res = minimize(opti_fun_data(prediction), x0, method='trust-constr',
-               constraints=[nonlinear_constraint],options={'verbose': 1}, bounds=bounds)
-"""
-
-"""
-#slsqp
-bounds = ([0, 10], [0, 1-(1e-6)],[-1000,1000],[np.finfo(float).eps,10],[0, 10])
-ineq_cons = {'type': 'ineq','fun' : lambda x: np.array([1 - x[0]*x[1]**2-x[1]])}
-res2 =[]
-for n in range(1):#range(Ntest):
-    x0 = predictor_dist[n,:]
-    res2.append(minimize(opti_fun_data(prediction[n,:,:]), x0, method='SLSQP', constraints=[ineq_cons],\
-                options={'ftol': 1e-9, 'disp': True},bounds=bounds))
-"""
 # In[Testing the performace of the AutoEncoder/Decoder Combination]
 # We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
+def autoencoder(nn1,nn2):
+    def autoencoder_predict(y_values):
+        prediction = nn2.predict(y_values)
+        prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+        forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
+        return forecast
+    return autoencoder_predict
 
 
-prediction = NN2.predict(y_test_trafo2)
+forecast = autoencoder(NN1,NN2)(y_test_trafo2)
+#prediction = NN2.predict(y_test_trafo2)
+#prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+#forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
+y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
+mape_autoencoder,mse_autoencoder = plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2)
 
+
+# In[Deterministic Calibration]
+data_deterministic = scipy.io.loadmat('optiparams.mat')
+X_test_deter = data_deterministic["opti_params"][0:Ntest,:]
+error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter_deterministic(X_test_deter,X_test)
+prediction = np.array([myscale(x) for x in X_test_deter])
 prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
 forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
 y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
-# Example Plots
-X = strikes
-Y = maturities
-X, Y = np.meshgrid(X, Y)
-
-sample_idx = random.randint(0,len(y_test))
-
-#error plots
-mape = np.zeros(forecast.shape)
-mse  = np.zeros(forecast.shape)
-err_rel_mat  = np.zeros(prediction.shape)
-err_mat      = np.zeros(prediction.shape)
-for i in range(Ntest):
-    mape[i,:,:] =  np.abs((y_true_test[i,:,:]-forecast[i,:,:])/y_true_test[i,:,:])
-    mse[i,:,:]  =  np.square((y_true_test[i,:,:]-forecast[i,:,:]))
-idx = np.argsort(np.max(mape,axis=tuple([1,2])), axis=None)
-
-#bad_idx = idx[:-200]
-bad_idx = idx
-
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-#ax.contour3D(X, Y, Z, 50, cmap='binary')
-ax.plot_surface(X, Y, y_true_test[idx[-1],:,:], rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, forecast[idx[-1],:,:] , rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.set_xlabel('Strikes')
-ax.set_ylabel('Maturities')
-plt.show()
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-#ax.contour3D(X, Y, Z, 50, cmap='binary')
-ax.plot_surface(X, Y, y_true_test[sample_idx,:,:], rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.plot_surface(X, Y, forecast[sample_idx,:,:] , rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.set_xlabel('Strikes')
-ax.set_ylabel('Maturities')
-plt.show()
-#from matplotlib.colors import LogNorm
-plt.figure(figsize=(14,4))
-ax=plt.subplot(2,3,1)
-err1 = 100*np.mean(mape[bad_idx,:,:],axis=0)
-plt.title("Average relative error",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,2)
-err2 = 100*np.std(mape[bad_idx,:,:],axis = 0)
-plt.title("Std relative error",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,3)
-err3 = 100*np.max(mape[bad_idx,:,:],axis = 0)
-plt.title("Maximum relative error",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,4)
-err1 = np.sqrt(np.mean(mse[bad_idx,:,:],axis=0))
-plt.title("RMSE",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,5)
-err2 = np.std(mse[bad_idx,:,:],axis = 0)
-plt.title("Std MSE",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,6)
-err3 = np.max(mse[bad_idx,:,:],axis = 0)
-plt.title("Maximum MSE",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.tight_layout()
-plt.show()
+mape_autoencoder,mse_autoencoder = ape_autoencoder,mse_autoencoder = plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2)
 
 
-# In[28]:
 
 
-#from matplotlib.colors import LogNorm
-plt.figure(figsize=(14,4))
-plt.suptitle('Error with constraint violation', fontsize=16)
-ax=plt.subplot(2,3,1)
-bad_idx = testing_violation
-err1 = 100*np.mean(mape[bad_idx,:,:],axis=0)
-plt.title("Average relative error",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,2)
-err2 = 100*np.std(mape[bad_idx,:,:],axis = 0)
-plt.title("Std relative error",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,3)
-err3 = 100*np.max(mape[bad_idx,:,:],axis = 0)
-plt.title("Maximum relative error",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,4)
-err1 = np.sqrt(np.mean(mse[bad_idx,:,:],axis=0))
-plt.title("RMSE",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,5)
-err2 = np.std(mse[bad_idx,:,:],axis = 0)
-plt.title("Std MSE",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,6)
-err3 = np.max(mse[bad_idx,:,:],axis = 0)
-plt.title("Maximum MSE",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.tight_layout()
-plt.show()
 
 
-# In[30]:
-
-
-#from matplotlib.colors import LogNorm
-plt.figure(figsize=(14,4))
-plt.suptitle('Error with no constrain violation', fontsize=16)
-ax=plt.subplot(2,3,1)
-bad_idx = testing_violation2
-err1 = 100*np.mean(mape[bad_idx,:,:],axis=0)
-plt.title("Average relative error",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,2)
-err2 = 100*np.std(mape[bad_idx,:,:],axis = 0)
-plt.title("Std relative error",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,3)
-err3 = 100*np.max(mape[bad_idx,:,:],axis = 0)
-plt.title("Maximum relative error",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,4)
-err1 = np.sqrt(np.mean(mse[bad_idx,:,:],axis=0))
-plt.title("RMSE",fontsize=15,y=1.04)
-plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,5)
-err2 = np.std(mse[bad_idx,:,:],axis = 0)
-plt.title("Std MSE",fontsize=15,y=1.04)
-plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-ax=plt.subplot(2,3,6)
-err3 = np.max(mse[bad_idx,:,:],axis = 0)
-plt.title("Maximum MSE",fontsize=15,y=1.04)
-plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-plt.colorbar(format=mtick.PercentFormatter())
-ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-ax.set_xticklabels(strikes)
-ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-ax.set_yticklabels(maturities)
-plt.xlabel("Strike",fontsize=15,labelpad=5)
-plt.ylabel("Maturity",fontsize=15,labelpad=5)
-plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-plt.tight_layout()
-plt.show()
 
 
 # # 3.1 No parameter constraint
