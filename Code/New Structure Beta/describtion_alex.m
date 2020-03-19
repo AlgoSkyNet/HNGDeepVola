@@ -41,14 +41,17 @@ j = 0;
 num = 1:Ntest;
 num_vio = num(testing_violation);
 params_vio = prediction_invtrafo(testing_violation,:);
-for i = 1:length(vio_error)
-    if mod(i,50)==0
-        disp(i)
-    end
-    j = num_vio(i);
-    params  = prediction_invtrafo(j,:);
-    imp_vola_params(i,:) = blsimpv_vec(data_vec,r,price_Q_clear([params(4),params(1),params(2),params(3)],data_vec,r/252,params(5)));
-end
+% for i = 1:length(vio_error)
+%     if mod(i,50)==0
+%         disp(i)
+%     end
+%     j = num_vio(i);
+%     params  = prediction_invtrafo(j,:);
+%     imp_vola_params(i,:) = blsimpv_vec(data_vec,r,price_Q_clear([params(4),params(1),params(2),params(3)],data_vec,r/252,params(5)));
+%     prices_params(i,:) = price_Q_clear([params(4),params(1),params(2),params(3)],data_vec,r/252,params(5));
+% end
+% save('imp_vola.mat','imp_vola_params','prices_params')
+load("imp_vola.mat")
 figure
 y = strikes;
 x = maturities;
@@ -56,6 +59,12 @@ x = maturities;
 for i=1:8
 subplot(2,4,i)
 surf(x,y,reshape(imp_vola_params(randi(length(vio_error),1,1),:),9,7));hold on;
+set(gca,'Zscale','log')
+end
+figure
+for i=1:8
+subplot(2,4,i)
+surf(x,y,reshape(prices_params(randi(length(vio_error),1,1),:),9,7));hold on;
 set(gca,'Zscale','log')
 end
 
