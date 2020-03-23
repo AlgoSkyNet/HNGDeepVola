@@ -21,4 +21,9 @@ for j =1:size(data_week,1)
     p(completedIdx) = value;
 end
 cancel(pr)
+for i=1:length(p)
+    if p(i)<=0 || isnan(p(i))
+        p(i)=max([0,S(i)-K(i)*exp(-r*T(i)/252)]); %intrinsiv minimum value 
+    end
+end
 end
