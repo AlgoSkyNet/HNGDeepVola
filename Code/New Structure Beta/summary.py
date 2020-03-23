@@ -109,16 +109,27 @@ NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activatio
 NN2.add(ZeroPadding2D(padding=(1,1)))
 NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
 NN2.add(Flatten())
-NN2.add(Dense(5,activation = 'linear',use_bias=True))
+NN2.add(Dense(5,activation = "tanh", kernel_constraint = tf.keras.constraints.NonNeg(),use_bias=True))
+
+#NN2.add(Dense(5,activation = "linear",use_bias=True))
+"""seq1 = Dense(5,activation = "linear",use_bias=True)(NN2)
+seq2 = NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2.add(Flatten())
+acum = keras.layers.merge.concatenate([seq1, seq2], axis=-1)
+
+model = keras.models.Model(inputs=input1, outputs=acum)
+model.summary()
+"""
 NN2.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 
 #setting
-#NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
-#    epochs=300, verbose = True, shuffle=1)
+NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
+history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2),
+    epochs=300, verbose = True, shuffle=1)
+NN2.save_weights("calibrationweights_tanh.h5")
 #NN2.save_weights("calibrationweights.h5")
-NN2.load_weights("calibrationweights.h5")
+#NN2.load_weights("calibrationweights.h5")
 
 # ### 3.1 Results
 # Take care these results are on scaled parameter values and not rescaled yet!

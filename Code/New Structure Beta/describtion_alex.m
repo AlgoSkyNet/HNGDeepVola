@@ -35,12 +35,12 @@ S0                      = vector of initial underlying / unnecessary for now
 %visualisation
 r = 0.005;
 data_vec = [combvec(strikes,maturities);S0*ones(1,Nmaturities*Nstrikes)]';
-delete(gcp('nocreate'))
-pool_  = parpool('local',4);
 j = 0;
 num = 1:Ntest;
 num_vio = num(testing_violation);
 params_vio = prediction_invtrafo(testing_violation,:);
+% delete(gcp('nocreate'))
+% pool_  = parpool('local',4);
 % for i = 1:length(vio_error)
 %     if mod(i,50)==0
 %         disp(i)
@@ -79,6 +79,7 @@ histogram(xx(:,3),'Normalization','probability')
 subplot(2,5,4)
 histogram(xx(:,4),'Normalization','probability')
 subplot(2,5,5)
+title("h_0")
 histogram(xx(:,5),'Normalization','probability')
 subplot(2,5,6)
 boxplot(xx(:,1))
