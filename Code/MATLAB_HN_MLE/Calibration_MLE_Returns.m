@@ -1,4 +1,7 @@
-%matlab_optimizer_mle_v2
+% Maximum Likely-Calibration
+% This program calibrates the HNG(1,1) model under Q vai MLE optimization
+% old names: opti_mle_weekly_scale,matlab_optimizer_mle_v2
+
 clc; close all; clearvars;
 %% Initialziation
 omega = 1.8e-9;alpha = 1.5e-6;beta = 0.63;gamma = 250;lambda = 2.4;
