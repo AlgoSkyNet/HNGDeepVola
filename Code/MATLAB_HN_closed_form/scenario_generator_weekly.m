@@ -1,10 +1,10 @@
-import foo
-method_to_call = getattr(foo, 'bar')
-result = method_to_call()
+% Dataset Generator
+% This Program generates the dataset for our neural net.
 
+clearvars; clc;close all;
 
 %% Initialisation
-clearvars; clc;close all;
+
 load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/generaldata2015.mat')
 load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/params_Options_2015_MRAEfull.mat')
 load('/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/MATLAB_HN_MLE/weekly_2015_mle.mat')
