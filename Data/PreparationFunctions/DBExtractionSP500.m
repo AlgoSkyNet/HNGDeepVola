@@ -3,13 +3,20 @@ load('../Datasets/SP500/SP500_date_prices_returns_090320.mat')
 %load('../Datasets/DJIA30/DJIA30_date_prices_returns.mat')
 
 %conn = database('omeos','root','root@123','Vendor','MySQL',...
-%                'Server','127.0.0.1', 'PortNumber', 3306);
+%               'Server','127.0.0.1', 'PortNumber', 3306, ...
+%              'AutoCommit', 'off' );
+                
             
 conn = database('MySQL','root','root@123');
             
-savefile = 'Puts2013.mat';
+savefile = 'Puts2010.mat';
             
-query = 'SELECT * FROM omeos WHERE secid =108105 AND date >= DATE("2013-01-01") AND date <= DATE("2013-12-31") AND (cp_flag ="P" ) AND exercise_style = "E" AND volume > 100 AND open_interest > 100 AND vega != "NaN"';     % LIMIT 20';     
+query = ['SELECT * FROM omeos WHERE ', ... 
+    'secid =108105 ', ... 
+    'AND date >= DATE("2010-01-01") AND date <= DATE("2010-12-31") ', ...
+    'AND (cp_flag ="P") AND exercise_style = "E" AND volume > 100 ', ... '
+    'AND open_interest > 100 AND vega != "NaN"'];     
+
 %108105 SP500
 %102456 DJIA30
 %102480 NASDAQ100
