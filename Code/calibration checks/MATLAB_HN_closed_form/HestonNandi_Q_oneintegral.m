@@ -23,7 +23,7 @@ function OptionPrice= HestonNandi_Q_oneintegral(S_0,X,Sig_,T,r,w,a,b,g_)
 % based on Code of Ali Boloorforoosh
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Sig_ = (w+a)/(1-b-a*g_*g_);
-    Sig_ = 1.001386955847900e-05;%8.179144119369230e-05;
+    %Sig_ = 8.179144119369230e-05;
     
     OptionPrice = .5*(S_0-X*exp(-r*T))+1/pi*exp(-r*T)*integral(@Integrand,eps,1000);
     

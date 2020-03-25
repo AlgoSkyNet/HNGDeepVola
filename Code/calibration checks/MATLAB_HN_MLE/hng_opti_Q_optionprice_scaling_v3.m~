@@ -24,7 +24,12 @@ date_start          =  datenum(DateString_start,formatIn);
 date_end            =  datenum(DateString_end,formatIn);
 Dates               =  date_start:7:date_end;
 
-Init                =  params_Q_mle_weekly;
+sig2_0_start(1,:)        =  SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(1));
+
+for i = 1:length(Dates)
+sig2_0_start(i + 1,:)        =  SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(i));
+end
+Init                =  [params_Q_mle_weekly, sig2_0_start];
 
 Type                = 'call';
 MinimumVolume       = 100;
@@ -56,7 +61,7 @@ Init_scale_mat   =   Init./sc_fac;
 % sc_fac           =   ones(53,4).*magnitude([0.0000027738 0.000016969 0.23378 181.77]);
 % Init_scale_mat   =   [0.0000027738 0.000016969 0.23378 181.77]./sc_fac;
 
-lb_mat           =   [1e-12,0,0,-500]./sc_fac;
+lb_mat           =   [1e-12,0,0,-500, 1e-2]./sc_fac;
 ub_mat           =   [1,1,10,1000]./sc_fac;
 opt_params_raw   =   zeros(max(weeksprices),4);
 opt_params_clean =   zeros(max(weeksprices),4);
@@ -85,13 +90,12 @@ for i = min(weeksprices):max(weeksprices)
     % RMSE
     %f_min = @(params) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     % MSE
-    %f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     % MRAE/MAPE
     %%  UPDATE PRICING
     %f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
     % SQP
-    opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-6,'TolX',1e-6);
+    opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-4,'TolX',1e-4);
     % Interior Point
     %opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',50,'MaxFunctionEvaluations',300,'FunctionTolerance',1e-4);
     

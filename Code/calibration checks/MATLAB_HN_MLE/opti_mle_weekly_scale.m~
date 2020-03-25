@@ -29,7 +29,6 @@ hist_vola = NaN*ones(num_week,1);
 %% optimization
 % TODO SCALE PARAMETERS AS IN CALLOPTI!!!!!
 for i=1:num_week
-    display(i);
     indicee = find(((dates(:,2)==i).*(dates(:,1)==year))==1,1,'first');
     if isempty(indicee)
         continue
@@ -57,31 +56,28 @@ for i=1:num_week
             scaler = scale_tmp;
         
         
-        for j=1:2
-            f_min = @(params) f_min_raw(params,scaler);
-            problem = createOptimProblem('fmincon','x0',x0(j,:),...
-                'objective',f_min,'lb',lb_h0,'ub',ub_h0,'nonlcon',@nonlincon);
-            [xmin_(j,:),fmin_(j)] = run(gs,problem);
-        end
-        [fmin,idx] = min(fmin_);
-        xmin = xmin_(idx,:);
-%     opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-4,'TolX',1e-4);
-% for j=1:2
-% [xmin_(j,:),fmin_(j)] = fmincon(f_min,x0(j,:),[],[],[],[],lb_h0,ub_h0,@nonlincon,opt);
-% [fmin,idx] = min(fmin_);
-%          xmin = xmin_(idx,:);
-% end
+%         for j=1:2
+%             problem = createOptimProblem('fmincon','x0',x0(j,:),...
+%                 'objective',f_min,'lb',lb_h0,'ub',ub_h0,'nonlcon',@nonlincon);
+%             [xmin_(j,:),fmin_(j)] = run(gs,problem);
+%         end
+%         [fmin,idx] = min(fmin_);
+%         xmin = xmin_(idx,:);
+    opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-4,'TolX',1e-4);
+for j=1:2
+[xmin,fmin] = fmincon(f_min,x0(end,:),[],[],[],[],lb_h0,ub_h0,@nonlincon,opt);
+
     else
         f_min = @(params) f_min_raw(params,scaler); 
 
-        gs = GlobalSearch('XTolerance',1e-9,...
-            'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3);
-        problem = createOptimProblem('fmincon','x0',Init_scale,...
-                'objective',f_min,'lb',lb_h0,'ub',ub_h0,'nonlcon',@nonlincon);
-        [xmin,fmin] = run(gs,problem);    
-%     opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-4,'TolX',1e-4);
-% 
-% [xmin,fmin] = fmincon(f_min,Init_scale,[],[],[],[],lb_h0,ub_h0,@nonlincon,opt);
+%         gs = GlobalSearch('XTolerance',1e-9,...
+%             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3);
+%         problem = createOptimProblem('fmincon','x0',Init_scale,...
+%                 'objective',f_min,'lb',lb_h0,'ub',ub_h0,'nonlcon',@nonlincon);
+%         [xmin,fmin] = run(gs,problem);    
+    opt = optimoptions('fmincon','Display','iter','Algorithm','interior-point','MaxIterations',1000,'MaxFunctionEvaluations',1500, 'TolFun',1e-4,'TolX',1e-4);
+
+[xmin,fmin] = fmincon(f_min,Init_scale,[],[],[],[],lb_h0,ub_h0,@nonlincon,opt);
     end    
     params = xmin;
     scale_tmp       =   scaler;
@@ -90,7 +86,6 @@ for i=1:num_week
     params_mle_weekly(i,:)=xmin;
     params_mle_weekly_original(i,:)=xmin.*scaler;
 end
-%params_Q_mle_weekly = [params_mle_weekly(:,1),params_mle_weekly(:,2),params_mle_weekly(:,3),params_mle_weekly(:,4)+params_mle_weekly(:,5)+0.5];
-params_Q_mle_weekly = [params_mle_weekly_original(:,1),params_mle_weekly_original(:,2),params_mle_weekly_original(:,3),params_mle_weekly_original(:,4)+params_mle_weekly_original(:,5)+0.5];
-sig2_0 = params_mle_weekly_original(:,6);
-save('weekly_2015_mle_opt.mat','sig2_0','hist_vola','params_Q_mle_weekly')
+params_Q_mle_weekly = [params_mle_weekly(:,1),params_mle_weekly(:,2),params_mle_weekly(:,3),params_mle_weekly(:,4)+params_mle_weekly(:,5)+0.5];
+sig2_0 = params_mle_weekly(:,6);
+%save('weekly_2015_mle.mat','sig2_0','hist_vola','params_Q_mle_weekly')

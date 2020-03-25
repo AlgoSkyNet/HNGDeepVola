@@ -24,7 +24,12 @@ date_start          =  datenum(DateString_start,formatIn);
 date_end            =  datenum(DateString_end,formatIn);
 Dates               =  date_start:7:date_end;
 
-Init                =  params_Q_mle_weekly;
+sig2_0_start(1,:)        =  SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(1));
+
+for i = 1:length(Dates)
+sig2_0_start(i + 1,:)        =  SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(i));
+end
+Init                =  [params_Q_mle_weekly, sig2_0_start.*0+1e-8];
 
 Type                = 'call';
 MinimumVolume       = 100;
@@ -52,14 +57,15 @@ save('generaldata2015.mat','data','DatesClean','OptionsStruct','OptFeatures','id
 % Initialization     
 r                =   0.005/252;
 sc_fac           =   magnitude(Init);
+sc_fac(:,5) = 1e-4;
 Init_scale_mat   =   Init./sc_fac;
 % sc_fac           =   ones(53,4).*magnitude([0.0000027738 0.000016969 0.23378 181.77]);
 % Init_scale_mat   =   [0.0000027738 0.000016969 0.23378 181.77]./sc_fac;
 
-lb_mat           =   [1e-12,0,0,-500]./sc_fac;
-ub_mat           =   [1,1,10,1000]./sc_fac;
-opt_params_raw   =   zeros(max(weeksprices),4);
-opt_params_clean =   zeros(max(weeksprices),4);
+lb_mat           =   [1e-12,0,0,-500, 1e-9]./sc_fac;
+ub_mat           =   [1,1,10,1000,1e-2]./sc_fac;
+opt_params_raw   =   zeros(max(weeksprices),5);
+opt_params_clean =   zeros(max(weeksprices),5);
 values           =   cell(1,max(weeksprices));
 Init_scale       =   Init_scale_mat(1,:);
 scaler           =   sc_fac(1,:);  
@@ -69,9 +75,9 @@ scaler           =   sc_fac(1,:);
 % weekly optimization
 j = 1;
 for i = min(weeksprices):max(weeksprices)
-    if useRealVola
-        sig2_0(i) = SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(j));
-    end
+%     if useRealVola
+%         sig2_0(i) = SP500_date_prices_returns_realizedvariance_090320(4,SP500_date_prices_returns_realizedvariance_090320(1,:)==Dates(j));
+%     end
     %sig2_0(i)=2.263655236218522e-05;
     data_week = data(:,logical(idx(:,j))')';
     j = j+1;
@@ -86,7 +92,7 @@ for i = min(weeksprices):max(weeksprices)
     %f_min = @(params) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     % MSE
     %f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
-    f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
+    f_min_raw = @(params, scaler) (mean((price_Q_h0(params.*scaler,data_week,r)'-data_week(:,1)).^2));
     % MRAE/MAPE
     %%  UPDATE PRICING
     %f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
