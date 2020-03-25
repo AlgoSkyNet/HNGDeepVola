@@ -93,16 +93,24 @@ for i = min(weeksprices):max(weeksprices)
     %upper parameter bounds, scaled
     ub = ub_mat(i, :); 
 
+    
+    struc               =   struct();
+    struc.numOptions    =  length(data_week(:, 1));
+    
     % Goal function
     
     % RMSE
     %f_min = @(params) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
     
     % MSE
-    f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r, sig2_0(i))' - data_week(:, 1)).^2));
+    % f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r, sig2_0(i))' - data_week(:, 1)).^2));
     
     % MRAE/MAPE
-    %f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
+    %f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler, data_week, r, sig2_0(i))'-data_week(:, 1))./data_week(:, 1));
+    
+    % Options Likelihood
+    f_min_raw = @(params,scaler) (0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r, sig2_0(i))'-data_week(:, 1))./data_week(:, 5)).^2))))
+     
     
     %  Interior Point
     opt = optimoptions('fmincon', 'Display', 'iter',...
@@ -137,37 +145,44 @@ for i = min(weeksprices):max(weeksprices)
     opt_params_raw(i, :) = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     % store the results
 
-    opt_params_clean(i,:) = opt_params_raw(i, :).*scaler;
-    struc           =   struct();
-    struc.Price     =   data_week(:, 1)';
-    struc.hngPrice  =   price_Q(opt_params_clean(i,:), data_week, r, sig2_0(i)) ;
-    struc.numOptions =  length(data_week(:, 1));
+    opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;
+    
+    
+    struc.Price         =   data_week(:, 1)';
+    struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r, sig2_0(i)) ;
+    
 
     % compute interest rates for the weekly options
     r_cur = zeros(length(data_week), 1);
     for k = 1:length(data_week)
+        if data_week(k, 2) < 21
+            r_cur(k) = interestRates(1,2);
+        end
         r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
     end
-    struc.blsPrice  =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
-    struc.blsimpv   =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
-    struc.blsimpvhn =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
-    struc.epsilon   =   (struc.Price - struc.hngPrice) ./ data_week(:,5);
-    s_epsilon2      =   mean(struc.epsilon(:).^2);
-    epsilon2_norm   =   sum((struc.epsilon(:).^2)) / s_epsilon2;
-    struc.optionsLik =  (-.5 * (struc.numOptions * (log(2 * pi) + log(s_epsilon2)) + epsilon2_normalized));
-    struc.meanPrice =   mean(data_week(:, 1));
-    struc.hngparams =   opt_params_clean(i, :);
-    struc.countneg  =   sum(struc.hngPrice <= 0);
-    struc.matr      =   [struc.Price; struc.hngPrice; struc.blsPrice];
-    struc.maxAbsEr  =   max(abs(struc.hngPrice - struc.Price));
-    struc.IVRMSE    =   sqrt(mean(100 * (struc.blsimpv - struc.blsimpvhn).^2));
-    struc.MAPE      =   mean(abs(struc.hngPrice - struc.Price)./struc.Price);
-    struc.MaxAPE    =   max(abs(struc.hngPrice - struc.Price)./struc.Price);
-    struc.RMSE      =   sqrt(mean((struc.hngPrice - struc.Price).^2));
-    struc.RMSEbls   =   sqrt(mean((struc.blsPrice - struc.Price).^2));
-    struc.scale     =   scaler;
-    scale_tmp       =   scaler;
-    values{i}       =   struc;
+    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
+    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
+    struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
+    struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
+    struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
+    s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
+    s_epsilon2bls       =   mean(struc.epsilonbls(:).^2);
+    struc.optionsLikhng =   -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1);
+    struc.optionsLikbls =   -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2bls) + 1);
+    struc.meanPrice     =   mean(data_week(:, 1));
+    struc.hngparams     =   opt_params_clean(i, :);
+    struc.countneg      =   sum(struc.hngPrice <= 0);
+    struc.matr          =   [struc.Price; struc.hngPrice; struc.blsPrice];
+    struc.maxAbsEr      =   max(abs(struc.hngPrice - struc.Price));
+    struc.IVRMSE        =   sqrt(mean(100 * (struc.blsimpv - struc.blsimpvhng).^2));
+    struc.MAPE          =   mean(abs(struc.hngPrice - struc.Price)./struc.Price);
+    struc.MaxAPE        =   max(abs(struc.hngPrice - struc.Price)./struc.Price);
+    struc.MSE           =   mean((struc.hngPrice - struc.Price).^2);
+    struc.RMSE          =   sqrt(struc.MSE);
+    struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
+    struc.scale         =   scaler;
+    scale_tmp           =   scaler;
+    values{i}           =   struc;
     
 end 
 
