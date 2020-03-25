@@ -10,6 +10,7 @@ path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           =  'SP500';
 year                =  2015;
 path_               =  strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
+load(path_);
 % load Interest rates
 load('/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets/InterestRates/interestRates2015.mat');
 
@@ -58,7 +59,7 @@ for i = min(weeksprices):max(weeksprices)
     j = j + 1;
 end
 
-data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying];
+data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega];
 save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
 %% Optiimization
 
@@ -140,15 +141,20 @@ for i = min(weeksprices):max(weeksprices)
     struc           =   struct();
     struc.Price     =   data_week(:, 1)';
     struc.hngPrice  =   price_Q(opt_params_clean(i,:), data_week, r, sig2_0(i)) ;
-    struc.blsPrice  =   blsprice(data_week(:, 4), data_week(:, 3), r * 252, data_week(:, 2)/252, hist_vola(i), 0)';
-    
+    struc.numOptions =  length(data_week(:, 1));
+
     % compute interest rates for the weekly options
     r_cur = zeros(length(data_week), 1);
     for k = 1:length(data_week)
         r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
     end
+    struc.blsPrice  =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
     struc.blsimpv   =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.blsimpvhn =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
+    struc.epsilon   =   (struc.Price - struc.hngPrice) ./ data_week(:,5);
+    s_epsilon2      =   mean(struc.epsilon(:).^2);
+    epsilon2_norm   =   sum((struc.epsilon(:).^2)) / s_epsilon2;
+    struc.optionsLik =  (-.5 * (struc.numOptions * (log(2 * pi) + log(s_epsilon2)) + epsilon2_normalized));
     struc.meanPrice =   mean(data_week(:, 1));
     struc.hngparams =   opt_params_clean(i, :);
     struc.countneg  =   sum(struc.hngPrice <= 0);

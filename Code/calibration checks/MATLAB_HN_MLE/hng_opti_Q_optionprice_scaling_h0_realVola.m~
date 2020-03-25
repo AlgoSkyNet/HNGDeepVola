@@ -4,14 +4,15 @@ clc;
 clearvars; 
 close all;
 
-% load Interest rates
-load('interestRates2015.mat');
+
 %parpool()
 path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           =  'SP500';
 year                =  2015;
 path_               =  strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
+% load Interest rates
+load('/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets/InterestRates/interestRates2015.mat');
 
 load('weekly_2015_mle.mat');
 
@@ -58,7 +59,7 @@ for i = min(weeksprices):max(weeksprices)
     j = j + 1;
 end
 
-data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying];
+data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega];
 save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
 %% Optiimization
 
@@ -140,15 +141,19 @@ for i = min(weeksprices):max(weeksprices)
     struc           =   struct();
     struc.Price     =   data_week(:, 1)';
     struc.hngPrice  =   price_Q(opt_params_clean(i,:), data_week, r, sig2_0(i)) ;
-    struc.blsPrice  =   blsprice(data_week(:, 4), data_week(:, 3), r * 252, data_week(:, 2)/252, hist_vola(i), 0)';
     
     % compute interest rates for the weekly options
     r_cur = zeros(length(data_week), 1);
     for k = 1:length(data_week)
         r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
     end
+    struc.blsPrice  =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
     struc.blsimpv   =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.blsimpvhn =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
+    struc.epsilon = (struc.Price - struc.hngPrice) ./ data_week(:,5);
+    s_epsilon2 = mean(struc.epsilon(:).^2);
+    epsilon2_normalized = sum((struc.epsilon(:).^2)) / s_epsilon2;
+    fVal.Esscher2_theta2(j, 1) = (-.5 * (NumOptionsDate * (log(2 * pi) + log(s_epsilon2)) + epsilon2_normalized));
     struc.meanPrice =   mean(data_week(:, 1));
     struc.hngparams =   opt_params_clean(i, :);
     struc.countneg  =   sum(struc.hngPrice <= 0);
@@ -162,28 +167,6 @@ for i = min(weeksprices):max(weeksprices)
     struc.scale     =   scaler;
     scale_tmp       =   scaler;
     values{i}       =   struc;
-    
-    
-    for i=1:nset
-data(i,6)=blsimpv(data(i,1),data(i,2),-1+(1+rf)^data(i,4),data(i,4)/252,data(i,3));
-%replace hncfil with hngarchoptioncf to use 2 integral formula
-if hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4))<0
-    data(i,7) = NaN;
-else
-    
-    data(i,7)=blsimpv(data(i,1),data(i,2),-1+(1+rf)^data(i,4),data(i,4)/252,hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4)));
-end
-
-if isnan(data(i,6)) || isnan(data(i,7)) || hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4))<0
-    data(i,8)=NaN;
-else
-    data(i,8)=(100*(data(i,6)-data(i,7)))^2;
-end
-    data(i,9)=hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4));
-    end
-
-
-    
     
 end 
 
