@@ -4,14 +4,14 @@ clc;
 clearvars; 
 close all;
 
-% load Interest rates
-load('interestRates2015.mat');
+
 %parpool()
 path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           =  'SP500';
 year                =  2015;
 path_               =  strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
-load(path_);
+% load Interest rates
+load('/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets/InterestRates/interestRates2015.mat');
 
 load('weekly_2015_mle.mat');
 

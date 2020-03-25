@@ -1,0 +1,15 @@
+clear;
+data = xlsread('USTreasuryData2018.xlsx');
+monthly1m_rate = nanmean(data(:,2))/100;%/21;
+monthly3m_rate = nanmean((data(:,4)))/100;%/63;
+monthly6m_rate = nanmean((data(:,5)))/100;%/126;
+monthly12m_rate = nanmean((data(:,6)))/100;%/252;
+interestRates(1,1) = 21;
+interestRates(1,2) = monthly1m_rate;
+interestRates(2,1) = 63;
+interestRates(2,2) = monthly3m_rate;
+interestRates(3,1) = 126;
+interestRates(3,2) = monthly6m_rate;
+interestRates(4,1) = 252;
+interestRates(4,2) = monthly12m_rate;
+save('interestRates2018.mat', 'interestRates');
