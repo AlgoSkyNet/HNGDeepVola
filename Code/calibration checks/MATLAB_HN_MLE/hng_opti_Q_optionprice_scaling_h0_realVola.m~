@@ -163,6 +163,28 @@ for i = min(weeksprices):max(weeksprices)
     scale_tmp       =   scaler;
     values{i}       =   struc;
     
+    
+    for i=1:nset
+data(i,6)=blsimpv(data(i,1),data(i,2),-1+(1+rf)^data(i,4),data(i,4)/252,data(i,3));
+%replace hncfil with hngarchoptioncf to use 2 integral formula
+if hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4))<0
+    data(i,7) = NaN;
+else
+    
+    data(i,7)=blsimpv(data(i,1),data(i,2),-1+(1+rf)^data(i,4),data(i,4)/252,hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4)));
+end
+
+if isnan(data(i,6)) || isnan(data(i,7)) || hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4))<0
+    data(i,8)=NaN;
+else
+    data(i,8)=(100*(data(i,6)-data(i,7)))^2;
+end
+    data(i,9)=hngarchoptioncf(data(i,1),data(i,2),theta,data(i,4));
+    end
+
+
+    
+    
 end 
 
 save('params_Options_2015_h0asRealVola_MSE.mat','values');
