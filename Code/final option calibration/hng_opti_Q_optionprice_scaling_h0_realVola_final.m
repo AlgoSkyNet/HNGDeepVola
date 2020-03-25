@@ -15,7 +15,7 @@ path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), 
 load(path_);
 % load Interest rates
 load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets/InterestRates/interestRates',num2str(year),'.mat'));
-load(strcat('weekly_',num2str(year),'_mle.mat'));
+load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
 
 % if use realized volatility data then load the corresponding data
 useRealVola = 1;
