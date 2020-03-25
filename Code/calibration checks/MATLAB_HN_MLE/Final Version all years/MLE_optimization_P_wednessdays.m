@@ -5,9 +5,6 @@
 % interest rates are calcalated for each year and used as fixed input
 clc; close all; clearvars;
 
-%TODO
-% rate, scaling, paralllization
-
 %% data
 datatable       = readtable('SP500_220320.csv');
 data            = [datenum(datatable.Date),year(datatable.Date),datatable.Close,[0;log(datatable.Close(2:end))-log(datatable.Close(1:end-1))]];
