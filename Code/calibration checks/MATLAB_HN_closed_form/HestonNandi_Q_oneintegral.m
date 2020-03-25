@@ -25,7 +25,7 @@ function OptionPrice= HestonNandi_Q_oneintegral(S_0,X,Sig_,T,r,w,a,b,g_)
     %Sig_ = (w+a)/(1-b-a*g_*g_);
     %Sig_ = 8.179144119369230e-05;
     
-    OptionPrice = .5*(S_0-X*exp(-r*T))+1/pi*exp(-r*T)*integral(@Integrand,eps,1000);
+    OptionPrice = .5*(S_0-X*exp(-r.*T))+1/pi*exp(-r.*T)*integral(@Integrand,eps,1000);
     
     function f=Integrand(phi)
         f = 1./phi.*real(X.^(-1i*phi)*(-1i).*(charac_fun(1i*phi+1)-X.*charac_fun(1i*phi)));
