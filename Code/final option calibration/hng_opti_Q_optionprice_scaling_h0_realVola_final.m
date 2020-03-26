@@ -5,7 +5,7 @@ clearvars;
 close all;
 
 
-%parpool()
+parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2015;
@@ -21,8 +21,10 @@ load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
 % load the corresponding data
 if useYield
     path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
+    txt = "useYield";
 else
     path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateTbill_090320.mat');
+    txt = "noYield";
 end
 load(path_vola);
 
@@ -43,7 +45,7 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
-Init                    = params_Q_mle_weekly;
+Init                    = params_tmp;
 % bounds for maturity, moneyness, volumes, interest rates
 Type                    = 'call';
 MinimumVolume           = 100;
@@ -86,6 +88,7 @@ scaler           =   sc_fac(1, :);
 % weekly optimization
 j = 1;
 for i = min(weeksprices):max(weeksprices)
+    disp(strcat("Optimization of week ",num2str(i)," in year ",num2str(year),"."))
     if useRealVola
         sig2_0(i) = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
@@ -136,7 +139,7 @@ for i = min(weeksprices):max(weeksprices)
             %r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
         end
     end
-    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
+    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.Price         =   data_week(:, 1)';
     
@@ -224,5 +227,4 @@ for i = min(weeksprices):max(weeksprices)
     scale_tmp           =   scaler;
     values{i}           =   struc;    
 end 
-
-save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'.mat','values'));
+save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat','values'));

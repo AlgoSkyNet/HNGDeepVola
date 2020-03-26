@@ -20,7 +20,7 @@ for i = 1:9
     disp([idx(i)+1,idx(i+1)]);
     sig_tmp                 = sig2_0(idx(i)+1:idx(i+1));
     vola_tmp                = hist_vola(idx(i)+1:idx(i+1));
-    params_tmp              = params_Q_mle_weekly(idx(i)+1:idx(i+1));
+    params_tmp              = params_Q_mle_weekly(idx(i)+1:idx(i+1),:);
     name                    = strcat('weekly_',num2str(i+2009),'_mle_opt.mat');
     save(name,'sig_tmp','vola_tmp','params_tmp')
 end
