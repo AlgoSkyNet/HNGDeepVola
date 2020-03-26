@@ -9,10 +9,10 @@ close all;
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
-useYield            = 0; % 1
-useRealVola         = 1; 
+useYield            = 0; %uses tbils now
+useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "MSE"; % "MAPE" ,"OptLL"
+goal                = "MAPE"; %"MSE"; % ,"OptLL"
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -169,7 +169,7 @@ for i = min(weeksprices):max(weeksprices)
     if strcmp(algorithm,"InteriorPoint")
         opt = optimoptions('fmincon', 'Display', 'iter',...
         'Algorithm', 'interior-point', 'MaxIterations', 1000,...
-        'MaxFunctionEvaluations', 1500, 'TolFun', 1e-4, 'TolX', 1e-4);
+        'MaxFunctionEvaluations',2000, 'TolFun', 1e-6, 'TolX', 1e-6);
     % WE DO NOT USE THIS AS OPTIMIZATION ALGORITHM FUNCTION
     % SQP
     %elseif strcmp(algorithm,"SQP")
@@ -227,4 +227,7 @@ for i = min(weeksprices):max(weeksprices)
     scale_tmp           =   scaler;
     values{i}           =   struc;    
 end 
-save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat','values'));
+save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+
+%for specific weeks
+%save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
