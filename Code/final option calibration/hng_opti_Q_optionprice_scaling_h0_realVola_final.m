@@ -5,10 +5,10 @@ clearvars;
 close all;
 
 
-parpool()
+%parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2015;
+year                = 2010;
 useYield            = 0; % 1
 useRealVola         = 1; 
 algorithm           = "InteriorPoint";% "SQP"
