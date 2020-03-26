@@ -95,7 +95,7 @@ for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
     end
     data_week = data(:, logical(idx(:,j))')';
-    j = j + 1;
+    
     if isempty(data_week)
         continue
     end
@@ -114,7 +114,7 @@ for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
             interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
     end
-    
+    j = j + 1;
     r_cur = zeros(length(data_week), 1);
     if useYield
         for k = 1:length(data_week)
