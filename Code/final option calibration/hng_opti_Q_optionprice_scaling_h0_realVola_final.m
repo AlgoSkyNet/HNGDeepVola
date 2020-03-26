@@ -9,20 +9,25 @@ close all;
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2015;
+useYield            = 0; % 1
+useRealVola         = 1; 
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "MSE"; %"RMSE" "MAPE" ,"OptLL"
+goal                = "MSE"; % "MAPE" ,"OptLL"
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
-% load Interest rates
-load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets/InterestRates/interestRates',num2str(year),'.mat'));
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
 
-% if use realized volatility data then load the corresponding data
-useRealVola = 1;
-if useRealVola
-    path_vola       =  strcat(path, '/', stock_ind, '/', 'SP500_date_prices_returns_realizedvariance_090320.mat');
-    load(path_vola);
+% load Interest rates
+% load the corresponding data
+if useYield
+    path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
+else
+    path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateTbill_090320.mat');
 end
+load(path_vola);
+
+% if use realized volatility data then load the corresponding data
+
 
 bound                   = [100, 100];
 formatIn                = 'dd-mmm-yyyy';
@@ -62,12 +67,11 @@ for i = min(weeksprices):max(weeksprices)
     j = j + 1;
 end
 
-data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega];
-save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
+data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
+% save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
 %% Optiimization
 
 % Initialization     
-r                =   interestRates(4,2)/252;
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
 lb_mat           =   [1e-12, 0, 0, -500]./sc_fac;
@@ -83,8 +87,8 @@ scaler           =   sc_fac(1, :);
 j = 1;
 for i = min(weeksprices):max(weeksprices)
     if useRealVola
-        sig2_0(i) = SP500_date_prices_returns_realizedvariance_090320(4, ...
-            SP500_date_prices_returns_realizedvariance_090320(1,:) == Dates(j));
+        sig2_0(i) = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
     end
     data_week = data(:, logical(idx(:,j))')';
     j = j + 1;
@@ -95,33 +99,78 @@ for i = min(weeksprices):max(weeksprices)
     lb = lb_mat(i, :);
     %upper parameter bounds, scaled
     ub = ub_mat(i, :); 
+    
     struc               =   struct();
     struc.numOptions    =  length(data_week(:, 1));
-    
-    % Goal function
-
-    % RMSE
-    if strcmp(goal,"RMSE")
-        f_min_raw = @(params, scaler) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
-    % MSE
-    elseif strcmp(goal,"MSE")
-        f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r, sig2_0(i))' - data_week(:, 1)).^2));
-    % MRAE/MAPE
-    elseif strcmp(goal,"MAPE")
-        f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1))./data_week(:,1));
-    % Option Likelyhood
-    elseif strcmp(goal,"OptLL")
-        f_min_raw = @(params,scaler) (0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r, sig2_0(i))'-data_week(:, 1))./data_week(:, 5)).^2))));
+    % compute interest rates for the weekly options
+    if useYield
+        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:8, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
+    else
+            interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+        SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
     end
     
+    r_cur = zeros(length(data_week), 1);
+    if useYield
+        for k = 1:length(data_week)
+            if data_week(k, 2) < 21
+                r_cur(k) = interestRates(1);
+            else
+                r_cur(k) = interp1([21,63,126,252]./252, interestRates, data_week(k, 2)./252);
+            end
+            %r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
+        end
+    else
+        for k = 1:length(data_week)
+            if data_week(k, 2) < 21 && ~isnan(interestRates(1))
+                r_cur(k) = interestRates(1);
+            else
+                notNaN = ~isnan(interestRates);
+                daylengths = [21, 42, 13*5, 126, 252]./252;
+                r_cur(k) = interp1(daylengths(notNaN), interestRates(notNaN), data_week(k, 2)./252);
+                if isnan(r_cur(k))
+                    b=0;
+                end
+            end
+            %r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
+        end
+    end
+    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
+    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
+    struc.Price         =   data_week(:, 1)';
+    
+    
+    %% Goal function
+
+    % MSE
+    if strcmp(goal,"MSE")
+        f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))' - data_week(:, 1)).^2));
+    % MRAE/MAPE
+    elseif strcmp(goal,"MAPE")
+        f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 1));
+    % Option Likelyhood
+    elseif strcmp(goal,"OptLL")
+        f_min_raw = @(params,scaler) (0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 5)).^2))));
+    % WE DO NOT USE THIS FOR GOAL FUNCTION
+    % RMSE
+    %elseif strcmp(goal,"RMSE")
+    %    f_min_raw = @(params, scaler) sqrt(mean((price_Q(params.*scaler,data_week,r,sig2_0(i))'-data_week(:,1)).^2));
+    % IV RMSE
+    %elseif strcmp(goal,"IVRMSE")
+    %   f_min_raw = @(params, scaler) sqrt(mean(100 * (struc.blsimpv - blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))')).^2));
+    end
+    
+    %% Algorithm 
     %  Interior Point
     if strcmp(algorithm,"InteriorPoint")
         opt = optimoptions('fmincon', 'Display', 'iter',...
-            'Algorithm', 'interior-point', 'MaxIterations', 1000,...
-            'MaxFunctionEvaluations', 1500, 'TolFun',1e-3, 'TolX', 1e-3);
+        'Algorithm', 'interior-point', 'MaxIterations', 1000,...
+        'MaxFunctionEvaluations', 1500, 'TolFun', 1e-4, 'TolX', 1e-4);
+    % WE DO NOT USE THIS AS OPTIMIZATION ALGORITHM FUNCTION
     % SQP
-    elseif strcmp(algorithm,"SQP")
-        opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',50,'MaxFunctionEvaluations',300,'FunctionTolerance',1e-4);
+    %elseif strcmp(algorithm,"SQP")
+    %    opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',50,'MaxFunctionEvaluations',300,'FunctionTolerance',1e-4);
     end
     
     % Starting value check / semi globalization
@@ -147,25 +196,12 @@ for i = min(weeksprices):max(weeksprices)
     % run optimization
     nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
     opt_params_raw(i, :) = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+    
     % store the results
-
     opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;
     
     
-    struc.Price         =   data_week(:, 1)';
-    struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r, sig2_0(i)) ;
-    
-
-    % compute interest rates for the weekly options
-    r_cur = zeros(length(data_week), 1);
-    for k = 1:length(data_week)
-        if data_week(k, 2) < 21
-            r_cur(k) = interestRates(1,2);
-        end
-        r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
-    end
-    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, hist_vola(i), 0)';
-    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
+    struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
     struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
@@ -186,7 +222,7 @@ for i = min(weeksprices):max(weeksprices)
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     struc.scale         =   scaler;
     scale_tmp           =   scaler;
-    values{i}           =   struc;
-    
-end
+    values{i}           =   struc;    
+end 
+
 save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'.mat','values'));
