@@ -15,7 +15,7 @@ load('weekly_2015_mle.mat');
 
 % load Interest rates
 % load the corresponding data
-useYield = 1;
+useYield = 0;
 if useYield
     path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
@@ -96,13 +96,10 @@ for i = min(weeksprices):max(weeksprices)
     struc               =   struct();
     struc.numOptions    =  length(data_week(:, 1));
     % compute interest rates for the weekly options
-    if useYield
-        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:8, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
-    else
-            interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+    
+    interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:8, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
-    end
+    
     
     r_cur = zeros(length(data_week), 1);
     if useYield
@@ -122,9 +119,7 @@ for i = min(weeksprices):max(weeksprices)
                 notNaN = ~isnan(interestRates);
                 daylengths = [21, 42, 13*5, 126, 252]./252;
                 r_cur(k) = interp1(daylengths(notNaN), interestRates(notNaN), data_week(k, 2)./252);
-                if isnan(r_cur(k))
-                    b=0;
-                end
+                if isnan(r_cur
             end
             %r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
         end

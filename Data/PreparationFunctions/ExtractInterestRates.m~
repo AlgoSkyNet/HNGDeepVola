@@ -45,34 +45,16 @@ dates = datenum(datestr(d));
 % 4 weeks bank discount	
 monthly(:,1) = (table2array(data(:,2)))/100;
 % 8 weeks bank discount	
-temp = table2cell((data(:,4)));
-array = [];
-for i = 1:length(temp)
-    if temp{i}=='N/A'
-        array(i, 1) = NaN;
-    else
-        array(i, 1) = double(string(temp{i}));
-    end
-end
-monthly(:,2) = array/100;
+monthly(:,2) = (table2array(data(:,4)))/100;
 % 13 weeks bank discount	
 monthly(:,3) = (table2array(data(:,6)))/100;
 % 26 weeks bank discount
 monthly(:,4) = (table2array(data(:,8)))/100;
 % 52 weeks bank discount
-temp = table2cell((data(:,10)));
-array = [];
-for i = 1:length(temp)
-    if temp{i}=='N/A'
-        array(i, 1) = NaN;
-    else
-        array(i, 1) = double(string(temp{i}));
-    end
-end
-monthly(:,5) = array/100;
+monthly(:,5) = (table2array(data(:,10)))/100;
 
 % interestRates
 interestRates(1, :) = dates';
 interestRates(2:6, :) = monthly';
 
-save('interestRatesTbill2001to032020.mat', 'interestRates');
+save('interestRates2001to032020.mat', 'interestRates');
