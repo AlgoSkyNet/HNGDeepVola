@@ -8,11 +8,11 @@ close all;
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2011;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "MSE"; % "MSE";   "MAPE";  ,"OptLL";
+goal                = "MAPE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -144,7 +144,7 @@ for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.Price         =   data_week(:, 1)';
     struc.sig20         =   sig2_0(i);
-    struc.yields        =   interestRates(notNaN);
+    struc.yields        =   interestRates;
     
     %% Goal function
 

@@ -4,74 +4,109 @@
 clearvars; clc;close all;
 
 %% Initialisation
-path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/final option calibration/';
-alldata = {};
-k=1;
 %concentate all datasets.
-for y=2010:2018
+path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/final option calibration/';
+alldata   = {};
+k = 0;
+for y=2010%:2018
     for goal = ["MSE","MAPE","OptLL"]
-        file = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
-        alldata{k} = load(file);
         k = k+1;
+        file    = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
+        tmp     = load(file);
+        alldata{k} = tmp.values;
     end
 end
+%
+Ninputs = 0;
+for j = 1:k
+    for m=1:length(alldata{1,j})
+        if isempty(alldata{1,j}{1,m})
+            continue
+        end
+        Ninputs = Ninputs+1;
+        params(Ninputs,:) = alldata{1,j}{1,m}.hngparams;
+        sig2_0(Ninputs)   = alldata{1,j}{1,m}.sig20; 
+        yields(Ninputs,:) = alldata{1,j}{1,m}.yields;
+    end
+end
+sig2_0 = sig2_0';
+
+% normalised data 
+cov_        = cov([params,sig2_0,yields]);
+mean_       = mean([params,sig2_0,yields]);
+%init_norm   = normalize([params,sig2_0,yields]);
+%cov_norm    = cov(norm_matrix);
+min_        = min([params,sig2_0,yields]);
+max_        = max([params,sig2_0,yields]);
 
 %rng('default')
-N               = length(values);
 Maturity        = 30:30:210;
 K               = 0.9:0.025:1.1;
 S               = 1;
 K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
-
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 
-
 %% DATASET GENERATION: CURRENTLY UNDER CONSTRUCTION
-Nsim            = 50000;
-scenario_data   = zeros(Nsim, 7+Nstrikes*Nmaturities);
-fail1           = 0;
-fail2           = 0;
-params          = compare(:,2,:);
-min_            = reshape(min(params),1,4);
-max_            = reshape(max(params),1,4);
-Sig             = [min(sig2_0),max(sig2_0)];
+Nsim            = 1000;
+scenario_data   = zeros(Nsim, 4+1+Nmaturities+Nstrikes*Nmaturities);
+
 fprintf('%s','Generatiting Prices. Progress: 0%')
+rand_params = mvnrnd(mean_,cov_,Nsim);
+i_rand = randi(Ninputs,Nsim,1);
+j = 0;
 for i = 1:Nsim
-    price = -ones(1,Nmaturities*Nstrikes);
-    while any(any(price < 0)) || any(any(price' > exp(-r/252*data_vec(:,2)/252).*data_vec(:,1))) %check for violation of intrinsiv bounds
-        a = 1;
-        b = 1;
-        g = 1;
-        % ToDo: Optimize random draw to fit distribution better!!!
-        % (especially distribution of b+a*g^2)
-        fail2 = fail2-1;
-        while (b+a*g^2 >= 1)
-            a = min_(2)+(max_(2)-min_(2)).*rand(1,1);
-            b = min_(3)+(max_(3)-min_(3)).*rand(1,1);
-            g = min_(4)+(max_(4)-min_(4)).*rand(1,1);
-            fail2 = fail2 +1;
-        end
-        w       = min_(1)+(max_(1)-min_(1)).*rand(1,1);
-        %Sig_    = (w+a)/(1-a*g^2-b);
-        Sig_    = Sig(1)+(Sig(2)-Sig(1)).*rand(1,1);
-        price   = price_Q_clear([w,a,b,g],data_vec,r/252,Sig_);
-        fail1   = fail1+1;
+    w   = rand_params(i,1);
+    a   = rand_params(i,2);
+    b   = rand_params(i,3);
+    g   = rand_params(i,1);
+    sig = rand_params(i,1);
+    int = i_rand(i);
+    if b+a*g^2 >= 1
+        continue
     end
-    fail1 = fail1-1;
-    if ismember(i,floor(Nsim*[1/(5*log10(Nsim*100)):1/(5*log10(Nsim*100)):1]))
+    daylengths = [21,42, 13*5, 126, 252]./252;
+    interestRates = yields(int,:);
+    notNaN = ~isnan(interestRates);             
+    yieldcurve = interp1(daylengths(notNaN),interestRates(notNaN),data_vec(:,2)/252);
+    price   = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
+    if any(any(price <= 0))
+        continue
+    end
+    j=j+1;
+    if ismember(i,floor(Nsim*[1/100:1/100:1]))
         fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%"),fprintf('\n')
-        fprintf('Number of fails'),disp([fail1,fail2])
     end
-    scenario_data(i,:) = [a, b, g, w, Sig_,(a+w)/(1-a*g^2-b), b+a*g^2, price];%reshape(price', [1,Nstrikes*Nmaturities])];  
+    scenario_data(j,:) = [a, b, g, w,sig,unique(yieldcurve)',price];
 end
 data_price = scenario_data;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 price_vec  = zeros(1,Nmaturities*Nstrikes);
 bad_idx    = [];
 fprintf('%s','Calculating Imp Volas. Progress: 0%')
 for i = 1:Nsim
-    if ismember(i,floor(Nsim*[1/(5*log10(Nsim*100)):1/(5*log10(Nsim*100)):1]))
+     if ismember(i,floor(Nsim*[1/100:1/100:1]))
         fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%"),fprintf('\n')
     end
     price_vec = data_price(i,8:end);

@@ -11,18 +11,17 @@ T =  data_vec(:,2);
 pool_ = gcp();
 pr(1:size(data_vec,1)) = parallel.FevalFuture;
 %p=max(S-K,0)';%maximal intrinsic value
-p = exp(-r*T).*K; %upper bound call price
+p = exp(-r.*T).*K; %upper bound call price
 p = p';
 for j =1:size(data_vec,1)
-    pr(j) = parfeval(pool_,@HestonNandi_Q_oneintegral,1,S(j),K(j),sig0,T(j),r,w,a,b,g);
+    pr(j) = parfeval(pool_,@HestonNandi_Q_oneintegral,1,S(j),K(j),sig0,T(j),r(j),w,a,b,g);
 end
 for j =1:size(data_vec,1)
     [completedIdx,value] = fetchNext(pr,0.5); %shutdown after 0.5s for integral calc
     p(completedIdx) = value;
+    if p(completedIdx) < 0
+        p(completedIdx) = 0;
+    end
 end
 cancel(pr)
-for i=1:length(p)
-    if p(i)<=0 || isnan(p(i))
-        p(i)=max([0,S(i)-K(i)*exp(-r*T(i)/252)]); %intrinsiv minimum value 
-    end
 end
