@@ -12,7 +12,7 @@ year                = 2010;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "MSE"; %"MAPE";  ,"OptLL"
+goal                = "MSE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -63,8 +63,6 @@ MoneynessInterval       = [0.9, 1.1];
 weeksprices             = week(datetime([OptionsStruct.date], 'ConvertFrom', 'datenum'));
 idx                     = zeros(length(weeksprices), max(weeksprices));
 
-% set week counter to start at 1
-weeksprices = weeksprices-min(weeksprices)+1;
 j = 1;
 for i = min(weeksprices):max(weeksprices)
     idx(:, j) = (weeksprices == i)';
@@ -73,7 +71,7 @@ end
 
 data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
 % save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
-%% Optiimization
+%% Optimization
 
 % Initialization     
 sc_fac           =   magnitude(Init);
@@ -83,13 +81,14 @@ ub_mat           =   [1, 1, 10, 1000]./sc_fac;
 opt_params_raw   =   zeros(max(weeksprices), 4);
 opt_params_clean =   zeros(max(weeksprices), 4);
 values           =   cell(1,max(weeksprices));
-Init_scale       =   Init_scale_mat(1, :);
-scaler           =   sc_fac(1, :);  
+%values in first iteration:
+Init_scale       =   Init_scale_mat(min(weeksprices), :);
+scaler           =   sc_fac(min(weeksprices), :);  
 
-        
+       
 % weekly optimization
 j = 1;
-for i = min(weeksprices):max(weeksprices)
+for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
     disp(strcat("Optimization of week ",num2str(i)," in year ",num2str(year),"."))
     if useRealVola
         sig2_0(i) = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
@@ -145,7 +144,7 @@ for i = min(weeksprices):max(weeksprices)
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.Price         =   data_week(:, 1)';
     struc.sig20         =   sig2_0(i);
-    struc.yields        =   r_cur;
+    struc.yields        =   interestRates(notNaN);
     
     %% Goal function
 
