@@ -12,7 +12,7 @@ year                = 2010;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "MAPE"; %"MSE"; % ,"OptLL"
+goal                = "MSE"; %"MAPE";  ,"OptLL"
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -63,6 +63,8 @@ MoneynessInterval       = [0.9, 1.1];
 weeksprices             = week(datetime([OptionsStruct.date], 'ConvertFrom', 'datenum'));
 idx                     = zeros(length(weeksprices), max(weeksprices));
 
+% set week counter to start at 1
+weeksprices = weeksprices-min(weeksprices)+1;
 j = 1;
 for i = min(weeksprices):max(weeksprices)
     idx(:, j) = (weeksprices == i)';
@@ -142,7 +144,8 @@ for i = min(weeksprices):max(weeksprices)
     struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.Price         =   data_week(:, 1)';
-    
+    struc.sig20         =   sig2_0(i);
+    struc.yields        =   r_cur;
     
     %% Goal function
 
