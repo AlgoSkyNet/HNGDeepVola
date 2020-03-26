@@ -15,7 +15,7 @@ load('weekly_2015_mle.mat');
 
 % load Interest rates
 % load the corresponding data
-useYield = 1;
+useYield = 0;
 if useYield
     path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
@@ -60,7 +60,7 @@ for i = min(weeksprices):max(weeksprices)
 end
 
 data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
-save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
+% save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
 %% Optiimization
 
 % Initialization     
