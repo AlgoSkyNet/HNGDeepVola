@@ -8,7 +8,7 @@ close all;
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2011;
+year                = 2010;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
@@ -113,6 +113,11 @@ for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
     else
             interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
+    end
+    for k = 1:length(interestRates)
+        if interestRates(k)<0
+            interestRates(k)=0;
+        end
     end
     j = j + 1;
     r_cur = zeros(length(data_week), 1);
