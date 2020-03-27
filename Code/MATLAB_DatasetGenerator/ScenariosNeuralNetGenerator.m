@@ -2,15 +2,16 @@
 % This Program generates the dataset for our neural net.
 
 clearvars; clc;close all;
-%temp =  java.util.UUID.randomUUID;myuuid = temp.toString;disp(myuuid)81a21cb5-105e-40d1-9823-69d75586e389
 
 %% Initialisation
 %concentate all datasets.
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/final option calibration/';
 alldata   = {};
 k = 0;
-for y=2010:2011%2018
-    for goal = ["MSE","MAPE","OptLL"]
+years = 2010:2011;
+goals = ["MSE","MAPE","OptLL"];
+for y=years
+    for goal = goals
         k = k+1;
         file    = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
         tmp     = load(file);
@@ -49,8 +50,10 @@ Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 choice          = "uni";
+id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
+
 %% Dataset Generation 
-Nsim            = 2000;
+Nsim            = 3000;
 
 % Choosing good parameters
 
@@ -130,12 +133,12 @@ data_vola(:,4+1+Nmaturities+1:75) = vola;
 data_vola         = data_vola(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
-save(strcat('data_price_',choice,'_',num2str(size(data_price,1)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
-save(strcat('data_vola_',choice,'_',num2str(size(data_vola,1)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_vola')
+save(strcat('id_',id,'_data_price_',num2str(size(data_price,1)),'.mat'),'data_price')
+save(strcat('id_',id,'_data_vola_',num2str(size(data_vola,1)),'.mat'),'data_vola')
 
 idx = logical(idx);
 
-%% Visualisation of control purposes
+%% Summary and Visualisation of control purposes
 % Summary
 prices = data_price(:,4+1+Nmaturities+1:end);
 volas  = data_vola(:,4+1+Nmaturities+1:end);
@@ -147,10 +150,15 @@ tab_data = [Nsim,length(idx),fail1/Nsim,fail3/Nsim,fail2/Nsim,length(bad_idx)/Ns
 stat = array2table(tab_data);    
 stat.Properties.VariableNames = {'Nsim','Nfinal','fail_con','fail_pos','fail_prices','fail_volas','max_price','min_price','mean_price','median_price',...
     'max_vola','min_vola','mean_vola','median_vola','median_alpha','median_beta','median_gamma','median_omega','median_sigma2_0','median_con'};
-stat = rows2vars(stat);
-stat.Properties.VariableNames = {'Property','Value'}; 
+stat = table2struct(stat);
+stat.param_type = choice;
+stat.years = years;
+stat.goalfuncs = goals;
+stat.Maturities = Maturity;       
+stat.Moneyness  = K;
+stat.id =id;
 disp(stat)
-save(strcat('summary_',choice,num2str(size(data_vola,1)),'.mat'),'stat')   
+save(strcat('id_',id,'_summary','.mat'),'stat')   
 figure
 subplot(2,3,1),histogram(scenario_data(idx,1),'Normalization','probability');title('alpha')
 subplot(2,3,2),histogram(scenario_data(idx,2),'Normalization','probability');title('beta')
@@ -158,7 +166,7 @@ subplot(2,3,3),histogram(scenario_data(idx,3),'Normalization','probability');tit
 subplot(2,3,4),histogram(scenario_data(idx,4),'Normalization','probability');title('omega')
 subplot(2,3,5),histogram(scenario_data(idx,5),'Normalization','probability');title('sigma')
 subplot(2,3,6),histogram(constraint(idx),'Normalization','probability');title('constraint');
-saveas(gcf,strcat('histograms_',choice,num2str(size(data_vola,1)),'.png'))
+saveas(gcf,strcat('id_',id,'_histograms','.png'))
 
 % Example plot
 %figure
