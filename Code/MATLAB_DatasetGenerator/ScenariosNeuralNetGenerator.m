@@ -115,30 +115,38 @@ idx               = setxor(1:j,bad_idx);
 data_vola         = data_price(:,1:4+1+Nmaturities);
 data_vola(:,4+1+Nmaturities+1:75) = vola;
 data_vola         = data_vola(idx,:);
+data_price        = data_price(idx,:);
 save(strcat('data_price_','maxbounds','_',num2str(size(data_price,1)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_price')
 save(strcat('data_vola_','maxbounds','_',num2str(size(data_vola,1)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_vola')
 
-
+idx = logical(idx);
 
 %% Visualisation of control purposes
 % Summary
     fprintf('\n')
-    disp(['max price: ',    num2str(max(max(scenario_data(:,4+1+Nmaturities+1:end))))])
-    disp(['min price: ',    num2str(min(min(scenario_data(:,4+1+Nmaturities+1:end))))])
-    disp(['mean price: ',   num2str(mean(mean(scenario_data(:,4+1+Nmaturities+1:end))))])
-    disp(['median price: ', num2str(median(median(scenario_data(:,4+1+Nmaturities+1:end))))])
-    disp(['median alpha: ', num2str(median(scenario_data(:,1)))])
-    disp(['median beta: ',  num2str(median(scenario_data(:,2)))])
-    disp(['median gamma: ', num2str(median(scenario_data(:,3)))])
-    disp(['median omega: ', num2str(median(scenario_data(:,4)))])
-    disp(['median sigma: ', num2str(median(scenario_data(:,5)))])
+    disp(['failed szenarios (constraints): ', num2str(round(100*fail1/Nsim,2)),'%'])
+    disp(['failed szenarios (bad prices):   ', num2str(round(100*fail2/Nsim,2)),'%'])
+    disp(['failed szenarios (bad volas):    ', num2str(round(100*length(bad_idx)/Nsim,2)),'%'])
+    disp(['max price:     ', num2str(max(data_price(:,4+1+Nmaturities+1:end),[],'all'))])
+    disp(['min price:     ', num2str(min(data_price(:,4+1+Nmaturities+1:end),[],'all'))])
+    disp(['mean price:    ', num2str(mean(data_price(:,4+1+Nmaturities+1:end),'all'))])
+    disp(['median price:  ', num2str(median(data_price(:,4+1+Nmaturities+1:end),'all'))])
+    disp(['max vola:      ', num2str(max(data_vola(:,4+1+Nmaturities+1:end),[],'all'))])
+    disp(['min vola:      ', num2str(min(data_vola(:,4+1+Nmaturities+1:end),[],'all'))])
+    disp(['mean vola:     ', num2str(mean(data_vola(:,4+1+Nmaturities+1:end),'all'))])
+    disp(['median vola:   ', num2str(median(data_vola(:,4+1+Nmaturities+1:end),'all'))])
+    disp(['median alpha:  ', num2str(median(scenario_data(idx,1)))])
+    disp(['median beta:   ', num2str(median(scenario_data(idx,2)))])
+    disp(['median gamma:  ', num2str(median(scenario_data(idx,3)))])
+    disp(['median omega:  ', num2str(median(scenario_data(idx,4)))])
+    disp(['median sigma:  ', num2str(median(scenario_data(idx,5)))])
 figure
-subplot(2,3,1),hist(scenario_data(:,1));title('alpha')
-subplot(2,3,2),hist(scenario_data(:,2));title('beta')
-subplot(2,3,3),hist(scenario_data(:,3));title('gamma')
-subplot(2,3,4),hist(scenario_data(:,4));title('omega')
-subplot(2,3,5),hist(scenario_data(:,5));title('sigma')
-subplot(2,3,6),hist(constraint);title('constraint');
+subplot(2,3,1),histogram(scenario_data(idx,1),'Normalization','probability');title('alpha')
+subplot(2,3,2),histogram(scenario_data(idx,2),'Normalization','probability');title('beta')
+subplot(2,3,3),histogram(scenario_data(idx,3),'Normalization','probability');title('gamma')
+subplot(2,3,4),histogram(scenario_data(idx,4),'Normalization','probability');title('omega')
+subplot(2,3,5),histogram(scenario_data(idx,5),'Normalization','probability');title('sigma')
+subplot(2,3,6),histogram(constraint(idx),'Normalization','probability');title('constraint');
 % Example plot
 figure
 [X,Y]=meshgrid(K,Maturity);
