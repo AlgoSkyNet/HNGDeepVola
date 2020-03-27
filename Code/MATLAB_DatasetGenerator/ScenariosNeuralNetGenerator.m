@@ -1,3 +1,5 @@
+% THIS FILE NEEDS MATLAB 2018a or higher!!!!
+
 % Dataset Generator
 % This Program generates the dataset for our neural net.
 % Each file has a 12 digit unique id for identification

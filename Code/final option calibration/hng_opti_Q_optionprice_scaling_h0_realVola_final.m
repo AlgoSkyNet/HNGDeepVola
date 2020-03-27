@@ -8,11 +8,11 @@ close all;
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2014;
+year                = 2018;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "MAPE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -86,7 +86,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 % weekly optimization
 j = 1;
 for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
-    disp(strcat("Optimization of week ",num2str(i)," in year ",num2str(year),"."))
+    disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         if isempty(SP500_date_prices_returns_realizedvariance_interestRates(4,...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)))
