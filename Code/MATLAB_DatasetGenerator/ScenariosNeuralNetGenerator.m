@@ -49,7 +49,7 @@ Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 
 %% Dataset Generation 
-Nsim            = 30000;
+Nsim            = 120000;
 
 % Choosing good parameters
 % Scaled Normal distribution
@@ -65,6 +65,7 @@ i_rand = randi(Ninputs,Nsim,1);
 j = 0;
 fail1 =0;
 fail2 =0;
+fail3 =0;
 fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
     w   = rand_params(i,1);
@@ -73,8 +74,12 @@ for i = 1:Nsim
     g   = rand_params(i,1);
     sig = rand_params(i,1);
     int = i_rand(i);
-    if b+a*g^2 >= 1 || w<=0 || a<0 || b<0 || sig<=0
+    if b+a*g^2 >= 1 
         fail1 = fail1+1;
+        continue
+    end
+    if w<=0 || a<0 || b<0 || sig<=0
+        fail3 = fail3+1;
         continue
     end
     daylengths = [21,42, 13*5, 126, 252]./252;
@@ -120,11 +125,13 @@ save(strcat('data_price_','maxbounds','_',num2str(size(data_price,1)),'_',num2st
 save(strcat('data_vola_','maxbounds','_',num2str(size(data_vola,1)),'_',num2str(min(K)),'_',num2str(max(K)),'_',num2str(min(Maturity)),'_',num2str(max(Maturity)),'.mat'),'data_vola')
 
 idx = logical(idx);
-
+fail3 = 0;
 %% Visualisation of control purposes
 % Summary
     fprintf('\n')
-    disp(['failed szenarios (constraints): ', num2str(round(100*fail1/Nsim,2)),'%'])
+    disp(['Summary:'])
+    disp(['failed szenarios (constraint): ', num2str(round(100*fail1/Nsim,2)),'%'])
+    disp(['failed szenarios (positivity): ', num2str(round(100*fail3/Nsim,2)),'%'])
     disp(['failed szenarios (bad prices):   ', num2str(round(100*fail2/Nsim,2)),'%'])
     disp(['failed szenarios (bad volas):    ', num2str(round(100*length(bad_idx)/Nsim,2)),'%'])
     disp(['max price:     ', num2str(max(data_price(:,4+1+Nmaturities+1:end),[],'all'))])
@@ -140,6 +147,19 @@ idx = logical(idx);
     disp(['median gamma:  ', num2str(median(scenario_data(idx,3)))])
     disp(['median omega:  ', num2str(median(scenario_data(idx,4)))])
     disp(['median sigma:  ', num2str(median(scenario_data(idx,5)))])
+prices = data_price(:,4+1+Nmaturities+1:end);
+volas  = data_vola(:,4+1+Nmaturities+1:end);
+param  = data_vola(:,1:5);
+tab_data = [Nsim,length(idx),round(100*fail1/Nsim,2),round(100*fail3/Nsim,2),round(100*fail2/Nsim,2),round(100*length(bad_idx)/Nsim,2),...
+    max(prices,[],'all'),min(prices,[],'all'),mean(prices,'all'),median(prices,'all'),...
+    max(volas,[],'all'),min(volas,[],'all'),mean(volas,'all'),median(volas,'all'),...
+    median(param)];
+stat = array2table(tab_data);    
+stat.Properties.VariableNames = {'Nsim','Nfinal','fail_con','fail_pos','fail_prices','fail_volas','max_price','min_price','mean_price','median_price',...
+    'max_vola','min_vola','mean_vola','median_vola','median_alpha','median_beta','median_gamma','median_omega','median_sigma2_0'};
+stat = rows2vars(stat);
+stat.Properties.VariableNames = {'Property','Value'}; 
+save(strcat('summarydataset',num2str(size(data_vola,1)),'.mat'),'stat')   
 figure
 subplot(2,3,1),histogram(scenario_data(idx,1),'Normalization','probability');title('alpha')
 subplot(2,3,2),histogram(scenario_data(idx,2),'Normalization','probability');title('beta')
@@ -147,8 +167,10 @@ subplot(2,3,3),histogram(scenario_data(idx,3),'Normalization','probability');tit
 subplot(2,3,4),histogram(scenario_data(idx,4),'Normalization','probability');title('omega')
 subplot(2,3,5),histogram(scenario_data(idx,5),'Normalization','probability');title('sigma')
 subplot(2,3,6),histogram(constraint(idx),'Normalization','probability');title('constraint');
+saveas(gcf,strcat('histogramsdataset',num2str(size(data_vola,1)),'.png'))
+
 % Example plot
-figure
-[X,Y]=meshgrid(K,Maturity);
-surf(X',Y',reshape(data_price(1,4+1+Nmaturities+1:end),9,7));hold on;
-scatter3(data_vec(:,1),data_vec(:,2),scenario_data(1,4+1+Nmaturities+1:end));
+%figure
+%[X,Y]=meshgrid(K,Maturity);
+%surf(X',Y',reshape(data_price(1,4+1+Nmaturities+1:end),9,7));hold on;
+%scatter3(data_vec(:,1),data_vec(:,2),scenario_data(1,4+1+Nmaturities+1:end));
