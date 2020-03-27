@@ -48,14 +48,24 @@ Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 
-%% DATASET GENERATION: CURRENTLY UNDER CONSTRUCTION
+%% Dataset Generation 
 Nsim            = 30000;
-fprintf('%s','Generatiting Prices. Progress: 0%')
+
+% Choosing good parameters
+% Scaled Normal distribution
 rand_params = mvnrnd(mean_,cov_,Nsim);
+% uniform distributio
+% rand_parans = min_+(max_-min_)*rand(Nsim,5)
+
+% Choosing a termstructure out of the giving structures
 i_rand = randi(Ninputs,Nsim,1);
+
+
+% Price Calculations
 j = 0;
 fail1 =0;
 fail2 =0;
+fprintf('%s','Generatiting Prices. Progress: 0%')
 for i = 1:Nsim
     w   = rand_params(i,1);
     a   = rand_params(i,2);
@@ -86,7 +96,8 @@ for i = 1:Nsim
     constraint(j) = 1-b-a*g^2;
 end
 data_price = scenario_data;
-%%
+
+% Volatility Calculation
 price_vec  = zeros(1,Nmaturities*Nstrikes);
 bad_idx    = [];
 fprintf('%s','Calculating Imp Volas. Progress: 0%')
@@ -109,7 +120,7 @@ save(strcat('data_vola_','maxbounds','_',num2str(size(data_vola,1)),'_',num2str(
 
 
 
-%% VISUALISATION FOR CONTROL PURPOSES
+%% Visualisation of control purposes
 % Summary
     fprintf('\n')
     disp(['max price: ',    num2str(max(max(scenario_data(:,4+1+Nmaturities+1:end))))])
