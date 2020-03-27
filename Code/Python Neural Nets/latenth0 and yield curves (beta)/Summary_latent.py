@@ -48,10 +48,14 @@ import random
 #import keras
 
 # import data set
-from config_noh0 import data,Nparameters,maturities,strikes,Nstrikes,Nmaturities,Ntest,Ntrain,Nval
-from config_noh0 import xx,yy,ub,lb,diff,bound_sum, X_train,X_test,X_val,y_train,y_test,y_val
-from config_noh0 import y_train_trafo,y_val_trafo,y_test_trafo,X_train_trafo,X_val_trafo,X_test_trafo
-from config_noh0 import y_train_trafo2,y_val_trafo2,y_test_trafo2,X_train_trafo2,X_val_trafo2,X_test_trafo2
+from config_latent import data,Nparameters,maturities,strikes,Nstrikes,Nmaturities,Ntest,Ntrain,Nval
+from config_latent  import xx,yy,ub,lb,diff,bound_sum, X_train,X_test,X_val,y_train,y_test,y_val
+from config_latent  import y_train_trafo,y_val_trafo,y_test_trafo,X_train_trafo,X_val_trafo,X_test_trafo
+from config_latent  import y_train_trafo2,y_val_trafo2,y_test_trafo2,X_train_trafo2,X_val_trafo2,X_test_trafo2
+from config_latent  import y_train_trafo1,y_val_trafo1,y_test_trafo1
+
+
+
 # import custom functions #scaling tools
 from add_func_noh0 import ytransform, yinversetransform,myscale, myinverse
 

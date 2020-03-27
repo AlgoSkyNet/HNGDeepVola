@@ -56,6 +56,8 @@ from config_latent import y_train_trafo,y_val_trafo,y_test_trafo,X_train_trafo,X
 from config_latent import y_train_trafo2,y_val_trafo2,y_test_trafo2,X_train_trafo2,X_val_trafo2,X_test_trafo2
 from config_latent import h0_train_trafo,h0_val_trafo,h0_test_trafo
 from config_latent import rates_train_trafo,rates_val_trafo,rates_test_trafo 
+from config_latent  import y_train_trafo1,y_val_trafo1,y_test_trafo1
+
 
 # import custom functions #scaling tools
 from config_latent import ytransform, yinversetransform,myscale,myinverse
@@ -86,7 +88,7 @@ def autoencoder(nn1,nn2):
 
 # Training of CNN
 NN1 = Sequential() 
-NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
+NN1.add(InputLayer(input_shape=(Nparameters+1,1,1,)))
 NN1.add(ZeroPadding2D(padding=(2, 2)))
 NN1.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
 NN1.add(ZeroPadding2D(padding=(1,1)))
@@ -107,10 +109,13 @@ NN1.summary()
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
 
 #setting
-#NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-#NN1.fit(X_train_trafo, y_train_trafo, batch_size=64, validation_data = (X_val_trafo, y_val_trafo),
-#        epochs = 300, verbose = True, shuffle=1)
-NN1.save_weights("pricerweights_latent.h5")
+NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+inputs_train =np.concatenate((X_train_trafo,h0_train_trafo.reshape((Ntrain,1,1,1))),axis=1)
+inputs_val = np.concatenate((X_val_trafo,h0_val_trafo.reshape((Nval,1,1,1))),axis=1)
+inputs_test = np.concatenate((X_test_trafo,h0_test_trafo.reshape((Ntest,1,1,1))),axis=1)
+NN1.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1),
+        epochs = 300, verbose = True, shuffle=1)
+#NN1.save_weights("pricerweights_latent.h5")
 #NN1.load_weights("pricerweights_latent.h5")
 
 
@@ -120,7 +125,7 @@ NN1.save_weights("pricerweights_latent.h5")
 
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NN1.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
 
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)

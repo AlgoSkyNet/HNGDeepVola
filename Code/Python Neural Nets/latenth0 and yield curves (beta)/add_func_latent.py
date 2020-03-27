@@ -1,7 +1,7 @@
 ### additional functions for main file
 import numpy as np
 from tensorflow.keras import backend as K
-from config_noh0 import Nparameters,r,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nmaturities,maturities
+from config_latent import Nparameters,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nmaturities,maturities
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola

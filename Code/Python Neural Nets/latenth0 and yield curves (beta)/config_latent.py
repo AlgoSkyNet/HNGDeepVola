@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 #from sklearn.preprocessing import StandardScaler
 
 ### Data Import
-#mat         = scipy.io.loadmat('data_vola_noh0maxbounds_50000_0005_09_11_30_210.mat')
+mat         = scipy.io.loadmat("id_2c1fb86638da4e61_data_vola_27944.mat")
 data        = mat['data_vola']
 """assume data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
 Nparameters = 4
@@ -59,17 +59,17 @@ def myinverse(x):
 h0_train_trafo    = y_train_trafo[:,0]
 h0_val_trafo      = y_val_trafo[:,0]
 h0_test_trafo     = y_test_trafo[:,0]
-rates_train_trafo = y_train_trafo[:,1:Nmaturities+1]
-rates_val_trafo   = y_val_trafo[:,1:Nmaturities+1]
-rates_test_trafo  = y_test_trafo[:,1:Nmaturities+1]
-y_train_trafo = y_train_trafo[:,1+Nmaturities+1:]
-y_val_trafo   = y_val_trafo[:,1+Nmaturities+1:]
-y_test_trafo  = y_test_trafo[:,1+Nmaturities+1:]
+rates_train_trafo = y_train_trafo[:,[1,2,3,4,5,6,7]]
+rates_val_trafo   = y_val_trafo[:,[1,2,3,4,5,6,7]]
+rates_test_trafo  = y_test_trafo[:,[1,2,3,4,5,6,7]]
+y_train_trafo = y_train_trafo[:,8:]
+y_val_trafo   = y_val_trafo[:,8:]
+y_test_trafo  = y_test_trafo[:,8:]
 
 # reshaping for NN1: Pricer
-y_train_trafo = np.asarray([y_train[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntrain)])
-y_val_trafo   =  np.asarray([y_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Nval)])
-y_test_trafo  =  np.asarray([y_test[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntest)])
+y_train_trafo1 = np.asarray([y_train_trafo[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntrain)])
+y_val_trafo1   =  np.asarray([y_val_trafo[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Nval)])
+y_test_trafo1  =  np.asarray([y_test_trafo[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntest)])
 X_train_trafo = np.array([myscale(x) for x in X_train])
 X_val_trafo   = np.array([myscale(x) for x in X_val])
 X_test_trafo  = np.array([myscale(x) for x in X_test])
