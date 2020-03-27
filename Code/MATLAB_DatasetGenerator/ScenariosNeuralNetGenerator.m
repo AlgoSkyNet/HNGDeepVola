@@ -49,7 +49,9 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-choice          = "uni";
+
+choice          = "norm"; %"norm"  "uni"
+
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
 %% Dataset Generation 
