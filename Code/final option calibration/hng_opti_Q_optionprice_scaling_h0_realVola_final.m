@@ -12,7 +12,7 @@ year                = 2012;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                = "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -61,13 +61,10 @@ MoneynessInterval       = [0.9, 1.1];
     TheSP500ReturnThisDate, VegaKappaoftheOption, ImpliedVolatilityoftheOption);
 
 weeksprices             = week(datetime([OptionsStruct.date], 'ConvertFrom', 'datenum'));
-idx                     = zeros(length(weeksprices), max(weeksprices));
 
-j = 1;
-for i = min(weeksprices):max(weeksprices)
-    idx(:, j) = (weeksprices == i)';
-    j = j + 1;
-end
+idxj  = 1:length(unique(weeksprices));
+
+
 
 data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
 % save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
@@ -100,8 +97,7 @@ for i = unique(weeksprices)%min(weeksprices):max(weeksprices)
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
         end
     end
-    data_week = data(:, logical(idx(:,j))')';
-    
+    data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
         continue
     end
