@@ -14,17 +14,12 @@
 # 
 # h_0 is set fixed to the MLE parameter
 
-# # 1. Preambel and Data Import
+
+# In[1. Initialisation/ Preambel and Data Import]:
 # This Initialisation will be used for everyfile to ensure the same conditions everytime!
-
-# In[1]:
-
 
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
-
-
-# In[2]:
 
 
 import numpy as np
@@ -81,12 +76,8 @@ def autoencoder(nn1,nn2):
     return autoencoder_predict
 
 
-# # 2. CNN as Encoder / Pricing Kernel
+# In[2.1 CNN as Encoder / Pricing Kernel with no riskfree rate]:
 
-# In[3]:
-
-
-# Training of CNN
 NN1 = Sequential() 
 NN1.add(InputLayer(input_shape=(Nparameters+1,1,1,)))
 NN1.add(ZeroPadding2D(padding=(2, 2)))
@@ -109,32 +100,96 @@ NN1.summary()
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
 
 #setting
-NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+#NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 inputs_train =np.concatenate((X_train_trafo,h0_train_trafo.reshape((Ntrain,1,1,1))),axis=1)
 inputs_val = np.concatenate((X_val_trafo,h0_val_trafo.reshape((Nval,1,1,1))),axis=1)
 inputs_test = np.concatenate((X_test_trafo,h0_test_trafo.reshape((Ntest,1,1,1))),axis=1)
-NN1.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1),
-        epochs = 300, verbose = True, shuffle=1)
-#NN1.save_weights("pricerweights_latent.h5")
-#NN1.load_weights("pricerweights_latent.h5")
+#NN1.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1),
+#        epochs = 300, verbose = True, shuffle=1)
+#NN1.save_weights("pricerweights_noriskfreerate.h5")
+NN1.load_weights("pricerweights_noriskfreerate.h5")
 
-
-
-# ### 2.1 Results 
+#  Results 
 # The following plots show the performance on the testing set
-
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
 prediction   = NN1.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
+#plots
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
+# In[2.2 CNN as Encoder / Pricing Kernel with riskfree rate]:
+
+NN1a = Sequential() 
+NN1a.add(InputLayer(input_shape=(Nparameters+Nmaturities+1,1,1,)))
+NN1a.add(ZeroPadding2D(padding=(0, 2)))
+NN1a.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+#NN1.add(MaxPooling2D(pool_size=(2, 1)))
+#NN1.add(Dropout(0.25))
+#NN1.add(ZeroPadding2D(padding=(0,1)))
+NN1a.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
+#NN1.add(MaxPooling2D(pool_size=(4, 1)))
+NN1a.summary()
+#NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
+
+#setting
+NN1a.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+inputs_train =np.concatenate((X_train_trafo,h0_train_trafo.reshape((Ntrain,1,1,1)),rates_train_trafo.reshape((Ntrain,Nmaturities,1,1))),axis=1)
+inputs_val = np.concatenate((X_val_trafo,h0_val_trafo.reshape((Nval,1,1,1)),rates_val_trafo.reshape((Nval,Nmaturities,1,1))),axis=1)
+inputs_test = np.concatenate((X_test_trafo,h0_test_trafo.reshape((Ntest,1,1,1)),rates_test_trafo.reshape((Ntest,Nmaturities,1,1))),axis=1)
+NN1a.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1),
+        epochs = 300, verbose = True, shuffle=1)
+NN1a.save_weights("pricerweights_riskfreerate.h5")
+#NN1.load_weights("pricerweights_riskfreerate.h5")
+
+#  Results 
+# The following plots show the performance on the testing set
+S0=1.
+y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NN1.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 
-# # 3. CNN as  Decoder/Inverse Mapping / Calibration
 
-# In[4]:
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+
+                        """NOT ADJUSTED YET!"""
+
+###############################################################################
+
+# In[3. CNN as  Decoder/Inverse Mapping / Calibration]:
 
 NN2 = Sequential() 
 NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
