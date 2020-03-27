@@ -1,6 +1,16 @@
 % Dataset Generator
 % This Program generates the dataset for our neural net.
+% Each file has a 12 digit unique id for identification
+% 4 files are saved: 1 file with parameters and prices. 1 file with
+% parameters and imp volas. 1 file which summarizes the characteristics and
+% specifics of the generation and 1 png-file with histograms. 
+% The filenames are always of the following structure: id _ {12digit id} _ {type of file}
+% For the files with data the name ends with the number of szenarios:
+% id _ {12digit id} _ {type of file} _ {Numbers Szenarios}
 
+% At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
+% Hence it is only possible to specify the total number of draws (Nsim). The
+% approx. size of the final dataset is 17% of Nsim.
 clearvars; clc;close all;
 
 %% Initialisation
@@ -55,7 +65,7 @@ choice          = "norm"; %"norm"  "uni"
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
 %% Dataset Generation 
-Nsim            = 3000;
+Nsim            = 300000;
 
 % Choosing good parameters
 
@@ -77,6 +87,9 @@ fail2 =0;
 fail3 =0;
 fprintf('%s','Generating Prices. Progress: 0%')
 for i = 1:Nsim
+    if ismember(i,floor(Nsim*[4/100:4/100:1]))
+        fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%")
+    end
     w   = rand_params(i,1);
     a   = rand_params(i,2);
     b   = rand_params(i,3);
@@ -103,9 +116,6 @@ for i = 1:Nsim
         continue
     end
     j=j+1;
-    if ismember(i,floor(Nsim*[4/100:4/100:1]))
-        fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%")
-    end
     yield_matrix(:,j) = yieldcurve;
     scenario_data(j,:) = [a, b, g, w,sig,r_cur,price];
     constraint(j) = b+a*g^2;
