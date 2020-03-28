@@ -24,11 +24,11 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 % Configuration of underlying data
 years     = 2010:2018;
 goals     = ["MSE","MAPE","OptLL"];
-path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/final option calibration/';
+path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "norm"; %"norm"  "uni"
+choice          = "uni"; %"norm"  "uni"
 Maturity        = 30:30:210;
 K               = 0.9:0.025:1.1;
 S               = 1;
