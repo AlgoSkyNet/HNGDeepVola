@@ -26,7 +26,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow.compat.v1.keras.models import Sequential,Model
-from tensorflow.compat.v1.keras.layers import InputLayer,Dense,Flatten, Conv2D, Dropout, Input,ZeroPadding2D,MaxPooling2D
+from tensorflow.compat.v1.keras.layers import InputLayer,Dense,Flatten, Conv2D,Conv1D, Dropout, Input,ZeroPadding2D,ZeroPadding1D,MaxPooling2D
 from tensorflow.compat.v1.keras import backend as K
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -123,10 +123,10 @@ NN1a = Sequential()
 NN1a.add(InputLayer(input_shape=(Nparameters+Nmaturities+1,1,1,)))
 NN1a.add(ZeroPadding2D(padding=(0, 2)))
 NN1a.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(ZeroPadding2D(padding=(0,1)))
 NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
 NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1a.add(ZeroPadding2D(padding=(1,1)))
+NN1a.add(ZeroPadding2D(padding=(0,1)))
 NN1a.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
 NN1a.add(ZeroPadding2D(padding=(1,1)))
 NN1a.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
@@ -154,15 +154,114 @@ NN1a.save_weights("pricerweights_riskfreerate.h5")
 # The following plots show the performance on the testing set
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NN1a.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
+# In[2.test CNN as Encoder / Pricing Kernel with riskfree rate]:
+
+NN1b = Sequential() 
+NN1b.add(InputLayer(input_shape=(Nparameters+Nmaturities+1,1,1,)))
+NN1b.add(ZeroPadding2D(padding=(1, 2)))
+NN1b.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NN1b.add(ZeroPadding2D(padding=(1,1)))
+NN1b.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NN1b.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1b.add(ZeroPadding2D(padding=(0,1)))
+NN1b.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1b.add(ZeroPadding2D(padding=(1,1)))
+NN1b.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NN1b.add(ZeroPadding2D(padding=(1,1)))
+NN1b.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='sigmoid'))
+#NN1.add(MaxPooling2D(pool_size=(2, 1)))
+#NN1.add(Dropout(0.25))
+#NN1.add(ZeroPadding2D(padding=(0,1)))
+NN1b.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =False,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
+#NN1.add(MaxPooling2D(pool_size=(4, 1)))
+NN1b.summary()
+#NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
+
+#setting
+NN1b.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+inputs_train =np.concatenate((X_train_trafo,h0_train_trafo.reshape((Ntrain,1,1,1)),rates_train_trafo.reshape((Ntrain,Nmaturities,1,1))),axis=1)
+inputs_val = np.concatenate((X_val_trafo,h0_val_trafo.reshape((Nval,1,1,1)),rates_val_trafo.reshape((Nval,Nmaturities,1,1))),axis=1)
+inputs_test = np.concatenate((X_test_trafo,h0_test_trafo.reshape((Ntest,1,1,1)),rates_test_trafo.reshape((Ntest,Nmaturities,1,1))),axis=1)
+NN1b.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1),
+        epochs = 300, verbose = True, shuffle=1)
+
+#  Results 
+# The following plots show the performance on the testing set
+S0=1.
+y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NN1b.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
+#plots
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+
+# In[2.3 CNN as Encoder / Pricing Kernel with riskfree rate MultiInputStructure]:
+
+# define two sets of inputs
+inputA = Input(shape=(32,))
+inputB = Input(shape=(128,))
+# the first branch operates on the first input
+x = Dense(8, activation="relu")(inputA)
+x = Dense(4, activation="relu")(x)
+x = Model(inputs=inputA, outputs=x)
+# the second branch opreates on the second input
+y = Dense(64, activation="relu")(inputB)
+y = Dense(32, activation="relu")(y)
+y = Dense(4, activation="relu")(y)
+y = Model(inputs=inputB, outputs=y)
+# combine the output of the two branches
+combined = concatenate([x.output, y.output])
+# apply a FC layer and then a regression prediction on the
+# combined outputs
+z = Dense(2, activation="relu")(combined)
+z = Dense(1, activation="linear")(z)
+# our model will accept the inputs of the two branches and
+# then output a single value
+model = Model(inputs=[x.input, y.input], outputs=z)
 
 
 
+# In[2.4 CNN as Encoder / Pricing Kernel with no riskfree rate Conv1D]:
 
+NN1c = Sequential() 
+NN1c.add(InputLayer(input_shape=(Nparameters+1,1,)))
+NN1c.add(ZeroPadding1D(padding=(1, 1)))
+NN1c.add(Conv1D(4, 2, padding='valid',use_bias =True,strides =(1),activation='elu'))
+NN1c.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
+NN1c.add(ZeroPadding1D(padding=(3,3)))
+NN1c.add(Conv1D(24, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
+NN1c.add(Conv1D(36, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
+NN1c.add(ZeroPadding1D(padding=(3,3)))
+NN1c.add(Conv1D(48, 2,padding='valid',use_bias =True,strides =(2),activation ='elu'))
+NN1c.add(Conv1D(48, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
+NN1c.add(ZeroPadding1D(padding=(3,3)))
+NN1c.add(Conv1D(36, 2,padding='valid',use_bias =True,strides =(2),activation ='elu'))
+NN1c.add(Conv1D(24, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
+NN1c.add(ZeroPadding1D(padding=(2,2)))
+NN1c.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='sigmoid'))
+NN1c.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='sigmoid'))
+NN1c.add(Conv1D(9, 1,padding='valid',use_bias =True,strides =(1),activation ='linear',kernel_constraint = tf.keras.constraints.NonNeg()))
+NN1c.summary()
 
+#setting
+NN1c.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+inputs_train =np.concatenate((X_train_trafo.reshape((Ntrain,4,1)),h0_train_trafo.reshape((Ntrain,1,1))),axis=1)
+inputs_val = np.concatenate((X_val_trafo.reshape((Nval,4,1)),h0_val_trafo.reshape((Nval,1,1))),axis=1)
+inputs_test = np.concatenate((X_test_trafo.reshape((Ntest,4,1)),h0_test_trafo.reshape((Ntest,1,1))),axis=1)
+NN1c.fit(inputs_train, y_train_trafo2.reshape((Ntrain,7,9)), batch_size=64, validation_data = (inputs_val, y_val_trafo2.reshape((Nval,7,9))),
+        epochs = 70, verbose = True, shuffle=1)
+NN1c.save_weights("pricerweights_newstruc.h5")
+#NN1c.load_weights("pricerweights_newstruc.h5")
+
+#  Results 
+# The following plots show the performance on the testing set
+S0=1.
+y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NN1c.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
+#plots
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 
 
