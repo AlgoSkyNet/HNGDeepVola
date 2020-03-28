@@ -7,8 +7,8 @@
 % 1 png-file with histograms. 
 % The filenames are always of the following structure:
 % id _ {12digit id} _ {type of file}
-% For files which contain datasets the sample size is added to the name:
-% id _ {12digit id} _ {type of file} _ {Numbers Szenarios}
+% The two dataset files have the parameter type and size added to the name:
+% id _ {12digit id} _ {type of file} _ {type of params} _ {Numbers Szenarios}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                         %
@@ -36,7 +36,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 300000;
+Nsim            = 1000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 17% of Nsim. 
@@ -164,8 +164,8 @@ data_vola(:,4+1+Nmaturities+1:75) = vola;
 data_vola         = data_vola(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
-save(strcat('id_',id,'_data_price_',num2str(size(data_price,1)),'.mat'),'data_price')
-save(strcat('id_',id,'_data_vola_',num2str(size(data_vola,1)),'.mat'),'data_vola')
+save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
+save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
 
 
 %% Summary and Visualisation for control purposes
@@ -189,13 +189,13 @@ stat.Moneyness  = K;
 stat.id =id;
 disp(stat)
 save(strcat('id_',id,'_summary','.mat'),'stat')   
-figure
-subplot(2,3,1),histogram(scenario_data(idx,1),'Normalization','probability');title('alpha')
-subplot(2,3,2),histogram(scenario_data(idx,2),'Normalization','probability');title('beta')
-subplot(2,3,3),histogram(scenario_data(idx,3),'Normalization','probability');title('gamma')
-subplot(2,3,4),histogram(scenario_data(idx,4),'Normalization','probability');title('omega')
-subplot(2,3,5),histogram(scenario_data(idx,5),'Normalization','probability');title('sigma')
-subplot(2,3,6),histogram(constraint(idx),'Normalization','probability');title('constraint');
+figure("Name",id)
+subplot(2,3,1),histogram(data_vola(:,1),'Normalization','probability');title('alpha')
+subplot(2,3,2),histogram(data_vola(:,2),'Normalization','probability');title('beta')
+subplot(2,3,3),histogram(data_vola(:,3),'Normalization','probability');title('gamma')
+subplot(2,3,4),histogram(data_vola(:,4),'Normalization','probability');title('omega')
+subplot(2,3,5),histogram(data_vola(:,5),'Normalization','probability');title('sigma')
+subplot(2,3,6),histogram(constraint,'Normalization','probability');title('constraint');
 saveas(gcf,strcat('id_',id,'_histograms','.png'))
 
 % Example plot
