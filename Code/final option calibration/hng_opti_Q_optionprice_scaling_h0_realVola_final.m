@@ -12,7 +12,7 @@ year                = 2015;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
 algorithm           = "InteriorPoint";% "SQP"
-goal                =  "MAPE"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 load(strcat('weekly_',num2str(year),'_mle_opt.mat'));
@@ -116,10 +116,18 @@ for i = unique(weeksprices)
             interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:8, ...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
         end
+        if all(isnan(interestRates))
+            interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:8, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+        end
     else
         interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
         if isempty(interestRates)
+            interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+        end
+        if all(isnan(interestRates))
             interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
         end
