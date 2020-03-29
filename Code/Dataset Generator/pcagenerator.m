@@ -50,7 +50,7 @@ data_pure = [params,sig2_0,yields];
 % log trafo
 %data = [log(data_pure(:,1:3)),data_pure(:,4),log(data_pure(:,5)),data_pure(:,6:end)];
 
-% pure
+% pure normal uni
 data = data_pure;
 
 
@@ -103,6 +103,7 @@ inv_data = inv_scaler(sample_trafo,mean_,std_);
 % log 5 no retrafo
 %inv_data = inv_scaler(normalize(sample_trafo),mean(data_pure),std(data_pure));
 
+
 % tan trafo 
 %inv_data = inv_scaler(sample_trafo,mean_,std_);
 %inv_data = tanh(inv_data);
@@ -114,15 +115,20 @@ inv_data = inv_scaler(sample_trafo,mean_,std_);
 %inv_data = 0.5*(inv_data.*(repmat([max(data_pure)-min(data_pure)],length(inv_data),1))+repmat([max(data_pure)+min(data_pure)],length(inv_data),1));
 
 
-
 %normal dist
 %inv_data  = mvnrnd(mean([params,sig2_0]),cov([params,sig2_0]),Nsim);
 
 %uni
 %inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
+
 %uni scaled
 %inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
 %inv_data = inv_scaler(normalize(sample_trafo),mean(data_pure),std(data_pure));
+
+%uni semiscaled
+inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
+inv_data = inv_data./std(inv_data).*std(data_pure(:,1:5));
+
 
 %stats = [mean(data_pure);mean(inv_data);std(data_pure);std(inv_data)];
 %disp(stats);
