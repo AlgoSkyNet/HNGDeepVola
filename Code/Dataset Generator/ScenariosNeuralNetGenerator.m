@@ -109,6 +109,9 @@ fail1 =0;
 fail2 =0;
 fail3 =0;
 fprintf('%s','Generating Prices. Progress: 0%')
+yield_matrix = zeros(Nmaturities*Nstrikes,Nsim);
+scenario_data = zeros(Nsim,Nmaturities*Nstrikes+5+Nmaturities);
+constraint = zeros(1,Nsim); 
 for i = 1:Nsim
     if ismember(i,floor(Nsim*[4/100:4/100:1]))
         fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%")
@@ -143,6 +146,9 @@ for i = 1:Nsim
     scenario_data(j,:) = [a, b, g, w,sig,r_cur,price];
     constraint(j) = b+a*g^2;
 end
+yield_matrix = yield_matrix(:,1:j);
+scenario_data = scenario_data(1:j,:);
+constraint = constraint(1:j); 
 fprintf('%s','Generating Prices completed.'),fprintf('\n')
 data_price = scenario_data;
 
