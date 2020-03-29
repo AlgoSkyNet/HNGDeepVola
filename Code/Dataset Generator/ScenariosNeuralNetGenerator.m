@@ -39,7 +39,8 @@ data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 Nsim            = 1000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
-% The approx. size of the final dataset is 17% of Nsim. 
+% The approx. size of the final dataset is 14% of Nsim for norm dist and
+% 10% for uni dist
 
 %% TODO (sorted by importance)
 
@@ -94,6 +95,9 @@ if strcmp(choice,"norm")
 elseif strcmp(choice,"uni")
     % uniform distributio
     rand_params = min_+(max_-min_).*rand(Nsim,5);
+elseif strcmp(choice,"pcanorm")
+    % uniform distributio
+    rand_params = mvnrnd(mean_,cov_,Nsim);
 end
 
 % Choosing a termstructure out of the giving structures
