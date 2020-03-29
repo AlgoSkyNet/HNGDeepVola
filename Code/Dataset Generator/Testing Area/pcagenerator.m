@@ -48,10 +48,10 @@ data_pure = [params,sig2_0,yields];
 %data = atanh(data2);
 
 % log trafo
-%data = [log(data_pure(:,1:3)),data_pure(:,4),log(data_pure(:,5)),data_pure(:,6:end)];
+data = [log(data_pure(:,1:3)),data_pure(:,4),data_pure(:,5:end)];
 
 % pure for  normal uni
-data = data_pure;
+%data  = [data_pure(:,1:5),log((data_pure(:,6:end))+10e-8)];
 
 
 mean_     = mean(data);
@@ -81,12 +81,13 @@ yields_inv       = repmat(mu,length(sample),1)+trafo_yields_std.*sample(:,6:end)
 sample_trafo     = [sample(:,1:5),yields_inv];
 
 % pure (normal dist)
-%inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+%inv_data   = [sample_trafo(:,1:5),exp(yields_inv)-10e-8];
+%inv_data   = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
 
 
 %log trafo 4
-%inv_data = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
-%inv_data = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
+inv_data = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
+inv_data = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
 
 % tan trafo 
 %inv_data = inv_scaler(sample_trafo,mean_,std_);
@@ -105,11 +106,12 @@ sample_trafo     = [sample(:,1:5),yields_inv];
 %inv_data  = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
 
 %uni semiscaled
-inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
-yields_tmp = inv_data(:,6:end);
-inv_data  = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-inv_data = inv_data./std(inv_data).*std(data_pure);
+%inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+%yields_tmp = inv_data(:,6:end);
+%inv_data  = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+%inv_data = inv_data./std(inv_data).*std(data_pure);
 
+inv_data = [inv_data(:,1:5),max(inv_data(:,6:end),0)];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % not in use anymore (due to performance or redundance)
 
@@ -141,7 +143,6 @@ inv_data = inv_data./std(inv_data).*std(data_pure);
 stats = [mean(data_pure);mean(inv_data);std(data_pure);std(inv_data)];
 disp(stats);
 
-
 %%
 j=0;
 fail3= 0;
@@ -168,21 +169,37 @@ for i = 1:Nsim
     param_clean(j,:) = [w,a,b,g,sig];
     yields_clean(j,:) = inv_data(i,6:end);
 end
-disp([mean(param_clean);std(param_clean)]);
+disp([mean(param_clean),mean(yields_clean);std(param_clean),std(yields_clean)]);
 constraint = constraint(1:j);
 param_clean = param_clean(1:j,:);
 yields_clean = yields_clean(1:j,:);
-subplot(2,3,1),histogram(param_clean(:,2),'Normalization','probability');title('alpha')
+subplot(2,4,1),histogram(param_clean(:,2),'Normalization','probability');title('alpha')
 %set(gca, 'XScale', 'log')
-subplot(2,3,2),histogram(param_clean(:,3),'Normalization','probability');title('beta')
+subplot(2,4,2),histogram(param_clean(:,3),'Normalization','probability');title('beta')
 %set(gca, 'XScale', 'log')
-subplot(2,3,3),histogram(param_clean(:,4),'Normalization','probability');title('gamma')
-subplot(2,3,4),histogram(param_clean(:,1),'Normalization','probability');title('omega')
+subplot(2,4,3),histogram(param_clean(:,4),'Normalization','probability');title('gamma')
+subplot(2,4,4),histogram(param_clean(:,1),'Normalization','probability');title('omega')
 %set(gca, 'XScale', 'log')
-subplot(2,3,5),histogram(param_clean(:,5),'Normalization','probability');title('sigma')
+subplot(2,4,5),histogram(param_clean(:,5),'Normalization','probability');title('sigma')
 %set(gca, 'XScale', 'log')
-subplot(2,3,6),histogram(constraint,'Normalization','probability');title('constraint');
+subplot(2,4,6),histogram(constraint,'Normalization','probability');title('constraint');
+subplot(2,4,7),boxplot(yields_clean);title('yields');
+subplot(2,4,8),boxplot(yields);title('yields true');
 
+figure
+subplot(1,4,1),histogram(yields(:,2),'Normalization','probability');
+subplot(1,4,2),histogram(yields(:,2),'Normalization','probability');
+subplot(1,4,3),histogram(yields(:,2),'Normalization','probability');
+subplot(1,4,4),histogram(yields(:,2),'Normalization','probability');
+figure
+subplot(1,4,1),histogram(yields_clean(:,2),'Normalization','probability');
+%set(gca, 'XScale', 'log')
+subplot(1,4,2),histogram(yields_clean(:,2),'Normalization','probability');
+%set(gca, 'XScale', 'log')
+subplot(1,4,3),histogram(yields_clean(:,2),'Normalization','probability');
+%set(gca, 'XScale', 'log')
+subplot(1,4,4),histogram(yields_clean(:,2),'Normalization','probability');
+%set(gca, 'XScale', 'log')
 %%
 monotonic = @(data_set) sign(diff(data_set')');
 y11 = mean(monotonic(yields_clean),'all');

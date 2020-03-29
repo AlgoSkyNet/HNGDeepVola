@@ -145,6 +145,7 @@ end
 if strcmp(yieldstype,"szenario")
     i_rand = randi(Ninputs,Nsim,1);
 end
+inv_data = [inv_data(:,1:5),max(inv_data(:,6:end),0)];
 
 % Price Calculations
 j = 0;
@@ -232,6 +233,9 @@ data_vola(:,4+1+Nmaturities+1:75) = vola;
 data_vola         = data_vola(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
+if strcmp(yieldstype,"PCA")
+    yields_clean = yields_clean(idx,:);
+end
 save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
 save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
 
