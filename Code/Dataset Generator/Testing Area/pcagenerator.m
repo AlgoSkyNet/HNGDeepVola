@@ -50,13 +50,14 @@ data_pure = [params,sig2_0,yields];
 % log trafo
 %data = [log(data_pure(:,1:3)),data_pure(:,4),log(data_pure(:,5)),data_pure(:,6:end)];
 
-% pure normal uni
+% pure for  normal uni
 data = data_pure;
 
 
-mean_ = mean(data);
-std_ = std(data);
-data_norm =normalizer(data);
+mean_     = mean(data);
+std_      = std(data);
+data_norm = normalizer(data);
+
 [coeff,score,~,~,explained,mu] =pca(data_norm(:,6:9));
 expl_sum = cumsum(explained);
 check = -1;
@@ -70,39 +71,22 @@ for i = 1:length(coeff)
         end
     end
 end
-trafo_yields = score(:,1:ind);
+trafo_yields     = score(:,1:ind);
 trafo_yields_std = std(trafo_yields);
-trafo_data = [data_norm(:,1:5),trafo_yields./trafo_yields_std];       
-cov_trafo = cov(trafo_data);
-mean_trafo = mean(trafo_data);
-sample = mvnrnd(mean_trafo,cov_trafo,Nsim);
-yields_inv = repmat(mu,length(sample),1)+trafo_yields_std.*sample(:,6:end)*coeff(:,1:ind)';
-sample_trafo = [sample(:,1:5),yields_inv];
+trafo_data       = [data_norm(:,1:5),trafo_yields./trafo_yields_std];       
+cov_trafo        = cov(trafo_data);
+mean_trafo       = mean(trafo_data);
+sample           = mvnrnd(mean_trafo,cov_trafo,Nsim);
+yields_inv       = repmat(mu,length(sample),1)+trafo_yields_std.*sample(:,6:end)*coeff(:,1:ind)';
+sample_trafo     = [sample(:,1:5),yields_inv];
 
-% pure
-inv_data = inv_scaler(sample_trafo,mean_,std_);
+% pure (normal dist)
+%inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
 
-
-% log trafo
-%inv_data = inv_scaler(sample_trafo,mean_,std_);
-%inv_data = [exp(inv_data(:,1:3)),inv_data(:,4),exp(inv_data(:,5)),yields_inv];
-
-% log traf 2
-%inv_data = inv_scaler(sample_trafo,mean_,std_);
-%inv_data = inv_scaler(normalize([exp(inv_data(:,1:3)),inv_data(:,4),exp(inv_data(:,5)),yields_inv]),mean(data_pure),std(data_pure));
-
-% log trafo 3
-%inv_data = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
-%inv_data = inv_scaler(inv_data,mean_,std_);
-%inv_data = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
 
 %log trafo 4
 %inv_data = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
 %inv_data = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
-
-% log 5 no retrafo
-%inv_data = inv_scaler(normalize(sample_trafo),mean(data_pure),std(data_pure));
-
 
 % tan trafo 
 %inv_data = inv_scaler(sample_trafo,mean_,std_);
@@ -115,23 +99,47 @@ inv_data = inv_scaler(sample_trafo,mean_,std_);
 %inv_data = 0.5*(inv_data.*(repmat([max(data_pure)-min(data_pure)],length(inv_data),1))+repmat([max(data_pure)+min(data_pure)],length(inv_data),1));
 
 
-%normal dist
+%uni
+%inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+%yields_tmp = inv_data(:,6:end);
+%inv_data  = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+
+%uni semiscaled
+inv_data = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+yields_tmp = inv_data(:,6:end);
+inv_data  = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+inv_data = inv_data./std(inv_data).*std(data_pure);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% not in use anymore (due to performance or redundance)
+
+%normal dist ( = pure)
 %inv_data  = mvnrnd(mean([params,sig2_0]),cov([params,sig2_0]),Nsim);
 
-%uni
-%inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
+% log 5 no retrafo (approx normal dist due to law of large numbers)
+%inv_data = inv_scaler(normalize(sample_trafo),mean(data_pure),std(data_pure));
 
-%uni scaled
+%uni scaled (approx normal dist due to law of large numbers)
 %inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
 %inv_data = inv_scaler(normalize(sample_trafo),mean(data_pure),std(data_pure));
 
-%uni semiscaled
-inv_data  = min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5);
-inv_data = inv_data./std(inv_data).*std(data_pure(:,1:5));
+% log trafo
+%inv_data = inv_scaler(sample_trafo,mean_,std_);
+%inv_data = [exp(inv_data(:,1:3)),inv_data(:,4),exp(inv_data(:,5)),yields_inv];
+
+% log traf 2
+%inv_data = inv_scaler(sample_trafo,mean_,std_);
+%inv_data = inv_scaler(normalize([exp(inv_data(:,1:3)),inv_data(:,4),exp(inv_data(:,5)),yields_inv]),mean(data_pure),std(data_pure));
+
+% log trafo 3 (same as log trafo 4)
+%%inv_data = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
+%inv_data = inv_scaler(inv_data,mean_,std_);
+%inv_data = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%stats = [mean(data_pure);mean(inv_data);std(data_pure);std(inv_data)];
-%disp(stats);
+stats = [mean(data_pure);mean(inv_data);std(data_pure);std(inv_data)];
+disp(stats);
 
 
 %%
@@ -140,6 +148,7 @@ fail3= 0;
 fail1 =0;
 constraint = zeros(1,Nsim);
 param_clean = zeros(Nsim,5);
+yields_clean = zeros(Nsim,4);
 for i = 1:Nsim
     w   = inv_data(i,1);
     a   = inv_data(i,2);
@@ -157,10 +166,12 @@ for i = 1:Nsim
     j=j+1;
     constraint(j) = b+a*g^2;
     param_clean(j,:) = [w,a,b,g,sig];
+    yields_clean(j,:) = inv_data(i,6:end);
 end
 disp([mean(param_clean);std(param_clean)]);
 constraint = constraint(1:j);
 param_clean = param_clean(1:j,:);
+yields_clean = yields_clean(1:j,:);
 subplot(2,3,1),histogram(param_clean(:,2),'Normalization','probability');title('alpha')
 %set(gca, 'XScale', 'log')
 subplot(2,3,2),histogram(param_clean(:,3),'Normalization','probability');title('beta')
@@ -172,6 +183,9 @@ subplot(2,3,5),histogram(param_clean(:,5),'Normalization','probability');title('
 %set(gca, 'XScale', 'log')
 subplot(2,3,6),histogram(constraint,'Normalization','probability');title('constraint');
 
-
-
-
+%%
+monotonic = @(data_set) sign(diff(data_set')');
+y11 = mean(monotonic(yields_clean),'all');
+y12 = mean(monotonic(yields),'all');
+y21 = mean(monotonic(yields_clean));
+y22 = mean(monotonic(yields));
