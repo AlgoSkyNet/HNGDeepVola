@@ -11,7 +11,7 @@ stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
-algorithm           = "InteriorPoint";% "SQP"
+algorithm           = "interior-point";% "sqp"
 goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
@@ -87,7 +87,7 @@ scaler           =   sc_fac(min(weeksprices), :);
        
 % weekly optimization
 j = 1;
-for i = [2]%unique(weeksprices)
+for i = [2:8]%unique(weeksprices)
     disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         if isempty(SP500_date_prices_returns_realizedvariance_interestRates(4,...
@@ -193,7 +193,7 @@ for i = [2]%unique(weeksprices)
     
     %% Algorithm 
 
-    
+    init_f = 1;
     % Starting value check / semi globalization
     if i ~= min(weeksprices)
         x1      = Init_scale_mat(i, :);
@@ -203,10 +203,12 @@ for i = [2]%unique(weeksprices)
         scaler  = scale_tmp;
         f2      = f_min_raw(x2, scaler);
         if f1 < f2
+            init_f =f1;
             Init_scale = x1;
             scaler = sc_fac(i, :);
     
-        else 
+        else
+            init_f =f2;
             Init_scale = x2;
             scaler = scale_tmp;
         end
@@ -219,31 +221,35 @@ for i = [2]%unique(weeksprices)
     %opt_params_raw(i, :) = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     
     
-    
-    % Interior Point
-    
-    if strcmp(algorithm,"InteriorPoint")
-        opt = optimoptions('fmincon',  ...
+    opt = optimoptions('fmincon',  ...
         'Display', 'iter',...
-        'Algorithm', 'interior-point',...
-        'MaxIterations', 1000,...
-        'MaxFunctionEvaluations',2000, ...
+        'Algorithm', algorithm,...
+        'MaxIterations', 250,...
+        'MaxFunctionEvaluations',1200, ...
         'TolFun', 1e-6,...
-        'TolX', 1e-6,...
-        'ScaleProblem','obj-and-constr');
+        'TolX', 1e-6);
+    if magnitude(init_f)>100 
+        opt.ScaleProblem = 'obj-and-constr' ; %scale to goalfunc to [0,1]
+    end
+    if strcmp(algorithm,"interior-point") %for file naming purposes
+        algorithm = "interiorpoint";
     end
     gs = GlobalSearch('XTolerance',1e-6,...
                       'FunctionTolerance',1e-4,...
                       'StartPointsToRun','bounds-ineqs',...
                       'Display','iter',...
-                      'NumTrialPoints', 2000,...
-                      'NumStageOnePoints',2000);
+                      'NumTrialPoints', 500,...
+                      'NumStageOnePoints',500);
     problem = createOptimProblem('fmincon','x0',Init_scale,...
                 'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
-    [xxval,fval,exitflag] = run(gs,problem);
+    [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
     opt_params_raw(i, :) = xxval;
     struc.flag = exitflag;
     struc.goalval = fval;
+    struc.optiopt = opt;
+    struc.gsopt   = gs;
+    struc.gsresults = gsresults;
+    struc.localminima = gsvec;
     % store the results
     opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;
     
