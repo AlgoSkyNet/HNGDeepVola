@@ -191,6 +191,18 @@ for i = [2,3,4,5]%unique(weeksprices)
     
     %% Algorithm 
 
+   
+    
+    %  Interior Point
+    if strcmp(algorithm,"InteriorPoint")
+        opt = optimoptions('fmincon', 'Display', 'iter',...
+        'Algorithm', 'interior-point', 'MaxIterations', 1000,...
+        'MaxFunctionEvaluations',2000, 'TolFun', 1e-6, 'TolX', 1e-6);%"UseParallel",true);
+    % WE DO NOT USE THIS AS OPTIMIZATION ALGORITHM FUNCTION
+    % SQP
+    %elseif strcmp(algorithm,"SQP")
+    %    opt = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxIterations',50,'MaxFunctionEvaluations',300,'FunctionTolerance',1e-4);
+    end
     
     % Starting value check / semi globalization
     if i ~= min(weeksprices)
@@ -215,18 +227,8 @@ for i = [2,3,4,5]%unique(weeksprices)
     % run optimization
     nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
     %opt_params_raw(i, :) = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-    
-    
-    
-    % Interior Point
-    
-    if strcmp(algorithm,"InteriorPoint")
-        opt = optimoptions('fmincon', 'Display', 'iter',...
-        'Algorithm', 'interior-point', 'MaxIterations', 1000,...
-        'MaxFunctionEvaluations',2000, 'TolFun', 1e-6, 'TolX', 1e-6);
-    end
     gs = GlobalSearch('XTolerance',1e-6,'FunctionTolerance',1e-4,...
-            'StartPointsToRun','bounds-ineqs',"Display","iter,MaxTime",120);
+            'StartPointsToRun','bounds-ineqs','NumTrialPoints',400,"Display","iter,MaxTime",120);
     problem = createOptimProblem('fmincon','x0',Init_scale,...
                 'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
     [opt_params_raw(i, :),fval,exitflag] = run(gs,problem);

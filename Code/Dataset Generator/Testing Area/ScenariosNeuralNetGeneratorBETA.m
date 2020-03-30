@@ -23,7 +23,7 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 
 % Configuration of underlying data
 years     = 2010:2018;
-goals     = ["MSE","MAPE","OptLL"];
+goals     = ["OptLL"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
 % Configuration of dataset
@@ -38,6 +38,7 @@ Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 Nsim            = 100;
+
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
