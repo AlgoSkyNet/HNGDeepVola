@@ -22,8 +22,8 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 %% Initialisation
 
 % Configuration of underlying data
-years     = 2010:2018;
-goals     = ["OptLL"];%,"MAPE","OptLL"];
+years     = 2010%:2018;
+goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
 % Configuration of dataset
@@ -74,6 +74,7 @@ for j = 1:k
         params(Ninputs,:) = alldata{1,j}{1,m}.hngparams;
         sig2_0(Ninputs)   = alldata{1,j}{1,m}.sig20; 
         yields(Ninputs,:) = alldata{1,j}{1,m}.yields;
+        flag(Ninputs) = alldata{1,j}{1,m}.flag;
     end
 end
 sig2_0 = sig2_0';

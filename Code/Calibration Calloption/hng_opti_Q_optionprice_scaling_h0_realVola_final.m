@@ -11,6 +11,7 @@ stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; %uses tbils now
 useRealVola         = 1; %alwas use realized vola
+global_idx          = 0; %indicator if globalisation algorithm should be used.
 algorithm           = "interior-point";% "sqp"
 goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
@@ -45,6 +46,7 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
+load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 Init                    = params_tmp;
 % bounds for maturity, moneyness, volumes, interest rates
 Type                    = 'call';
@@ -73,8 +75,8 @@ data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; Optio
 % Initialization     
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
-lb_mat           =   [1e-12, 0, 0, -500]./sc_fac;
-ub_mat           =   [1, 1, 10, 1000]./sc_fac;
+lb_mat           =   [1e-12, 0, 0, -1500];
+ub_mat           =   [1, 1, 10, 1500];
 opt_params_raw   =   zeros(max(weeksprices), 4);
 opt_params_clean =   zeros(max(weeksprices), 4);
 values           =   cell(1,max(weeksprices));
@@ -103,12 +105,9 @@ for i = [2:8]%unique(weeksprices)
     if isempty(data_week)
         continue
     end
-    %lower parameter bounds, scaled
-    lb = lb_mat(i, :);
-    %upper parameter bounds, scaled
-    ub = ub_mat(i, :); 
+
     
-    struc               =   struct();
+    struc               =  struct();
     struc.numOptions    =  length(data_week(:, 1));
     % compute interest rates for the weekly options
     if useYield
@@ -202,58 +201,71 @@ for i = [2:8]%unique(weeksprices)
         x2      = opt_params_raw(i - 1, :);
         scaler  = scale_tmp;
         f2      = f_min_raw(x2, scaler);
-        if f1 < f2
-            init_f =f1;
+        x3      = opt_params_raw(min(weeksprices), :);
+        scaler  = scaler_firstweek; 
+        f3      = f_min_raw(x3, scaler);
+        [init_f,min_i]    = min([f1,f2,f3]);
+        if min_i == 1
             Init_scale = x1;
             scaler = sc_fac(i, :);
-    
-        else
-            init_f =f2;
+        elseif min_i == 2
             Init_scale = x2;
             scaler = scale_tmp;
+        elseif min_i ==3
+            Init_scale = x3;
+            scaler = scaler_firstweek;
         end
-            
     end
     f_min = @(params) f_min_raw(params, scaler); 
     
     % run optimization
     nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
-    %opt_params_raw(i, :) = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+    %lower parameter bounds, scaled
+    lb = lb_mat./scaler;
+    %upper parameter bounds, scaled
+    ub = ub_mat./scaler; 
     
-    
-    opt = optimoptions('fmincon',  ...
-        'Display', 'iter',...
-        'Algorithm', algorithm,...
-        'MaxIterations', 250,...
-        'MaxFunctionEvaluations',1200, ...
-        'TolFun', 1e-6,...
-        'TolX', 1e-6);
+    opt = optimoptions('fmincon', ...
+            'Display', 'iter',...
+            'Algorithm', algorithm,...
+            'MaxIterations', 300,...
+            'MaxFunctionEvaluations',1500, ...
+            'TolFun', 1e-6,...
+            'TolX', 1e-6,...
+            'TypicalX',Init(i,:)/scaler);
+    struc.optispecs = struct();
+    struc.optispecs.optiopt = opt;
+    struc.optispecs.scaleproblem = 0;
     if magnitude(init_f)>100 
         opt.ScaleProblem = 'obj-and-constr' ; %scale to goalfunc to [0,1]
+        struc.scaleproblem = 1;
     end
-    if strcmp(algorithm,"interior-point") %for file naming purposes
-        algorithm = "interiorpoint";
+    if global_idx
+        gs = GlobalSearch('XTolerance',1e-6,...
+                          'FunctionTolerance',1e-4,...
+                          'StartPointsToRun','bounds-ineqs',...
+                          'Display','iter',...
+                          'NumTrialPoints', 100,...
+                          'NumStageOnePoints',100);
+        problem = createOptimProblem('fmincon','x0',Init_scale,...
+                    'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
+        [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
+        struc.optispecs.gsopt   = gs;
+        struc.optispecs.gsresults = gsresults;
+        struc.optispecs.localminima = gsvec;
+    else
+        [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     end
-    gs = GlobalSearch('XTolerance',1e-6,...
-                      'FunctionTolerance',1e-4,...
-                      'StartPointsToRun','bounds-ineqs',...
-                      'Display','iter',...
-                      'NumTrialPoints', 500,...
-                      'NumStageOnePoints',500);
-    problem = createOptimProblem('fmincon','x0',Init_scale,...
-                'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
-    [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
     opt_params_raw(i, :) = xxval;
-    struc.flag = exitflag;
-    struc.goalval = fval;
-    struc.optiopt = opt;
-    struc.gsopt   = gs;
-    struc.gsresults = gsresults;
-    struc.localminima = gsvec;
-    % store the results
-    opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;
-    
-    
+    struc.optispecs.flag = exitflag;
+    struc.optispecs.goalval = fval;
+    opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;   
+    scale_tmp           =   magnitude(opt_params_clean(i, :));
+    if i == min(weeksprices)
+        scaler_firstweek= scale_tmp;
+    end
+    struc.optispecs.scale         =   scale_tmp;
+        
     struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
@@ -273,10 +285,11 @@ for i = [2:8]%unique(weeksprices)
     struc.MSE           =   mean((struc.hngPrice - struc.Price).^2);
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
-    scale_tmp           =   magnitude(opt_params_clean(i, :));
-    struc.scale         =   scale_tmp;
     values{i}           =   struc;    
 end 
+if strcmp(algorithm,"interior-point") %for file naming purposes
+    algorithm = "interiorpoint";
+end
 save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 
 %for specific weeks
