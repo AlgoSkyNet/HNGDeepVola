@@ -78,6 +78,8 @@ ub_mat           =   [1, 1, 10, 1000]./sc_fac;
 opt_params_raw   =   zeros(max(weeksprices), 4);
 opt_params_clean =   zeros(max(weeksprices), 4);
 values           =   cell(1,max(weeksprices));
+sig2_0           =   zeros(1,max(weeksprices));
+
 %values in first iteration:
 Init_scale       =   Init_scale_mat(min(weeksprices), :);
 scaler           =   sc_fac(min(weeksprices), :);  
@@ -85,7 +87,7 @@ scaler           =   sc_fac(min(weeksprices), :);
        
 % weekly optimization
 j = 1;
-for i = [2,3,4,5]%unique(weeksprices)
+for i = [2]%unique(weeksprices)
     disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         if isempty(SP500_date_prices_returns_realizedvariance_interestRates(4,...
@@ -221,15 +223,25 @@ for i = [2,3,4,5]%unique(weeksprices)
     % Interior Point
     
     if strcmp(algorithm,"InteriorPoint")
-        opt = optimoptions('fmincon', 'Display', 'iter',...
-        'Algorithm', 'interior-point', 'MaxIterations', 1000,...
-        'MaxFunctionEvaluations',2000, 'TolFun', 1e-6, 'TolX', 1e-6);
+        opt = optimoptions('fmincon',  ...
+        'Display', 'iter',...
+        'Algorithm', 'interior-point',...
+        'MaxIterations', 1000,...
+        'MaxFunctionEvaluations',2000, ...
+        'TolFun', 1e-6,...
+        'TolX', 1e-6,...
+        'ScaleProblem','obj-and-constr');
     end
-    gs = GlobalSearch('XTolerance',1e-6,'FunctionTolerance',1e-4,...
-            'StartPointsToRun','bounds-ineqs',"Display","iter,MaxTime",120);
+    gs = GlobalSearch('XTolerance',1e-6,...
+                      'FunctionTolerance',1e-4,...
+                      'StartPointsToRun','bounds-ineqs',...
+                      'Display','iter',...
+                      'NumTrialPoints', 2000,...
+                      'NumStageOnePoints',2000);
     problem = createOptimProblem('fmincon','x0',Init_scale,...
                 'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
-    [opt_params_raw(i, :),fval,exitflag] = run(gs,problem);
+    [xxval,fval,exitflag] = run(gs,problem);
+    opt_params_raw(i, :) = xxval;
     struc.flag = exitflag;
     struc.goalval = fval;
     % store the results
@@ -255,8 +267,8 @@ for i = [2,3,4,5]%unique(weeksprices)
     struc.MSE           =   mean((struc.hngPrice - struc.Price).^2);
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
-    struc.scale         =   scaler;
-    scale_tmp           =   scaler;
+    scale_tmp           =   magnitude(opt_params_clean(i, :));
+    struc.scale         =   scale_tmp;
     values{i}           =   struc;    
 end 
 save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
