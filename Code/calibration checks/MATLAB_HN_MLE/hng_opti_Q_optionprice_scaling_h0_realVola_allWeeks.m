@@ -47,8 +47,8 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednesdays);
 
 % initialize with the data from MLE estimation for each week
-path                    =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/';
-load(strcat(path,'weekly_',num2str(year),'_mle_opt.mat'));
+path                    =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/';
+load(strcat(path,'weekly_', num2str(year), '_mle_opt.mat'));
 Init                    = params_tmp;
 % bounds for maturity, moneyness, volumes, interest rates
 Type                    = 'call';
@@ -86,7 +86,7 @@ sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
 % bounds for parameters [omega, akpha, beta, gamma*]
 lb_mat           =   [1e-12, 0, 0, -1500];
-ub_mat           =   [1, 1, 1, 1500];
+ub_mat           =   [1e-2, 1, 1, 1500];
 % number of calibration parameters
 num_clbr_params  = 4;
 opt_params_raw   =   zeros(max(weeksprices), num_clbr_params);
@@ -355,11 +355,11 @@ for i = unique(weeksprices)
         %         [xxval3, fval3, exitflag3]=run(ms, problem, tpoints)
     end
     
-    opt_params_raw(i, :) = xxval;
-    struc.optispecs.flag = exitflag;
+    opt_params_raw(i, :)    = xxval;
+    struc.optispecs.flag    = exitflag;
     struc.optispecs.goalval = fval;
-    opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;
-    scale_tmp           =   magnitude(opt_params_clean(i, :));
+    opt_params_clean(i, :)  = opt_params_raw(i, :).*scaler;
+    scale_tmp               = magnitude(opt_params_clean(i, :));
     if i == min(weeksprices)
         scaler_firstweek= scale_tmp;
         f_val_firstweek = fval;
