@@ -59,6 +59,7 @@ for y = years
         file       = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
+        year_total(k) =y;
     end
 end
 %
@@ -69,6 +70,8 @@ for j = 1:k
             continue
         end
         Ninputs = Ninputs+1;
+        week_vec(Ninputs) = m;
+        year_vec(Ninputs) =year_total(j);
         mse(Ninputs,:)    = alldata{1,j}{1,m}.MSE;
         mape(Ninputs,:)   = alldata{1,j}{1,m}.MAPE;
         params(Ninputs,:) = alldata{1,j}{1,m}.hngparams;
