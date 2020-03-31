@@ -237,7 +237,7 @@ for i = [2,5]%unique(weeksprices)
     % fun2opti,scaled
     f_min = @(params) f_min_raw(params, scaler,sig2_0(i));
     % constraint,scaled
-    nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler,sig2_0(i));
+    nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
     %parameter bounds, scaled
     lb = lb_mat./scaler;
     ub = ub_mat./scaler; 
