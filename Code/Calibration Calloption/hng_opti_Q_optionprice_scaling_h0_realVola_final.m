@@ -8,15 +8,17 @@ close all;
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
-useYield            = 0; %uses tbils now
-useRealVola         = 1; %alwas use realized vola
-global_idx          = 0; %indicator if globalisation algorithm should be used.
+year                = 2018;
+useYield            = 0; % uses tbils now
+useRealVola         = 1; % alwas use realized vola
+global_idx          = 0; % indicator if globalisation algorithm should be used.
+                         % Globalisation is not recommend; little
+                         % improvement for huge computitional effort
+global_stage2       = 0; % indicator if globalisation algorihtm should be used as second order solution
 algorithm           = "interior-point";% "sqp"
-goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
-load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 
 % load Interest rates
 % load the corresponding data
@@ -76,7 +78,7 @@ data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; Optio
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
 lb_mat           =   [1e-12, 0, 0, -1500];
-ub_mat           =   [1, 1, 10, 1500];
+ub_mat           =   [1, 1, 1, 1500];
 opt_params_raw   =   zeros(max(weeksprices), 4);
 opt_params_clean =   zeros(max(weeksprices), 4);
 values           =   cell(1,max(weeksprices));
@@ -193,7 +195,7 @@ for i = unique(weeksprices)
     %% Algorithm 
 
     init_f = 1;
-    % Starting value check / semi globalization
+    % Starting value check
     if i ~= min(weeksprices)
         x1      = Init_scale_mat(i, :);
         scaler  = sc_fac(i, :); 
@@ -204,27 +206,31 @@ for i = unique(weeksprices)
         x3      = opt_params_raw(min(weeksprices), :);
         scaler  = scaler_firstweek; 
         f3      = f_min_raw(x3, scaler);
-        [init_f,min_i]    = min([f1,f2,f3]);
+        [init_f,min_i]    = min([f1,f2,f3]);        
         if min_i == 1
             Init_scale = x1;
             scaler = sc_fac(i, :);
+            disp(strcat("Initial value used 'MLE parameters'."));
         elseif min_i == 2
             Init_scale = x2;
             scaler = scale_tmp;
+            disp(strcat("Initial value used 'previous week'."));
         elseif min_i ==3
             Init_scale = x3;
             scaler = scaler_firstweek;
+            disp(strcat("Initial value used 'first week'."));
         end
+    else
+        disp(strcat("Initial value used 'MLE parameters'."));
     end
-    f_min = @(params) f_min_raw(params, scaler); 
-    
-    % run optimization
+    % fun2opti,scaled
+    f_min = @(params) f_min_raw(params, scaler);
+    % constraint,scaled
     nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
-    %lower parameter bounds, scaled
+    %parameter bounds, scaled
     lb = lb_mat./scaler;
-    %upper parameter bounds, scaled
     ub = ub_mat./scaler; 
-    
+    %optimization specs
     opt = optimoptions('fmincon', ...
             'Display', 'iter',...
             'Algorithm', algorithm,...
@@ -232,21 +238,24 @@ for i = unique(weeksprices)
             'MaxFunctionEvaluations',1500, ...
             'TolFun', 1e-6,...
             'TolX', 1e-6,...
-            'TypicalX',Init(i,:)/scaler);
+            'TypicalX',Init(i,:)./scaler);
     struc.optispecs = struct();
     struc.optispecs.optiopt = opt;
     struc.optispecs.scaleproblem = 0;
+    %use function scaling if function values are big.
     if magnitude(init_f)>100 
-        opt.ScaleProblem = 'obj-and-constr' ; %scale to goalfunc to [0,1]
-        struc.scaleproblem = 1;
+        opt.ScaleProblem = 'obj-and-constr' ; 
+        struc.optispecs.scaleproblem = 1;
     end
+    
     if global_idx
+        %Global optimization
         gs = GlobalSearch('XTolerance',1e-6,...
-                          'FunctionTolerance',1e-4,...
+                          'FunctionTolerance',1e-2,...
                           'StartPointsToRun','bounds-ineqs',...
                           'Display','iter',...
                           'NumTrialPoints', 1000,...
-                          'NumStageOnePoints',200);
+                          'NumStageOnePoints',950);
         problem = createOptimProblem('fmincon','x0',Init_scale,...
                     'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
         [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
@@ -254,28 +263,77 @@ for i = unique(weeksprices)
         struc.optispecs.gsresults = gsresults;
         struc.optispecs.localminima = gsvec;
     else
+        %local optimization
         [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     end
-    if (global_idx==0) && (fval>2*f_val_firstweek) && (i ~= min(weeksprices))
-        gs = GlobalSearch('XTolerance',1e-6,...
-                          'FunctionTolerance',1e-4,...
-                          'StartPointsToRun','bounds-ineqs',...
-                          'Display','iter',...
-                          'NumTrialPoints', 1000,...
-                          'NumStageOnePoints',200);
-        f_min = @(params) f_min_raw(params, scaler); 
-        nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
-        x_gloopt =xxval*scaler;
-        scaler = magnitude(x_gloopt);
-        Init_scale = x_gloopt/scaler; 
-        lb = lb_mat./scaler;
-        ub = ub_mat./scaler;
-        problem = createOptimProblem('fmincon','x0',Init_scale,...
-                    'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
-        [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
-        struc.optispecs.gsopt   = gs;
-        struc.optispecs.gsresults = gsresults;
-        struc.optispecs.localminima = gsvec;
+    if (i== min(weeksprices)) || ((fval<2*f_val_firstweek) && fval<1.5*median(f_vec)) || (min_i==1)
+    else
+        % if optimization results are bad and MLE were not used as initial
+        % parameters check those values
+        warning("Bad optimization results. Trying MLE Parameters...")
+        Init_scale2      = Init_scale_mat(i, :);
+        scaler2  = sc_fac(i, :); 
+        f_min2 = @(params) f_min_raw(params, scaler); 
+        nonlincon_fun2 = @(params) nonlincon_scale_v2(params, scaler);
+        lb2 = lb_mat./scaler;
+        ub2 = ub_mat./scaler;
+        opt.TypicalX = Init(i,:)./scaler; 
+        [xxval2,fval2,exitflag2] =  fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+        if fval2<fval
+            xxval =xxval2;
+            fval = fval2;
+            exitflag =exitflag2;
+            scaler = scaler2;
+        end
+    end
+    % if optimization results are still bad, use globalisation algorithm (if not already used)
+    if(i ~= min(weeksprices)) && global_stage2
+        if (global_idx==0) && ((fval>2*f_val_firstweek) || fval>1.5*median(f_vec))
+            warning("Bad optimization results. Globalisation initialised...")
+            gs = GlobalSearch('XTolerance',1e-6,...
+                              'FunctionTolerance',1e-2,...
+                              'StartPointsToRun','bounds-ineqs',...
+                              'Display','iter',...
+                              'NumTrialPoints', 1000,...
+                              'NumStageOnePoints',950);
+            x_gloopt =xxval.*scaler;
+            scaler = magnitude(x_gloopt);
+            f_min = @(params) f_min_raw(params, scaler); 
+            nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
+            Init_scale = x_gloopt./scaler; 
+            lb = lb_mat./scaler;
+            ub = ub_mat./scaler;
+            % trying to get huge improvements.
+            opt2 = optimoptions('fmincon', ...
+            'Display', 'iter',...
+            'Algorithm', algorithm,...
+            'MaxIterations', 300,...
+            'MaxFunctionEvaluations',1500, ...
+            'TolFun', 1e-2,...
+            'TolX', 1e-6,...
+            'TypicalX',Init(i,:)./scaler);
+            opt2.TypicalX = Init(i,:)./scaler;
+            problem = createOptimProblem('fmincon','x0',Init_scale,...
+                        'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt2);
+            [xxval,fval,exitflag,gsresults,gsvec] = run(gs,problem);
+            struc.optispecs.gsopt   = gs;
+            struc.optispecs.gsresults = gsresults;
+            struc.optispecs.localminima = gsvec;
+        end
+%         ms = MultiStart('FunctionTolerance',1e-2,'StartPointsToRun','bounds-ineqs');
+%          [xxval3,fval3,exitflag3] =run(ms,problem,50000);
+%         Init_scale = mean(Init); 
+%         scaler = magnitude(Init_scale);
+%         f_min = @(params) f_min_raw(params, scaler);
+%         nonlincon_fun = @(params) nonlincon_scale_v2(params, scaler);
+%         lb = lb_mat./scaler;
+%         ub = ub_mat./scaler;
+%         problem = createOptimProblem('fmincon','x0',Init_scale,...
+%             'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun,'options',opt);
+%         tpoints = CustomStartPointSet(mvnrnd(Init_scale,cov(Init./scaler),1000));
+%         tpts = list(tpoints);
+%         isequal(ptmatrix,tpts)
+%         [xxval3,fval3,exitflag3]=run(ms,problem,tpoints)
     end
        
     opt_params_raw(i, :) = xxval;
@@ -286,9 +344,16 @@ for i = unique(weeksprices)
     if i == min(weeksprices)
         scaler_firstweek= scale_tmp;
         f_val_firstweek = fval;
+        f_vec = fval;
+        param_vec = opt_params_clean(i, :);
+        num_vec = length(data_week);
+    else
+        f_vec(end+1) =fval;
+        param_vec(end+1,:) = opt_params_clean(i, :);
+        num_vec(end+1) = length(data_week);
     end
+    
     struc.optispecs.scale         =   scale_tmp;
-        
     struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
@@ -317,3 +382,43 @@ save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,
 
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+%%
+analysis = 0;
+if analysis
+    figure("Name",num2str(year))
+    j =0;
+    bad_idx = (f_vec>quantile(f_vec,0.8));
+    bad_weeks =unique(weeksprices);
+    bad_weeks = bad_weeks(bad_idx);
+    bad_weeks=[2,5];
+    num_vec = [10,10];
+    weeksplot=bad_weeks; %unique(weekprices);
+    for i=weeksplot
+        j = j+1;
+        data_week = data(:,(weeksprices == i))';
+        k = ceil(sqrt(length(weeksplot)));
+        subplot(k,k,j)
+        [xq,yq] = meshgrid(unique(data_week(:,2)),unique(data_week(:,3)));
+        vq = griddata(data_week(:,2),data_week(:,3),data_week(:,1),xq,yq);  %(x,y,v) being your original data for plotting points
+        surf(xq,yq,vq)
+        hold on
+        scatter3(data_week(:,2),data_week(:,3),data_week(:,1),"o","k",'filled');
+        ylim([1000 1300])
+        xlim([0 250])
+        view(0,90)
+        colormap(jet(256));
+        caxis([0, 100]);
+        colorbar
+        title(strcat("week ",num2str(i)))
+    end
+    corr_  = corr(param_vec);
+    mean_ = mean(param_vec);
+    median_ = median(param_vec);
+    corr_size_err = corr(f_vec,num_vec);
+    
+    
+    
+    
+    
+    
+end
