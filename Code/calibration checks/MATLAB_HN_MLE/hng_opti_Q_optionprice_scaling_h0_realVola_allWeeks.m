@@ -393,6 +393,7 @@ for i = unique(weeksprices)
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     values{i}           =   struc;
+    j = j + 1;
 end
 if strcmp(algorithm, "interior-point") %for file naming purposes
     algorithm = "interiorpoint";
@@ -403,7 +404,7 @@ save(strcat('params_Options_', num2str(year), '_h0asRealVola_', goal, '_', algor
 %save(strcat('params_Options_', num2str(year), 'week2and4', '_h0asRealVola_', goal, '_', algorithm, '_', txt, '.mat'), 'values');
 %%
 analysis = 0;
-j = j + 1;
+
 if analysis
     figure("Name", num2str(year))
     ind_temp = 0;
