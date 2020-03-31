@@ -46,8 +46,6 @@ Dates                   = Dates(wednessdays);
 % initialize with the data from MLE estimation for each week
 load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 Init                    = params_tmp;
-all_mle = load('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/weekly_10to18_mle_opt.mat');
-all_parameters = all_mle.params_Q_mle_weekly;
 % bounds for maturity, moneyness, volumes, interest rates
 Type                    = 'call';
 MinimumVolume           = 100;
@@ -110,8 +108,8 @@ for i = [2,5]%unique(weeksprices)
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
         end
-        [vola_use,vola_idx] =max(vola_vec>0);
-        sig2_0(i) = vola_use;
+        [~,vola_idx] =max(vola_vec>0);
+        sig2_0(i) = vola_vec(vola_idx);
     end
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
