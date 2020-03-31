@@ -8,7 +8,7 @@ close all;
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2018;
+year                = 2015;
 useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 global_idx          = 0; % indicator if globalisation algorithm should be used.
@@ -182,7 +182,7 @@ for i = unique(weeksprices)
         f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 1));
     % Option Likelyhood
     elseif strcmp(goal,"OptLL")
-        f_min_raw = @(params,scaler) (0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 5)).^2))));
+        f_min_raw = @(params,scaler) 1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 5)).^2))));
     % WE DO NOT USE THIS FOR GOAL FUNCTION
     % RMSE
     %elseif strcmp(goal,"RMSE")
@@ -223,6 +223,14 @@ for i = unique(weeksprices)
     else
         disp(strcat("Initial value used 'MLE parameters'."));
     end
+    
+    %use function scaling if function values are big.
+    %if magnitude(init_f)>=1000 
+    %    %opt.ScaleProblem = 'obj-and-constr' ; 
+    %    %struc.optispecs.scaleproblem = 1;
+    %end
+    
+    
     % fun2opti,scaled
     f_min = @(params) f_min_raw(params, scaler);
     % constraint,scaled
@@ -235,18 +243,14 @@ for i = unique(weeksprices)
             'Display', 'iter',...
             'Algorithm', algorithm,...
             'MaxIterations', 300,...
-            'MaxFunctionEvaluations',1500, ...
+            'MaxFunctionEvaluations',2000, ...
             'TolFun', 1e-6,...
-            'TolX', 1e-6,...
+            'TolX', 1e-9,...
             'TypicalX',Init(i,:)./scaler);
     struc.optispecs = struct();
     struc.optispecs.optiopt = opt;
     struc.optispecs.scaleproblem = 0;
-    %use function scaling if function values are big.
-    if magnitude(init_f)>100 
-        opt.ScaleProblem = 'obj-and-constr' ; 
-        struc.optispecs.scaleproblem = 1;
-    end
+ 
     
     if global_idx
         %Global optimization
@@ -374,6 +378,8 @@ for i = unique(weeksprices)
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     values{i}           =   struc;    
+    disp(struc.MSE);
+    disp(struc.hngparams(3));
 end 
 if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
@@ -382,43 +388,3 @@ save(strcat('params_Options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,
 
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
-%%
-analysis = 0;
-if analysis
-    figure("Name",num2str(year))
-    j =0;
-    bad_idx = (f_vec>quantile(f_vec,0.8));
-    bad_weeks =unique(weeksprices);
-    bad_weeks = bad_weeks(bad_idx);
-    bad_weeks=[2,5];
-    num_vec = [10,10];
-    weeksplot=bad_weeks; %unique(weekprices);
-    for i=weeksplot
-        j = j+1;
-        data_week = data(:,(weeksprices == i))';
-        k = ceil(sqrt(length(weeksplot)));
-        subplot(k,k,j)
-        [xq,yq] = meshgrid(unique(data_week(:,2)),unique(data_week(:,3)));
-        vq = griddata(data_week(:,2),data_week(:,3),data_week(:,1),xq,yq);  %(x,y,v) being your original data for plotting points
-        surf(xq,yq,vq)
-        hold on
-        scatter3(data_week(:,2),data_week(:,3),data_week(:,1),"o","k",'filled');
-        ylim([1000 1300])
-        xlim([0 250])
-        view(0,90)
-        colormap(jet(256));
-        caxis([0, 100]);
-        colorbar
-        title(strcat("week ",num2str(i)))
-    end
-    corr_  = corr(param_vec);
-    mean_ = mean(param_vec);
-    median_ = median(param_vec);
-    corr_size_err = corr(f_vec,num_vec);
-    
-    
-    
-    
-    
-    
-end
