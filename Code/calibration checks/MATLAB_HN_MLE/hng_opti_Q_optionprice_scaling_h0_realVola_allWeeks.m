@@ -9,14 +9,14 @@ close all;
 path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
-useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
-global_idx          = 0; % indicator if globalisation algorithm should be used.
-% Globalisation is not recommend; little
+useYield            = 0; % uses Tbills now
+useRealVola         = 1; % always use realized vola
+global_idx          = 0; % indicator if globalization algorithm should be used
+% Globalisation is not recommended; little
 % improvement for huge computitional effort
-global_stage2       = 0; % indicator if globalisation algorihtm should be used as second order solution
+global_stage2       = 0; % indicator if globalization algorihtm should be used as second order solution
 algorithm           = "interior-point";% "sqp"
-goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "MSE"; % "MSE"; "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 
@@ -42,9 +42,9 @@ DateString_start        = strcat('01-January-',num2str(year));
 DateString_end          = strcat('31-December-',num2str(year));
 date_start              = datenum(DateString_start, formatIn);
 date_end                = datenum(DateString_end, formatIn);
-wednessdays             = (weekday(date_start:date_end)==4);
+wednesdays             = (weekday(date_start:date_end)==4);
 Dates                   = date_start:date_end;
-Dates                   = Dates(wednessdays);
+Dates                   = Dates(wednesdays);
 
 % initialize with the data from MLE estimation for each week
 path                    =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/';
