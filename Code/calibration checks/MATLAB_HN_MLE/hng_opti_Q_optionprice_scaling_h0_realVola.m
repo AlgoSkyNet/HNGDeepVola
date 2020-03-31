@@ -15,7 +15,7 @@ load('weekly_2015_mle.mat');
 
 % load Interest rates
 % load the corresponding data
-useYield = 0;
+useYield = 1;
 if useYield
     path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
@@ -136,7 +136,7 @@ for i = min(weeksprices):max(weeksprices)
     % Goal function
     
     % MSE
-    f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))' - data_week(:, 1)).^2));
+    % f_min_raw = @(params, scaler) (mean((price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))' - data_week(:, 1)).^2));
     
     % MRAE/MAPE
     % f_min_raw = @(params,scaler) mean(abs(price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))'-data_week(:, 1))./data_week(:, 1));
@@ -146,7 +146,7 @@ for i = min(weeksprices):max(weeksprices)
      
     % WE DO NOT USE THIS FOR GOAL FUNCTION
     % IV RMSE
-    % f_min_raw = @(params, scaler) sqrt(mean(100 * (struc.blsimpv - blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))')).^2));
+     f_min_raw = @(params, scaler) sqrt(mean(100 * (struc.blsimpv - blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, price_Q(params.*scaler, data_week, r_cur./252, sig2_0(i))')).^2));
     
     %  Interior Point
     opt = optimoptions('fmincon', 'Display', 'iter',...

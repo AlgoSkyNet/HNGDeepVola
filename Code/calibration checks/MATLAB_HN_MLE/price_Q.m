@@ -20,8 +20,8 @@ for j =1:size(data_week,1)
     [completedIdx,value] = fetchNext(pr,0.5); %shutdown after 0.5s for integral calc
     p(completedIdx) = value;
 end
-if p < 0
-    p = 0;
+if p(completedIdx) < 0
+    p(completedIdx) = 0;
 end
 cancel(pr)
 end
