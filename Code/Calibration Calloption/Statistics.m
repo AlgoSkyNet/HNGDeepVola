@@ -10,10 +10,10 @@ clearvars; clc;close all;
 %% Initialisation
 
 % Configuration of underlying data
-years     = 2010:2016;%:2018;
+years     = [2010:2014,2016];%:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
-path_data_old = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/weird results/';
+path_data_old = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/old results b4 change/weird results/';
 
 
 %% Concentate underlying Data
@@ -22,7 +22,7 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat(path_data,'params_v2_options_',num2str(y),'_h0asRealVola_',goal,'_interiorpoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
         file       = strcat(path_data_old,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');

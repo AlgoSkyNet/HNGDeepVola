@@ -3,12 +3,12 @@
 clc; 
 clearvars; 
 close all;
-
+warning('on')
 
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2013;
 useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
@@ -89,7 +89,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = [2,5]%unique(weeksprices)
+for i = unique(weeksprices)
     disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         vola_vec = zeros(1,4);
