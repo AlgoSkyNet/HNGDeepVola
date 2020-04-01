@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2013;
+year                = 2010;
 useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
@@ -89,7 +89,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = unique(weeksprices)
+for i = [2,3,4,5,6]%unique(weeksprices)
     disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         vola_vec = zeros(1,4);
@@ -102,7 +102,6 @@ for i = unique(weeksprices)
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
         vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
-        check_vola = ~isempty(vola_vec);
         for vola_idx = 1:4
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
@@ -205,14 +204,17 @@ for i = unique(weeksprices)
     init_f = 1;
     % Starting value check
     if i ~= min(weeksprices)
+        %MLE
         x1      = Init_scale_mat(i, :);
         scaler  = sc_fac(i, :); 
         f1      = f_min_raw(x1, scaler,sig2_0(i));
-        x2      = opt_params_raw(i - 1, :);
+        % previous week
         scaler  = scale_tmp;
+        x2      = opt_params_clean(i - 1, :)./scaler;
         f2      = f_min_raw(x2, scaler,sig2_0(i));
-        x3      = opt_params_raw(min(weeksprices), :);
+        %first weeks results
         scaler  = scaler_firstweek; 
+        x3      = opt_params_clean(min(weeksprices), :)./scaler;
         f3      = f_min_raw(x3, scaler,sig2_0(i));
         [init_f,min_i]    = min([f1,f2,f3]);        
         if min_i == 1
@@ -328,7 +330,7 @@ end
 if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
 end
-save(strcat('params_v2_options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+save(strcat('params_test_options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
