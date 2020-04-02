@@ -1,5 +1,5 @@
 % This code calibrates the HNG(1,1) under P with MLE. 
-% calibrated on every wednessday in 2010-2018
+% calibrated on every Wednesday in 2010-2018
 % Windowlength 2520 days
 % Parameters are scaled to [0,1]
 % interest rates are calcalated for each year and used as fixed input
@@ -7,42 +7,55 @@ clc; close all; clearvars;
 
 %% data
 datatable       = readtable('SP500_220320.csv');
-data            = [datenum(datatable.Date),year(datatable.Date),datatable.Close,[0;log(datatable.Close(2:end))-log(datatable.Close(1:end-1))]];
-win_len         = 2520; %around 10years
+data            = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
+win_len         = 2520; % around 10years
 years           = (data(:,2)==2010) | (data(:,2)==2011) | (data(:,2)==2012) | (data(:,2)==2013) | (data(:,2)==2014) | (data(:,2)==2015) | (data(:,2)==2016) | (data(:,2)==2017) | (data(:,2)==2018);
-wednessdays     = (weekday(data(:,1))==4);
-doi             = years & wednessdays; %days of interest
+wednesdays     = (weekday(data(:,1))==4);
+doi             = years & wednesdays; %days of interest
 index           = find(doi);
 shortdata       = data(doi,:);
 
 
 %% optimization
-
+ifEstimateh0 = 1;
 % Setup and Inital Values
+if ifEstimateh0
+    num_params  = 6;
+else
+    num_params  = 5;
+end
+
 omega           = 1.8e-9;
 alpha           = 1.5e-6;
 beta            = 0.63;
 gamma           = 250;
 lambda          = 2.4;
 sigma0          = (alpha+omega)/(1-beta-alpha*gamma.^2);
-Init            = [omega,alpha,beta,gamma,lambda,sigma0];
+if ifEstimateh0
+    Init        = [omega,alpha,beta,gamma,lambda,sigma0];
+    lb_h0       = [1e-12,0,0,-1000,-100,1e-12];
+    ub_h0       = [1,1,100,2000,100,1];
+else
+    Init        = [omega,alpha,beta,gamma,lambda];
+    lb_h0       = [1e-12,0,0,-1000,-100];
+    ub_h0       = [1,1,100,2000,100];
+end
 sc_fac          = magnitude(Init);
 Init_scale      = Init./sc_fac;
 scaler          = sc_fac(1,:);  
-lb_h0           = [1e-12,0,0,-1000,-100,1e-12];
-ub_h0           = [1,1,100,2000,100,1];
 A               = [];
 b               = [];
 Aeq             = [];
 beq             = [];
 % Initialisation
-opt_ll          = NaN*ones(length(index),1);
-params_mle_weekly=NaN*ones(length(index),6);
-params_mle_weekly_original=NaN*ones(length(index),6);
-hist_vola       = NaN*ones(length(index),1);
-likVal       = NaN*ones(length(index),1);
+opt_ll                      = NaN*ones(length(index),1);
+params_mle_weekly           = NaN*ones(length(index),num_params);
+params_mle_weekly_original  = NaN*ones(length(index),num_params);
+hist_vola                   = NaN*ones(length(index),1);
+sigma2_last                 = NaN*ones(length(index),1);
 useYield = 0;
-path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
+%path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
+path                = '/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
 if useYield
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
@@ -81,8 +94,11 @@ for i=1:length(index)
     r=max(r,0)/252;
     
     
-    
-    f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+    if ifEstimateh0
+        f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+    else
+        f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
+    end
     gs = GlobalSearch('XTolerance',1e-9,'StartPointsToRun','bounds-ineqs','Display','final');
     
 
@@ -92,7 +108,7 @@ for i=1:length(index)
     if i~=1 
         x0      = [params;Init_scale];
         fmin_   = zeros(2,1);
-        xmin_   = zeros(2,6);
+        xmin_   = zeros(2,num_params);
         for j=1:2
             if j
                 scaler  = scale_tmp;
@@ -129,12 +145,21 @@ for i=1:length(index)
     opt_ll(i)                       = fmin;
     params_mle_weekly(i,:)          = params;
     params_mle_weekly_original(i,:) = params_original;
-    [likVal(i)] = ll_hng_n_h0(params_original,logret,r);
+    if ifEstimateh0
+        [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
+    else
+        [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
+    end
+    
 end
 
+params_P_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4),params_mle_weekly_original(:,5)];
 params_Q_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4)+params_mle_weekly_original(:,5)+0.5];
-sig2_0 = params_mle_weekly_original(:,6);
-likValall = likVal;
-likValmin = opt_ll;
+if ifEstimateh0
+    sig2_0 = params_mle_weekly_original(:,num_params);
+else
+    sig2_0 = sigma0*ones(length(index),1);
+end
 
-save('weekly_10to18_mle_opt_check.mat','sig2_0','hist_vola','likValall', 'likValmin', 'params_Q_mle_weekly')
+save('weekly_10to18_mle_opt_esth0_check.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+    'params_Q_mle_weekly','params_P_mle_weekly')

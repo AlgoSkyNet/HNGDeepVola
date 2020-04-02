@@ -1,4 +1,4 @@
-function mn_loglik = ll_hng_n_h0(par0,x,r)
+function [mn_loglik,h] = ll_hng_n_h0(par0,x,r)
 n = length(x);
 omega = par0(1);
 alpha = par0(2);
