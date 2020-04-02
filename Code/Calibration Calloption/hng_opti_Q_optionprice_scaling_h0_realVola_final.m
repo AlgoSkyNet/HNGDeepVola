@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2018;
 useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
@@ -89,7 +89,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = [2,3,4,5,6]%unique(weeksprices)
+for i = unique(weeksprices)
     disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
         vola_vec = zeros(1,4);
@@ -201,7 +201,6 @@ for i = [2,3,4,5,6]%unique(weeksprices)
     
     %% Algorithm 
 
-    init_f = 1;
     % Starting value check
     if i ~= min(weeksprices)
         %MLE
@@ -216,7 +215,12 @@ for i = [2,3,4,5,6]%unique(weeksprices)
         scaler  = scaler_firstweek; 
         x3      = opt_params_clean(min(weeksprices), :)./scaler;
         f3      = f_min_raw(x3, scaler,sig2_0(i));
-        [init_f,min_i]    = min([f1,f2,f3]);        
+        %best weeks results
+        scaler = best_scaler;
+        x4 = best_x./scaler;
+        f4 = f_min_raw(x4, scaler,sig2_0(i));
+        
+        [~,min_i]    = min([f1,f2,f3,f4]);
         if min_i == 1
             Init_scale = x1;
             scaler = sc_fac(i, :);
@@ -229,6 +233,10 @@ for i = [2,3,4,5,6]%unique(weeksprices)
             Init_scale = x3;
             scaler = scaler_firstweek;
             disp(strcat("Initial value used 'first week'."));
+        elseif min_i ==4
+            Init_scale = x4;
+            scaler = best_scaler;
+            disp(strcat("Initial value used 'best week'."));
         end
     else
         disp(strcat("Initial value used 'MLE parameters'."));
@@ -259,11 +267,18 @@ for i = [2,3,4,5,6]%unique(weeksprices)
         good_i =i;
     else
         % if results are bad, use other h0
-        warning("Bad optimization results. Trying different historic h0 values...")
-        new_idx = vola_idx+1;
-        while ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec)) && new_idx<=4 
-            if vola_vec(new_idx)~=0
-                new_vola = vola_vec(new_idx);
+        vola_idx = vola_idx+1;
+        while ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec)) && vola_idx<=4 
+            if vola_vec(vola_idx)~=0
+                if vola_idx==2
+                    txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");
+                elseif vola_idx ==3
+                    txt_msg =strcat("Bad optimization results. Trying 2days prio realized vola.");
+                elseif vola_idx ==4
+                    txt_msg =strcat("Bad optimization results. Trying 3days prio realized vola.");
+                end
+                warning(txt_msg)
+                new_vola = vola_vec(vola_idx);
                 f_min2 = @(params) f_min_raw(params, scaler,new_vola); 
                 nonlincon_fun2 = @(params) nonlincon_scale_v2(params, scaler);
                 [xxval2,fval2,exitflag2] =  fmincon(f_min2, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -274,7 +289,7 @@ for i = [2,3,4,5,6]%unique(weeksprices)
                     sig2_0(i) = new_vola;
                 end  
             end
-            new_idx =new_idx+1;
+           vola_idx =vola_idx+1;
         end
         if ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec))
             warning("Bad optimization results. No historic h0 values left! Continue with next week.")
@@ -293,16 +308,24 @@ for i = [2,3,4,5,6]%unique(weeksprices)
         scaler_firstweek= scale_tmp;
         f_val_firstweek = fval;
         f_vec = fval;
+        best_fval = fval;
+        best_x = opt_params_clean(i, :);
+        best_scaler = scale_tmp;
         param_vec = opt_params_clean(i, :);
         num_vec = length(data_week);
     else
         f_vec(end+1) =fval;
         param_vec(end+1,:) = opt_params_clean(i, :);
         num_vec(end+1) = length(data_week);
+        if fval<best_fval
+            best_fval = fval;
+            best_scaler =scale_tmp;
+            best_x = opt_params_clean(i, :);
+        end
     end
     param_vec_weekly(i,:) =  opt_params_clean(i, :);
     struc.optispecs.scaler         =   scale_tmp;
-    
+    struc.vola_idx      =   vola_idx;
     struc.sig20         =   sig2_0(i);
     struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
