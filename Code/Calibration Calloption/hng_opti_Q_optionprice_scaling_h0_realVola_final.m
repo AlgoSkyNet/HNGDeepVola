@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2018;
+year                = 2010;
 useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
@@ -95,14 +95,22 @@ for i = unique(weeksprices)
         vola_vec = zeros(1,4);
         vola_cell = {};
         vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
         vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
         vola_cell{3} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
         vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
-        for vola_idx = 1:4
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
+        vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
+        vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
+        vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
+        vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6); 
+        for vola_idx = 1:8
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
@@ -174,8 +182,6 @@ for i = unique(weeksprices)
             %r_cur(k) = spline(interestRates(:,1), interestRates(:,2), data_week(k, 2));
         end
     end
-    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
-    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     struc.Price         =   data_week(:, 1)';
     struc.yields        =   interestRates;
     
@@ -268,14 +274,12 @@ for i = unique(weeksprices)
     else
         % if results are bad, use other h0
         vola_idx = vola_idx+1;
-        while ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec)) && vola_idx<=4 
+        while ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec)) && vola_idx<=8 
             if vola_vec(vola_idx)~=0
                 if vola_idx==2
                     txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");
-                elseif vola_idx ==3
-                    txt_msg =strcat("Bad optimization results. Trying 2days prio realized vola.");
-                elseif vola_idx ==4
-                    txt_msg =strcat("Bad optimization results. Trying 3days prio realized vola.");
+                else
+                    txt_msg =strcat("Bad optimization results. Trying ",num2str(vola_idx-1),"-days prio realized vola.");
                 end
                 warning(txt_msg)
                 new_vola = vola_vec(vola_idx);
@@ -298,7 +302,6 @@ for i = unique(weeksprices)
             good_i(end+1)=i;
         end
     end
-          
     opt_params_raw(i, :) = xxval;
     struc.optispecs.flag = exitflag;
     struc.optispecs.goalval = fval;
@@ -323,6 +326,9 @@ for i = unique(weeksprices)
             best_x = opt_params_clean(i, :);
         end
     end
+    
+    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
+    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     param_vec_weekly(i,:) =  opt_params_clean(i, :);
     struc.optispecs.scaler         =   scale_tmp;
     struc.vola_idx      =   vola_idx;
@@ -347,13 +353,14 @@ for i = unique(weeksprices)
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     values{i}           =   struc;    
+    
     disp(struc.MSE);
     disp(struc.hngparams(3));
 end 
 if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
 end
-save(strcat('params_test_options_',num2str(year),'_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+save(strcat('params_options_',num2str(year),'_h0asRealVola7days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
