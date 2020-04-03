@@ -12,7 +12,9 @@ clearvars; clc;close all;
 % Configuration of underlying data
 years     = [2011];%:2018];
 goals     = ["MSE"];%,"MAPE","OptLL"];
-path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
+%cd c:\myMATLABFiles
+%cd pwd
+%path_data = pwd%'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 %path_data_old = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/old results b4 change/weird results/';
 
 
@@ -22,10 +24,12 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
+        file       = strcat('params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
+        %strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
-        file       = strcat(path_data,'params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat('params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
+        %strcat(path_data,'params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
         tmp        = load(file);
         alldata_old{k} = tmp.values;
     end
