@@ -22,7 +22,7 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 %% Initialisation
 
 % Configuration of underlying data
-years     = 2010%:2018;
+years     = 2010:2017;
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
@@ -56,7 +56,7 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_Options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat(path_data,'params_test_options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
         year_total(k) =y;
@@ -77,7 +77,7 @@ for j = 1:k
         params(Ninputs,:) = alldata{1,j}{1,m}.hngparams;
         sig2_0(Ninputs)   = alldata{1,j}{1,m}.sig20; 
         yields(Ninputs,:) = alldata{1,j}{1,m}.yields;
-        flag(Ninputs) = alldata{1,j}{1,m}.flag;
+        flag(Ninputs)     = alldata{1,j}{1,m}.optispecs.flag;
     end
 end
 sig2_0 = sig2_0';
