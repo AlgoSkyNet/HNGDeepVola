@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2014;
+year                = 2018;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"

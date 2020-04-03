@@ -10,10 +10,10 @@ clearvars; clc;close all;
 %% Initialisation
 
 % Configuration of underlying data
-years     = [2010:2017];%:2018;
+years     = [2011];%:2018];
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
-path_data_old = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/old results b4 change/weird results/';
+%path_data_old = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/old results b4 change/weird results/';
 
 
 %% Concentate underlying Data
@@ -22,10 +22,10 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_test_options_',num2str(y),'_h0asRealVola_',goal,'_interiorpoint_noYield.mat');
+        file       = strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
-        file       = strcat(path_data,'params_v2_options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat(path_data,'params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
         tmp        = load(file);
         alldata_old{k} = tmp.values;
     end
@@ -80,13 +80,26 @@ corr_beta_err_old_rank =corr(mse_old,params(:,3),"Type",'Spearman')
 
 figure
 subplot(2,2,1)
-plot(mse);hold on, plot(mse_old)
+plot(mse);hold on, plot(mse_old),title("MSE calibrated vs historic")
 subplot(2,2,2)
-plot(cumsum(mse));hold on, plot(cumsum(mse_old))
+plot(cumsum(mse));hold on, plot(cumsum(mse_old)),title("cum. MSE calibrated vs historic")
 subplot(2,2,3)
-histogram(mse)
+histogram(mse),title("MSE calibrated")
 subplot(2,2,4)
-histogram(mse_old)
+histogram(mse_old),title("MSE historic")
+figure
+scatter(params(:,3),mse),hold on
+scatter(params_old(:,3),mse_old),hold on
+p = polyfit(params(:,3),mse,1);
+x1 = linspace(0,1);
+y1 = polyval(p,x1);
+plot(x1,y1,"b"),hold on
+p = polyfit(params_old(:,3),mse_old,1);
+x1 = linspace(0,1);
+y1 = polyval(p,x1);
+plot(x1,y1,"r")
+title("scatter beta vs mse")
+  
 %%
 % %STATISTICS
 % figure("Name",num2str(2010))
