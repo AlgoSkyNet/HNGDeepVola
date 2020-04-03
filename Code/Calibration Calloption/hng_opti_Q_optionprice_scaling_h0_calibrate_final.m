@@ -342,7 +342,7 @@ for i = unique(weeksprices)
 
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-    if (i== min(weeksprices)) || ((fval<2*f_val_firstweek) && fval<1.5*median(f_vec)) 
+    if (i== min(weeksprices)) || ((fval<3*best_fval) && fval<1.5*median(f_vec)) 
         good_i =i;
     else
         if useRealVola
@@ -372,7 +372,7 @@ for i = unique(weeksprices)
         else
             warning("Bad optimization results. No other starting values or optimization methods implemented for h0 calibration so far. Come back later ;)")
         end
-        if ((fval>=2*f_val_firstweek) || fval>=1.5*median(f_vec))
+        if ((fval>=3*best_fval) || fval>=1.5*median(f_vec))
             warning("Bad optimization results. No other starting values left! Continue with next week.")
             bad_i(end+1) =i;
         else
