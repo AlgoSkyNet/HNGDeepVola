@@ -119,6 +119,7 @@ for i=1:length(index)
             end
             f_min = @(params) f_min_raw(params,scaler);
             nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
+            rng('default');
             problem = createOptimProblem('fmincon','x0',x0(j,:),...
                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
             [xmin_(j,:),fmin_(j)] = run(gs,problem);
@@ -139,9 +140,7 @@ for i=1:length(index)
             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3);
         problem = createOptimProblem('fmincon','x0',Init_scale,...
                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
-            tic;
        [xmin,fmin] = run(gs,problem);  
-       ttt=toc;
 %         ms = MultiStart('UseParallel', true, 'XTolerance',1e-9,...
 %             'FunctionTolerance', 1e-9);    
 %         options_multistart = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
