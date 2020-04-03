@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2014;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
@@ -108,8 +108,8 @@ j = 1;
 good_i =[];
 bad_i =[];
 for i = unique(weeksprices)
-    disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),"."))
     if useRealVola
+        disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),". h_0 is not calibrated."))
         vola_vec = zeros(1,4);
         vola_cell = {};
         vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
@@ -135,6 +135,8 @@ for i = unique(weeksprices)
         end
         [~,vola_idx] =max(vola_vec>0);
         sig2_0(i) = vola_vec(vola_idx);
+    else
+        disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),". h_0 will be calibrated."))     
     end
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
