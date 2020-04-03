@@ -62,9 +62,11 @@ else
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateTbill_090320.mat');
     end
 load(path_r);
+tic;
 for i=1:length(index)
     tmp = shortdata(i,2)-2009; %  year 
     display(datatable.Date(index(i)));
+    toc
     logret = data(index(i)-win_len:index(i)-1,4);
     hist_vola(i) = sqrt(252)*std(logret);
         % compute interest rates for the weekly options
@@ -99,8 +101,8 @@ for i=1:length(index)
     else
         f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
     end
-    gs = GlobalSearch('XTolerance',1e-9,'StartPointsToRun','bounds-ineqs','Display','final');
-    
+    gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+            'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
 
 
     % Check two different initial values for better results.
@@ -117,6 +119,7 @@ for i=1:length(index)
             end
             f_min = @(params) f_min_raw(params,scaler);
             nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
+            rng('default');
             problem = createOptimProblem('fmincon','x0',x0(j,:),...
                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
             [xmin_(j,:),fmin_(j)] = run(gs,problem);
@@ -132,11 +135,22 @@ for i=1:length(index)
     else
         f_min = @(params) f_min_raw(params,scaler);
         nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
-        gs = GlobalSearch('XTolerance',1e-9,...
+        rng('default');
+        gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3);
         problem = createOptimProblem('fmincon','x0',Init_scale,...
                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
-        [xmin,fmin] = run(gs,problem);    
+       [xmin,fmin] = run(gs,problem);  
+%         ms = MultiStart('UseParallel', true, 'XTolerance',1e-9,...
+%             'FunctionTolerance', 1e-9);    
+%         options_multistart = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
+%                     'TolFun', 1e-9, 'TolX', 1e-9, 'Display', 'iter', 'UseParallel', 'Always', ...
+%                     'MaxIter', 200, 'MaxFunEvals', 10000);
+%         problem = createOptimProblem('fmincon','x0',Init_scale,...
+%                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun,...
+%                 'options', options_multistart);
+%          stpoints = RandomStartPointSet('NumStartPoints',1e5);
+%         [xmin,fmin] = run(ms,problem,4);    
         
     end    
     params                          = xmin;
@@ -161,5 +175,5 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_esth0_check.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
-    'params_Q_mle_weekly','params_P_mle_weekly')
+save('weekly_10to18_mle_opt_h0est_check_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+    'params_Q_mle_weekly','params_P_mle_weekly', 'stream')
