@@ -3,18 +3,31 @@ load('num_weeks.mat');
 load('weekly_10to18_mle_opt_noh0est_check_rng.mat');
 num_years = 9;
 num_params = 5;
+ifEsth0 = 0;
+if ifEsth0
+    additional_params = 2;
+else
+    additional_params = 1;
+end
+
 j = 1;
-mean_vals = zeros(num_years, num_params + 1);
-std_vals = zeros(num_years, num_params + 1);
+mean_vals = zeros(num_years, num_params + additional_params);
+std_vals = zeros(num_years, num_params + additional_params);
 for i = 1:num_years
     mean_vals(i, 1:num_params) = mean(params_P_mle_weekly(j:j + num_weeks(i) - 1, :));
     mean_vals(i, num_params + 1) = mean(sigma2_last(j:j + num_weeks(i) - 1, :));
+    
     std_vals(i, 1:num_params) = std(params_P_mle_weekly(j:j + num_weeks(i) - 1, :));
     std_vals(i, num_params + 1) = std(sigma2_last(j:j + num_weeks(i) - 1, :));
+    
+    if ifEsth0
+        mean_vals(i, num_params + 2) = mean(sig2_0(j:j + num_weeks(i) - 1, :));
+        std_vals(i, num_params + 2) = std(sig2_0(j:j + num_weeks(i) - 1, :));
+    end
     j = j + num_weeks(i);
 end
 
-FID = fopen('estimationP_results_calls_2010_2018.tex', 'w');
+FID = fopen('estimationP_noh0est_results_calls_2010_2018.tex', 'w');
 fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
@@ -51,6 +64,13 @@ fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 6;
 fprintf(FID, ' { $h_0$ {\\bf last}}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4f$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_vals(:, param_ind));
 fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_vals(:, param_ind));
+
+if ifEsth0
+    param_ind = 7;
+    fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
+    fprintf(FID, ' { $h_0$ {\\bf est}}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_vals(:, param_ind));
+    fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_vals(:, param_ind));
+end
 fprintf(FID, '\\bottomrule\n');
 fprintf(FID, '\\end{tabular}}\n\\end{tabularx}}\n');
 
