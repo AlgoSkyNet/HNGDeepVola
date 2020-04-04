@@ -338,7 +338,7 @@ for i = unique(weeksprices)
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     % initialisation for first week
     best_fval = 0;
-    fvec = 0;
+    f_vec = 0;
     if (fval<4*best_fval) && (fval<1.5*median(f_vec))
         good_i =i;
     else
