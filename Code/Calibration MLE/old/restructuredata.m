@@ -1,7 +1,7 @@
 % this file restructures the cummulated output of the MLE calibration into
 % yearly files.
 clc; clearvars;close all;
-load('weekly_10to18_mle_opt_h0est_check.mat')
+load('weekly_10to18_mle_opt.mat')
 DateString_start        = '01-January-2010';
 DateString_end          = '31-December-2018';  
 formatIn                = 'dd-mmm-yyyy';
@@ -20,8 +20,7 @@ for y = 2010:2018
     vola_tmp = zeros(53,1);
     params_tmp = zeros(53,4);
     disp([idx,num_]);
-    sig                 = sigma2_last(idx:idx+num_-1);
-    sig_old             = sig2_0(idx:idx+num_-1);
+    sig                 = sig2_0(idx:idx+num_-1);
     vola                = hist_vola(idx:idx+num_-1);
     params              = params_Q_mle_weekly(idx:idx+num_-1,:);
     idx = idx+num_;

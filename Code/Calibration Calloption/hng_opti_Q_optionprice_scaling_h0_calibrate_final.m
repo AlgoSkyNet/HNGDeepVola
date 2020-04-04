@@ -122,13 +122,7 @@ for i = unique(weeksprices)
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
         vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
-        vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
-        vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
-        vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7); 
-        for vola_idx = 1:8
+        for vola_idx = 1:5
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
@@ -351,7 +345,7 @@ for i = unique(weeksprices)
         if useRealVola
             % if results are bad, use other h0
             vola_idx = vola_idx+1;
-            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=8 
+            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=5
                 if vola_vec(vola_idx)~=0
                     if vola_idx==2
                         txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");

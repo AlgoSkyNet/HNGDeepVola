@@ -55,9 +55,7 @@ hist_vola                   = NaN*ones(length(index),1);
 sigma2_last                 = NaN*ones(length(index),1);
 useYield = 0;
 %path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-%path                = '/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
-path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
-
+path                = '/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
 if useYield
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
