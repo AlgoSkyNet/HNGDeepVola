@@ -8,11 +8,11 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2018;
+year                = 2010;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
-goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
+goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 
@@ -122,7 +122,9 @@ for i = unique(weeksprices)
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
         vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
-        for vola_idx = 1:5
+        vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
+        for vola_idx = 1:6
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
@@ -338,14 +340,14 @@ for i = unique(weeksprices)
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     % initialisation for first week
     best_fval = 0;
-    fvec = 0;
+    f_vec = 0;
     if (fval<4*best_fval) && (fval<1.5*median(f_vec))
         good_i =i;
     else
         if useRealVola
             % if results are bad, use other h0
             vola_idx = vola_idx+1;
-            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=5
+            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=6
                 if vola_vec(vola_idx)~=0
                     if vola_idx==2
                         txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");
@@ -440,7 +442,7 @@ if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
 end
 if useRealVola
-    save(strcat('params_options_',num2str(year),'_h0asRealVola7days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asRealVola4days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 else
     save(strcat('params_options_',num2str(year),'_h0_calibrated_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 end
