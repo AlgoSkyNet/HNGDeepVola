@@ -15,7 +15,7 @@ useYield            = 0; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
-algorithm           = 'interior-point';% 'sqp'
+algorithm           = 'interior-point';% "sqp"
 goal                =  'MSE'; % 'MSE';   'MAPE';  ,'OptLL';
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
@@ -360,9 +360,9 @@ for i = unique(weeksprices)
             while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=num_voladays
                 if vola_vec(vola_idx)~=0
                     if vola_idx==2
-                        txt_msg =strcat('Bad optimization results. Trying yesterdays realized vola.');
+                        txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");
                     else
-                        txt_msg =strcat('Bad optimization results. Trying ',num2str(vola_idx-1),'-days prio realized vola.');
+                        txt_msg =strcat("Bad optimization results. Trying ",num2str(vola_idx-1),"-days prio realized vola.");
                     end
                     warning(txt_msg)
                     new_vola = vola_vec(vola_idx);
@@ -379,10 +379,10 @@ for i = unique(weeksprices)
                vola_idx =vola_idx+1;
             end
         else
-            warning('Bad optimization results. No other starting values or optimization methods implemented for h0 calibration so far. Come back later ;)')
+            warning("Bad optimization results. No other starting values or optimization methods implemented for h0 calibration so far. Come back later ;)")
         end
         if ((fval>=4*best_fval) || (fval>=1.5*median(f_vec)))
-            warning('Bad optimization results. No other starting values left! Continue with next week.')
+            warning("Bad optimization results. No other starting values left! Continue with next week.")
             bad_i(end+1) =i;
         else
             good_i(end+1)=i;
@@ -448,8 +448,8 @@ for i = unique(weeksprices)
     disp(struc.MSE);
     disp(struc.hngparams(3));
 end 
-if strcmp(algorithm,'interior-point') %for file naming purposes
-    algorithm = 'interiorpoint';
+if strcmp(algorithm,"interior-point") %for file naming purposes
+    algorithm = "interiorpoint";
 end
 if useRealVola
     save(strcat('params_options_',num2str(year),'_h0asRealVola',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
