@@ -28,16 +28,16 @@ end
 if strcmp(Type, 'call')
     Selected = (Selected & strcmp(CCallPPut, 'C'));
 elseif strcmp(Type, 'put')
-    Selected = (Selected & strcmp(CCallPPut, 'P')); 
+    Selected = (Selected & strcmp(CCallPPut, 'P'));
 end
 % Select TimeToMaturityInterval
 if ~isempty(TimeToMaturityInterval)
-    Selected = (Selected & (TradingDaysToMaturity>=TimeToMaturityInterval(1)));
+    Selected = (Selected & (TradingDaysToMaturity>TimeToMaturityInterval(1)));
     Selected = (Selected & (TradingDaysToMaturity<=TimeToMaturityInterval(2)));
 end
 % Select MoneynessInterval
 if ~isempty(MoneynessInterval)
-    Selected = (Selected & (Moneyness>=MoneynessInterval(1)));
+    Selected = (Selected & (Moneyness>MoneynessInterval(1)));
     Selected = (Selected & (Moneyness<=MoneynessInterval(2)));
 end
 % Select MinimumVolume
@@ -110,7 +110,7 @@ else
     OptionsStruct = [];
     OptFeatures = [];
     DatesClean = [];
-    LongestMaturity = [];  
+    LongestMaturity = [];
 end
 
 
