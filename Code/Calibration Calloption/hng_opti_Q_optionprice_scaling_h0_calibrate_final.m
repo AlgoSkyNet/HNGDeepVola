@@ -111,7 +111,7 @@ bad_i =[];
 for i = unique(weeksprices)
     if useRealVola
         disp(strcat("Optimization (",goal ,") of week ",num2str(i)," in ",num2str(year),". h_0 is not calibrated."))
-        vola_vec = zeros(1,4);
+        vola_vec = zeros(1,num_voladays);
         vola_cell = {};
         vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
@@ -129,7 +129,7 @@ for i = unique(weeksprices)
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
         vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
-        for vola_idx = 1:8
+        for vola_idx = 1:num_voladays
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
