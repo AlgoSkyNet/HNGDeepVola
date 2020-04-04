@@ -8,9 +8,9 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2018;
 useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useRealVola         = 0; % alwas use realized vola
 algorithm           = "interior-point";% "sqp"
 goal                =  "MSE"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
