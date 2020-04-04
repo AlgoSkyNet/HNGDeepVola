@@ -11,6 +11,7 @@ stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
+num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = "interior-point";% "sqp"
 goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
@@ -124,7 +125,11 @@ for i = unique(weeksprices)
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
         vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
-        for vola_idx = 1:6
+        vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
+        vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
+        for vola_idx = 1:8
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
@@ -211,7 +216,7 @@ for i = unique(weeksprices)
             f_min_raw = @(params,scaler,h0) mean(abs(price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 1));
         % Option Likelyhood
         elseif strcmp(goal,"OptLL")
-            f_min_raw = @(params,scaler,h0) 1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 5)).^2))));
+            f_min_raw = @(params,scaler,h0) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 5)).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,"RMSE")
@@ -228,7 +233,7 @@ for i = unique(weeksprices)
             f_min_raw = @(params,scaler) mean(abs(price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 1));
         % Option Likelyhood
         elseif strcmp(goal,"OptLL")
-            f_min_raw = @(params,scaler) 1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
+            f_min_raw = @(params,scaler) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,"RMSE")
@@ -347,7 +352,7 @@ for i = unique(weeksprices)
         if useRealVola
             % if results are bad, use other h0
             vola_idx = vola_idx+1;
-            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=6
+            while ((fval>=4*best_fval) || (fval>=1.5*median(f_vec))) && vola_idx<=num_voladays
                 if vola_vec(vola_idx)~=0
                     if vola_idx==2
                         txt_msg =strcat("Bad optimization results. Trying yesterdays realized vola.");
@@ -442,7 +447,7 @@ if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
 end
 if useRealVola
-    save(strcat('params_options_',num2str(year),'_h0asRealVola4days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asRealVola',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 else
     save(strcat('params_options_',num2str(year),'_h0_calibrated_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 end
