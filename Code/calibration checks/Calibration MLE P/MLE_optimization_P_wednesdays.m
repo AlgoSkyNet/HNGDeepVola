@@ -178,4 +178,5 @@ else
 end
 
 save('weekly_10to18_mle_opt_h0est_check_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
-    'params_Q_mle_weekly','params_P_mle_weekly', 'stream')
+    'params_Q_mle_weekly','params_P_mle_weekly')
+save('weekly_10to18_mle_opt_h0est_check_rng_allResSaved.mat')

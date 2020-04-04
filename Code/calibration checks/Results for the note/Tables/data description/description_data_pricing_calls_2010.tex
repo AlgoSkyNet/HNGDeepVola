@@ -1,0 +1,72 @@
+%&pdflatex %&cont-en %&pdftex \documentclass[10pt]{article} 
+\usepackage{latexsym,amsmath,amssymb,graphics,amscd} 
+\usepackage{multirow} 
+\usepackage{booktabs} 
+\usepackage{tabularx} 
+\usepackage[hang,footnotesize]{caption} 
+\usepackage[pdftex]{graphicx} 
+\usepackage{color}
+\textwidth15.8 cm
+\textheight20.8 cm
+\oddsidemargin.4cm
+\evensidemargin.4cm 
+\begin{document} 
+\noindent\makebox[\textwidth]{ 
+\begin{tabularx}{1.3\textwidth}{X} 
+ \scalebox{0.85}{ 
+\begin{tabular}{llccccccc} 
+\toprule 
+\multicolumn{9}{c}{{\bf BASIC FEATURES OF THE OPTION PRICING (PUTS AND CALLS) DATASET (WEDNESDAYS)}} \\
+\midrule 
+\multicolumn{2}{c}{ }&\multicolumn{6}{c}{{\bf Moneyness $S _0/K $}}&{\bf Across}\\ 
+\cmidrule(r){3-8} 
+ &{\bf Maturities}&\multicolumn{1}{c}{$[0.900, 0.950]$}&\multicolumn{1}{c}{$(0.950, 0.975]$}&\multicolumn{1}{c}{$(0.975, 1.000]$}&\multicolumn{1}{c}{$(1.000, 1.025]$}&\multicolumn{1}{c}{$(1.025, 1.050]$}&\multicolumn{1}{c}{$(1.050, 1.100]$}&{\bf Moneyness}\\
+\midrule 
+\multirow{4}{*}{\parbox{3.5cm}{\centering {\bf Number\\ of Contracts}}} 
+&\multirow{1}{*}{${\bf 8}\leq  T \leq {\bf 30}$} 
+&540&347&335&232&74&42&1570\\
+  &\multirow{1}{*}{${\bf 30}< T \leq {\bf 80}$} 
+&428&224&238&189&46&31&1156\\
+  &\multirow{1}{*}{${\bf 80}< T \leq {\bf 180}$} 
+&134&65&78&62&21&13&373\\
+  &\multirow{1}{*}{${\bf 180}< T \leq {\bf 250}$} 
+&44&26&31&37&7&5&150\\
+  \midrule 
+\midrule 
+{\bf Across Maturities}&  &1146&662&682&520&148&91&3249\\
+  \midrule 
+\midrule 
+\multirow{4}{*}{\parbox{3.5cm}{\centering {\bf Average\\ Prices}}} 
+&\multirow{1}{*}{${\bf 8}\leq  T \leq {\bf 30}$} 
+&1.130&4.501&13.482&27.522&47.754&79.706&12.710\\
+  &\multirow{1}{*}{${\bf 30}< T \leq {\bf 80}$} 
+&6.420&15.810&30.905&43.414&61.139&92.360&23.811\\
+  &\multirow{1}{*}{${\bf 80}< T \leq {\bf 180}$} 
+&25.803&41.618&56.687&74.100&86.326&106.873&49.278\\
+  &\multirow{1}{*}{${\bf 180}< T \leq {\bf 250}$} 
+&45.330&64.129&79.182&91.997&103.114&124.650&72.436\\
+  \midrule 
+\midrule 
+{\bf Across Maturities}& &7.688&14.314&27.490&43.439&60.006&90.367&23.616\\
+  \midrule 
+\midrule 
+\multirow{4}{*}{\parbox{3.5cm}{\centering {\bf Average\\ Implied Volatilities}}} 
+&\multirow{1}{*}{${\bf 8}\leq  T \leq {\bf 30}$} 
+&0.178&0.169&0.184&0.200&0.217&0.252&0.184\\
+  &\multirow{1}{*}{${\bf 30}< T \leq {\bf 80}$} 
+&0.169&0.177&0.198&0.205&0.212&0.237&0.186\\
+  &\multirow{1}{*}{${\bf 80}< T \leq {\bf 180}$} 
+&0.195&0.206&0.218&0.229&0.229&0.241&0.211\\
+  &\multirow{1}{*}{${\bf 180}< T \leq {\bf 250}$} 
+&0.203&0.217&0.226&0.227&0.231&0.241&0.219\\
+  \midrule 
+\midrule 
+{\bf Across Maturities}& &0.178&0.177&0.194&0.207&0.218&0.245&0.190\\
+  \midrule 
+\bottomrule
+\end{tabular}}
+\end{tabularx}}
+
+  \vspace{3 cm}
+
+  \end{document}

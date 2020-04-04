@@ -56,7 +56,7 @@ MinimumVolume           = 100;
 MinimumOpenInterest     = 100;
 IfCleanNans             = 1;
 TimeToMaturityInterval  = [8, 250];
-MoneynessInterval       = [0.9, 1.1];
+MoneynessInterval       = [0.8, 1.2];
 % load options data from the current year using the bounds above
 [OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptions(Dates, Type, ...
     TimeToMaturityInterval, MoneynessInterval, MinimumVolume, MinimumOpenInterest,IfCleanNans,...
@@ -107,7 +107,7 @@ for i = unique(weeksprices)
         if isempty(SP500_date_prices_returns_realizedvariance_interestRates(4,...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)))
             sig2_0(i) = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
         else
             sig2_0(i) = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
