@@ -4,7 +4,6 @@
 % Parameters are scaled to [0,1]
 % interest rates are calcalated for each year and used as fixed input
 clc; close all; clearvars;
-
 %% data
 datatable       = readtable('SP500_220320.csv');
 data            = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
@@ -17,7 +16,7 @@ shortdata       = data(doi,:);
 
 
 %% optimization
-ifEstimateh0 = 1;
+ifEstimateh0 = 0;
 % Setup and Inital Values
 if ifEstimateh0
     num_params  = 6;
@@ -103,6 +102,7 @@ for i=1:length(index)
     end
     gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
+    
 
 
     % Check two different initial values for better results.
@@ -175,6 +175,6 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_check_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+save('weekly_10to18_mle_opt_noh0est_check_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
     'params_Q_mle_weekly','params_P_mle_weekly')
-save('weekly_10to18_mle_opt_h0est_check_rng_allResSaved.mat')
+save('weekly_10to18_mle_opt_noh0est_check_rng_allResSaved.mat')
