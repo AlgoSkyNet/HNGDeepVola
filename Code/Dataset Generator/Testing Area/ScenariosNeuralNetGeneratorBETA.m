@@ -37,7 +37,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 100;
+Nsim            = 100000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -56,7 +56,7 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_test_options_',num2str(y),'_h0asRealVola_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_InteriorPoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
         year_total(k) =y;
@@ -80,14 +80,16 @@ for j = 1:k
         flag(Ninputs)     = alldata{1,j}{1,m}.optispecs.flag;
     end
 end
-sig2_0 = sig2_0';
+%sig2_0 = sig2_0';
 yields_ = yields(:,[1,3:5]);
 
 
 %% Dataset Generator
 normalizer = @(input) (input-repmat(mean(input),length(input),1))./repmat(std(input),length(input),1);
 inv_scaler = @(input,my,sig) input.*repmat(sig,length(input),1)+repmat(my,length(input),1);
-data_pure  = [params,sig2_0,yields_];
+%data_pure  = [params,sig2_0,yields_];
+data_pure  = [params,yields_];
+
 % Choosing good parameters
 if strcmp(choice,"norm") || strcmp(choice,"uni") || strcmp(choice,"unisemiscale")
     data  = data_pure;
@@ -128,11 +130,13 @@ if strcmp(choice,"norm")
 elseif strcmp(choice,"uni")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
-    inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+    %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
 elseif strcmp(choice,"unisemiscale")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
-    inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+    %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
     inv_data   = inv_data./std(inv_data).*std(data_pure);
 elseif strcmp(choice,"log")
     inv_data   = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];

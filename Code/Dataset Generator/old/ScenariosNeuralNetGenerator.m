@@ -22,14 +22,13 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 %% Initialisation
 
 % Configuration of underlying data
-years     = 2010:2017;
+years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
-yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
+choice          = "uni"; %"norm"  "uni"
 Maturity        = 30:30:210;
 K               = 0.9:0.025:1.1;
 S               = 1;
@@ -37,17 +36,17 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 100000;
-
+Nsim            = 1000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
 % 10% for uni dist
 
 %% TODO (sorted by importance)
-% pca yieldcurves only positive!
-% Smarter way for incorperation of yieldcurve to the neural net
+
+% Smarter way of incorperation of yieldcurve
 % Nsim fix
+% Add PCA-version of parameter distribution
 
 
 %% Concentate underlying Data
@@ -56,10 +55,9 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_InteriorPoint_noYield.mat');
-        tmp        = load(file);
+        file    = strcat(path_data,'params_Options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
+        tmp     = load(file);
         alldata{k} = tmp.values;
-        year_total(k) =y;
     end
 end
 %
@@ -70,113 +68,61 @@ for j = 1:k
             continue
         end
         Ninputs = Ninputs+1;
-        week_vec(Ninputs) = m;
-        year_vec(Ninputs) =year_total(j);
         mse(Ninputs,:)    = alldata{1,j}{1,m}.MSE;
         mape(Ninputs,:)   = alldata{1,j}{1,m}.MAPE;
         params(Ninputs,:) = alldata{1,j}{1,m}.hngparams;
         sig2_0(Ninputs)   = alldata{1,j}{1,m}.sig20; 
         yields(Ninputs,:) = alldata{1,j}{1,m}.yields;
-        flag(Ninputs)     = alldata{1,j}{1,m}.optispecs.flag;
     end
 end
-%sig2_0 = sig2_0';
-yields_ = yields(:,[1,3:5]);
+if h0calibration
+sig2_0 = sig2_0';
+
+    % normalised data 
+    cov_        = cov([params,sig2_0]);
+    mean_       = mean([params,sig2_0]);
+    %init_norm   = normalize([params,sig2_0]);
+    %cov_norm    = cov(norm_matrix);
+    min_        = min([params,sig2_0]);
+    max_        = max([params,sig2_0]);
 
 
 %% Dataset Generator
-normalizer = @(input) (input-repmat(mean(input),length(input),1))./repmat(std(input),length(input),1);
-inv_scaler = @(input,my,sig) input.*repmat(sig,length(input),1)+repmat(my,length(input),1);
-%data_pure  = [params,sig2_0,yields_];
-data_pure  = [params,yields_];
 
 % Choosing good parameters
-if strcmp(choice,"norm") || strcmp(choice,"uni") || strcmp(choice,"unisemiscale")
-    data  = data_pure;
-elseif strcmp(choice,"log")
-    data  = [log(data_pure(:,1:3)),data_pure(:,4),log(data_pure(:,5)),data_pure(:,6:end)];
-elseif strcmp(choice,"tanh") || strcmp(choice,"tanhscale")
-    data2 = (2*(data_pure-(10e-8)*sign(data_pure-repmat(mean(data_pure),length(data_pure),1)))-repmat([max(data_pure)+min(data_pure)],length(data_pure),1))./(repmat([max(data_pure)-min(data_pure)],length(data_pure),1));
-    data  = atanh(data2);
-end
-
-mean_     = mean(data);
-std_      = std(data);
-data_norm = normalizer(data);
-[coeff,score,~,~,explained,mu] =pca(data_norm(:,6:9));
-expl_sum = cumsum(explained);
-check = -1;
-for i = 1:length(coeff)
-    if check==1
-        continue
-    else
-        if expl_sum(i)>95
-            ind   = i;
-            check = 1;
-        end
-    end
-end
-trafo_yields     = score(:,1:ind);
-trafo_yields_std = std(trafo_yields);
-trafo_data       = [data_norm(:,1:5),trafo_yields./trafo_yields_std];       
-cov_trafo        = cov(trafo_data);
-mean_trafo       = mean(trafo_data);
-sample           = mvnrnd(mean_trafo,cov_trafo,Nsim);
-yields_inv       = repmat(mu,length(sample),1)+trafo_yields_std.*sample(:,6:end)*coeff(:,1:ind)';
-sample_trafo     = [sample(:,1:5),yields_inv];
-
-if strcmp(choice,"norm") 
-    inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+if strcmp(choice,"norm")
+    % Scaled Normal distribution
+    rand_params = mvnrnd(mean_,cov_,Nsim);
 elseif strcmp(choice,"uni")
-    inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
-    yields_tmp = inv_data(:,6:end);
-    %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
-elseif strcmp(choice,"unisemiscale")
-    inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
-    yields_tmp = inv_data(:,6:end);
-    %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
-    inv_data   = inv_data./std(inv_data).*std(data_pure);
-elseif strcmp(choice,"log")
-    inv_data   = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
-    inv_data   = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
-elseif strcmp(choice,"tanh")
-    inv_data   = inv_scaler(sample_trafo,mean_,std_);
-    inv_data   = tanh(inv_data);
-    inv_data   = 0.5*(inv_data.*(repmat([max(data_pure)-min(data_pure)],length(inv_data),1))+repmat([max(data_pure)+min(data_pure)],length(inv_data),1));
-elseif strcmp(choice,"tanhscale")
-    inv_data   = inv_scaler(sample_trafo,mean_,std_);
-    inv_data   = inv_scaler(normalize(tanh(inv_data)),mean(data2),std(data2));
-    inv_data   = 0.5*(inv_data.*(repmat([max(data_pure)-min(data_pure)],length(inv_data),1))+repmat([max(data_pure)+min(data_pure)],length(inv_data),1));
+    % uniform distributio
+    rand_params = min_+(max_-min_).*rand(Nsim,5);
+elseif strcmp(choice,"pcanorm")
+    % uniform distributio
+    rand_params = mvnrnd(mean_,cov_,Nsim);
 end
 
-if strcmp(yieldstype,"szenario")
-    i_rand = randi(Ninputs,Nsim,1);
-end
-inv_data = [inv_data(:,1:5),max(inv_data(:,6:end),0)];
+% Choosing a termstructure out of the giving structures
+i_rand = randi(Ninputs,Nsim,1);
 
 % Price Calculations
 j = 0;
-fail1 = 0;
-fail2 = 0;
-fail3 = 0;
-yield_matrix  = zeros(Nmaturities*Nstrikes,Nsim);
-scenario_data = zeros(Nsim,Nmaturities*Nstrikes+5+Nmaturities);
-constraint    = zeros(1,Nsim); 
-if strcmp(yieldstype,"PCA")
-    yields_clean  = zeros(Nsim,4);
-end
+fail1 =0;
+fail2 =0;
+fail3 =0;
 fprintf('%s','Generating Prices. Progress: 0%')
+yield_matrix = zeros(Nmaturities*Nstrikes,Nsim);
+scenario_data = zeros(Nsim,Nmaturities*Nstrikes+5+Nmaturities);
+constraint = zeros(1,Nsim); 
 for i = 1:Nsim
     if ismember(i,floor(Nsim*[4/100:4/100:1]))
-        fprintf('%0.5g',round(i/(Nsim)*100,0)),fprintf('%s',"%")
+        fprintf('%0.5g',round(i/(Nsim)*100,1)),fprintf('%s',"%")
     end
-    w   = inv_data(i,1);
-    a   = inv_data(i,2);
-    b   = inv_data(i,3);
-    g   = inv_data(i,4);
-    sig = inv_data(i,5);
+    w   = rand_params(i,1);
+    a   = rand_params(i,2);
+    b   = rand_params(i,3);
+    g   = rand_params(i,4);
+    sig = rand_params(i,5);
+    int = i_rand(i);
     if w<=0 || a<0 || b<0 || sig<=0
         fail3 = fail3+1;
         continue
@@ -185,41 +131,28 @@ for i = 1:Nsim
         fail1 = fail1+1;
         continue
     end
-    if strcmp(yieldstype,"szenario")
-        int = i_rand(i);
-        daylengths    = [21,42, 13*5, 126, 252]./252;
-        interestRates = yields(int,:);
-        notNaN        = ~isnan(interestRates);             
-        yieldcurve    = interp1(daylengths(notNaN),interestRates(notNaN),data_vec(:,2)/252);
-        r_cur         = interp1(daylengths(notNaN),interestRates(notNaN),Maturity/252);
-        price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
-    elseif strcmp(yieldstype,"PCA")
-        daylengths    = [21,13*5, 126, 252]./252;
-        interestRates = inv_data(i,6:end);
-        yieldcurve    = interp1(daylengths,interestRates,data_vec(:,2)/252);
-        r_cur         = interp1(daylengths,interestRates,Maturity/252);
-        price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
-    end
+
+    daylengths = [21,42, 13*5, 126, 252]./252;
+    interestRates = yields(int,:);
+    notNaN = ~isnan(interestRates);             
+    yieldcurve = interp1(daylengths(notNaN),interestRates(notNaN),data_vec(:,2)/252);
+    r_cur = interp1(daylengths(notNaN),interestRates(notNaN),Maturity/252);
+    price   = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     if any(any(price <= 0)) || any(any(isnan(price)))
         fail2 = fail2+1;
         continue
     end
     j=j+1;
-    if strcmp(yieldstype,"PCA")
-        yields_clean(j,:) = inv_data(i,6:end); 
-    end
-    yield_matrix(:,j)  = yieldcurve;
+    yield_matrix(:,j) = yieldcurve;
     scenario_data(j,:) = [a, b, g, w,sig,r_cur,price];
-    constraint(j)      = b+a*g^2;
+    constraint(j) = b+a*g^2;
 end
-yield_matrix  = yield_matrix(:,1:j);
+yield_matrix = yield_matrix(:,1:j);
 scenario_data = scenario_data(1:j,:);
-constraint    = constraint(1:j); 
+constraint = constraint(1:j); 
 fprintf('%s','Generating Prices completed.'),fprintf('\n')
 data_price = scenario_data;
-if strcmp(yieldstype,"PCA")
-    yields_clean = yields_clean(1:j,:);
-end
+
 
 %% Volatility Calculation
 price_vec  = zeros(1,Nmaturities*Nstrikes);
@@ -227,7 +160,7 @@ bad_idx    = [];
 fprintf('%s','Calculating Imp Volas. Progress: 0%')
 for i = 1:size(data_price,1)
      if ismember(i,floor(j*[10/100:10/100:1]))
-        fprintf('%0.5g',round(i/(j)*100,0)),fprintf('%s',"%")
+        fprintf('%0.5g',round(i/(j)*100,1)),fprintf('%s',"%")
      end
     price_vec = data_price(i,4+1+Nmaturities+1:end);
     vola(i,:) = blsimpv(data_vec(:, 3),  data_vec(:, 1), yield_matrix(:,i), data_vec(:, 2)/252,price_vec')';
@@ -242,9 +175,6 @@ data_vola(:,4+1+Nmaturities+1:75) = vola;
 data_vola         = data_vola(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
-if strcmp(yieldstype,"PCA")
-    yields_clean = yields_clean(idx,:);
-end
 save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
 save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
 

@@ -24,14 +24,14 @@ k = 0;
 for y = years
     for goal = goals
         k = k+1;
-        file       = strcat('params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
+        file       = strcat('params_options_',num2str(y),'_h0_calibrated_','MSE','_interiorpoint_noYield.mat');
         %strcat(path_data,'params_options_',num2str(y),'_h0_calibrated_',goal,'_interiorpoint_noYield.mat');
         tmp        = load(file);
         alldata{k} = tmp.values;
-        %file       = strcat('params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
+        file       = strcat('params_options_',num2str(y),'_h0_calibrated_','MAPE','_InteriorPoint_noYield.mat');
         %strcat(path_data,'params_options_',num2str(y),'_h0asRealVola7days_',goal,'_InteriorPoint_noYield.mat');
-        %tmp        = load(file);
-        %alldata_old{k} = tmp.values;
+        tmp        = load(file);
+        alldata_old{k} = tmp.values;
     end
 end
 %
@@ -48,13 +48,13 @@ for j = 1:k
         sig2_0(Ninputs)   = alldata{1,j}{1,m}.sig20; 
         yields(Ninputs,:) = alldata{1,j}{1,m}.yields;
         flag(Ninputs)     = alldata{1,j}{1,m}.optispecs.flag;  
-        %mse_old(Ninputs,:)    = alldata_old{1,j}{1,m}.MSE;
-        %mape_old(Ninputs,:)   = alldata_old{1,j}{1,m}.MAPE;
-        %params_old(Ninputs,:) = alldata_old{1,j}{1,m}.hngparams;
-        %sig2_0_old(Ninputs)   = alldata_old{1,j}{1,m}.sig20; 
-        %yields_old(Ninputs,:) = alldata_old{1,j}{1,m}.yields;
+        mse_old(Ninputs,:)    = alldata_old{1,j}{1,m}.MSE;
+        mape_old(Ninputs,:)   = alldata_old{1,j}{1,m}.MAPE;
+        params_old(Ninputs,:) = alldata_old{1,j}{1,m}.hngparams;
+        sig2_0_old(Ninputs)   = alldata_old{1,j}{1,m}.sig20; 
+        yields_old(Ninputs,:) = alldata_old{1,j}{1,m}.yields;
         num_opt(Ninputs,:)  =  alldata{1,j}{1,m}.numOptions;  
-        %num_opt_old(Ninputs,:)= alldata_old{1,j}{1,m}.numOptions;  
+        num_opt_old(Ninputs,:)= alldata_old{1,j}{1,m}.numOptions;  
     end
 end
 sig2_0 = sig2_0';
@@ -62,38 +62,37 @@ sig2_0_old = sig2_0';
 %% statistics
 
 mean_ = mean(params)
-%mean_old = mean(params_old)
+mean_old = mean(params_old)
 
 median_ = median(params)
-%median_old = median(params_old)
+median_old = median(params_old)
 
 corr_  = corr(params)
-%corr_old  = corr(params_old)
+corr_old  = corr(params_old)
 
 corr_size_err = corr(mse,num_opt)
 corr_size_err_rank = corr(mse,num_opt,"Type",'Spearman')
 
-%corr_size_err_old = corr(mse_old,num_opt_old)
-%corr_size_err_old_rank = corr(mse_old,num_opt_old,"Type",'Spearman')
-
+corr_size_err_old = corr(mse_old,num_opt_old)
+corr_size_err_old_rank = corr(mse_old,num_opt_old,"Type",'Spearman')
 corr_beta_err =corr(mse,params(:,3))
 corr_beta_err_rank =corr(mse,params(:,3),"Type",'Spearman')
 
-%corr_beta_err_old =corr(mse_old,params(:,3))
-%corr_beta_err_old_rank =corr(mse_old,params(:,3),"Type",'Spearman')
+corr_beta_err_old =corr(mse_old,params(:,3))
+corr_beta_err_old_rank =corr(mse_old,params(:,3),"Type",'Spearman')
 
 figure
 subplot(2,2,1)
-plot(mse);hold on, %plot(mse_old),title("MSE calibrated vs historic")
+plot(mse);hold on, plot(mse_old),title("MSE calibrated vs historic")
 subplot(2,2,2)
-plot(cumsum(mse));hold on, %plot(cumsum(mse_old)),title("cum. MSE calibrated vs historic")
+plot(cumsum(mse));hold on, plot(cumsum(mse_old)),title("cum. MSE calibrated vs historic")
 subplot(2,2,3)
 histogram(mse),title("MSE calibrated")
 subplot(2,2,4)
-%histogram(mse_old),title("MSE historic")
+histogram(mse_old),title("MSE historic")
 figure
 scatter(params(:,3),mse),hold on
-%scatter(params_old(:,3),mse_old),hold on
+scatter(params_old(:,3),mse_old),hold on
 p = polyfit(params(:,3),mse,1);
 x1 = linspace(0,1);
 y1 = polyval(p,x1);
@@ -102,10 +101,10 @@ p = polyfit(params(:,3),mse,10);
 x1 = linspace(0,1);
 y1 = polyval(p,x1);
 plot(x1,y1,"b"),hold on
-%p = polyfit(params_old(:,3),mse_old,1);
-%x1 = linspace(0,1);
-%y1 = polyval(p,x1);
-%plot(x1,y1,"r")
+p = polyfit(params_old(:,3),mse_old,1);
+x1 = linspace(0,1);
+y1 = polyval(p,x1);
+plot(x1,y1,"r")
 title("scatter beta vs mse")
   
 %%
