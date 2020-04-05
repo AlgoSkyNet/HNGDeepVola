@@ -8,7 +8,7 @@ warning('on')
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; % uses tbils now
@@ -50,7 +50,7 @@ Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
 %load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
-load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+load(strcat('C://GIT/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
 
 if useRealVola || useMLEPh0 || useMLEPUncondh0
     num_params = 4;
@@ -330,7 +330,7 @@ for i = unique(weeksprices)
     %optimization specs
     if useRealVola || useMLEPh0 || useMLEPUncondh0
         opt = optimoptions('fmincon', ...
-                'Display', 'iter',...
+                'Display', 'final',...
                 'Algorithm', algorithm,...
                 'MaxIterations', 3000,...
                 'MaxFunctionEvaluations',20000, ...
