@@ -12,8 +12,8 @@ path                =  'C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
-useMLEPh0           = 0; % use last h_t from MLE under P as h0
+useRealVola         = 0; % alwas use realized vola
+useMLEPh0           = 1; % use last h_t from MLE under P as h0
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'MSE'; % 'MSE';   'MAPE';  ,'OptLL';
@@ -49,7 +49,7 @@ Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
 %load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
-load(strcat('/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
+load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
 
 if useRealVola || useMLEPh0
     num_params = 4;
@@ -258,18 +258,18 @@ for i = unique(weeksprices)
             x1      = Init_scale_mat(i, :);
             scaler  = sc_fac(i, :); 
             f1      = f_min_raw(x1, scaler,sig2_0(i));
-            % previous week
-            scaler  = scale_tmp;
-            x2      = opt_params_clean(i - 1, :)./scaler;
-            f2      = f_min_raw(x2, scaler,sig2_0(i));
-            %first weeks results
-            scaler  = scaler_firstweek; 
-            x3      = opt_params_clean(min(weeksprices), :)./scaler;
-            f3      = f_min_raw(x3, scaler,sig2_0(i));
-            %best weeks results
-            scaler = best_scaler;
-            x4 = best_x./scaler;
-            f4 = f_min_raw(x4, scaler,sig2_0(i));
+%             % previous week
+%             scaler  = scale_tmp;
+%             x2      = opt_params_clean(i - 1, :)./scaler;
+%             f2      = f_min_raw(x2, scaler,sig2_0(i));
+%             %first weeks results
+%             scaler  = scaler_firstweek; 
+%             x3      = opt_params_clean(min(weeksprices), :)./scaler;
+%             f3      = f_min_raw(x3, scaler,sig2_0(i));
+%             %best weeks results
+%             scaler = best_scaler;
+%             x4 = best_x./scaler;
+%             f4 = f_min_raw(x4, scaler,sig2_0(i));
         else
             %MLE
             x1      = Init_scale_mat(i, :);
@@ -289,23 +289,24 @@ for i = unique(weeksprices)
             f4 = f_min_raw(x4, scaler);
         end
             
-        [~,min_i]    = min([f1,f2,f3,f4]);
+        %[~,min_i]    = min([f1,f2,f3,f4]);
+        min_i = 1;
         if min_i == 1
             Init_scale = x1;
             scaler = sc_fac(i, :);
             disp(strcat('Initial value used ''MLE parameters''.'));
-        elseif min_i == 2
-            Init_scale = x2;
-            scaler = scale_tmp;
-            disp(strcat('Initial value used ''previous week''.'));
-        elseif min_i ==3
-            Init_scale = x3;
-            scaler = scaler_firstweek;
-            disp(strcat('Initial value used ''first week''.'));
-        elseif min_i ==4
-            Init_scale = x4;
-            scaler = best_scaler;
-            disp(strcat('Initial value used ''best week''.'));
+%         elseif min_i == 2
+%             Init_scale = x2;
+%             scaler = scale_tmp;
+%             disp(strcat('Initial value used ''previous week''.'));
+%         elseif min_i ==3
+%             Init_scale = x3;
+%             scaler = scaler_firstweek;
+%             disp(strcat('Initial value used ''first week''.'));
+%         elseif min_i ==4
+%             Init_scale = x4;
+%             scaler = best_scaler;
+%             disp(strcat('Initial value used ''best week''.'));
         end
     else
         disp(strcat('Initial value used ''MLE parameters''.'));
@@ -325,10 +326,10 @@ for i = unique(weeksprices)
     %optimization specs
     if useRealVola || useMLEPh0
         opt = optimoptions('fmincon', ...
-                'Display', 'iter',...
+                'Display', 'final',...
                 'Algorithm', algorithm,...
                 'MaxIterations', 3000,...
-                'MaxFunctionEvaluations',2000, ...
+                'MaxFunctionEvaluations',20000, ...
                 'TolFun', 1e-6,...
                 'TolX', 1e-9,...
                 'TypicalX', Init(i,:)./scaler);
