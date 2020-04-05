@@ -22,14 +22,15 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 %% Initialisation
 
 % Configuration of underlying data
-years     = 2010:2017;
+years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
+choice          = "tanh"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
+disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
 Maturity        = 30:30:210;
 K               = 0.9:0.025:1.1;
 S               = 1;
