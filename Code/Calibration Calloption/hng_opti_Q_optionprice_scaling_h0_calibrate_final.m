@@ -8,9 +8,9 @@ warning('on')
 %parpool()
 path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2012;
 useYield            = 0; % uses tbils now
-useRealVola         = 0; % alwas use realized vola
+useRealVola         = 0; % always use realized vola
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = "interior-point";% "sqp"
 goal                =  "OptLL"; % "MSE";   "MAPE";  ,"OptLL";
@@ -443,6 +443,7 @@ for i = unique(weeksprices)
     disp(struc.MSE);
     disp(struc.hngparams(3));
 end 
+disp(strcat("Optimization (",goal ,") of ",num2str(year)," finished."))
 if strcmp(algorithm,"interior-point") %for file naming purposes
     algorithm = "interiorpoint";
 end
