@@ -10,7 +10,7 @@ warning('on')
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2018;
+year                = 2014;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 1; % use last h_t from MLE under P as h0
@@ -111,7 +111,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = 26:52%unique(weeksprices)
+for i = 30:53%unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
@@ -259,18 +259,18 @@ for i = 26:52%unique(weeksprices)
             x1      = Init_scale_mat(i, :);
             scaler  = sc_fac(i, :); 
             f1      = f_min_raw(x1, scaler,sig2_0(i));
-%             % previous week
-%             scaler  = scale_tmp;
-%             x2      = opt_params_clean(i - 1, :)./scaler;
-%             f2      = f_min_raw(x2, scaler,sig2_0(i));
-%             %first weeks results
-%             scaler  = scaler_firstweek; 
-%             x3      = opt_params_clean(min(weeksprices), :)./scaler;
-%             f3      = f_min_raw(x3, scaler,sig2_0(i));
-%             %best weeks results
-%             scaler = best_scaler;
-%             x4 = best_x./scaler;
-%             f4 = f_min_raw(x4, scaler,sig2_0(i));
+            % previous week
+            scaler  = scale_tmp;
+            x2      = opt_params_clean(i - 1, :)./scaler;
+            f2      = f_min_raw(x2, scaler,sig2_0(i));
+            %first weeks results
+            scaler  = scaler_firstweek; 
+            x3      = opt_params_clean(min(weeksprices), :)./scaler;
+            f3      = f_min_raw(x3, scaler,sig2_0(i));
+            %best weeks results
+            scaler = best_scaler;
+            x4 = best_x./scaler;
+            f4 = f_min_raw(x4, scaler,sig2_0(i));
         else
             %MLE
             x1      = Init_scale_mat(i, :);
@@ -290,24 +290,23 @@ for i = 26:52%unique(weeksprices)
             f4 = f_min_raw(x4, scaler);
         end
             
-        %[~,min_i]    = min([f1,f2,f3,f4]);
-        min_i = 1;
+        [~,min_i]    = min([f1,f2,f3,f4]);
         if min_i == 1
             Init_scale = x1;
             scaler = sc_fac(i, :);
             disp(strcat('Initial value used ''MLE parameters''.'));
-%         elseif min_i == 2
-%             Init_scale = x2;
-%             scaler = scale_tmp;
-%             disp(strcat('Initial value used ''previous week''.'));
-%         elseif min_i ==3
-%             Init_scale = x3;
-%             scaler = scaler_firstweek;
-%             disp(strcat('Initial value used ''first week''.'));
-%         elseif min_i ==4
-%             Init_scale = x4;
-%             scaler = best_scaler;
-%             disp(strcat('Initial value used ''best week''.'));
+        elseif min_i == 2
+            Init_scale = x2;
+            scaler = scale_tmp;
+            disp(strcat('Initial value used ''previous week''.'));
+        elseif min_i ==3
+            Init_scale = x3;
+            scaler = scaler_firstweek;
+            disp(strcat('Initial value used ''first week''.'));
+        elseif min_i ==4
+            Init_scale = x4;
+            scaler = best_scaler;
+            disp(strcat('Initial value used ''best week''.'));
         end
     else
         disp(strcat('Initial value used ''MLE parameters''.'));
@@ -456,7 +455,7 @@ end
 if useRealVola
     save(strcat('params_options_',num2str(year),'_h0asRealVola',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 elseif useMLEPh0
-    save(strcat('params_options_',num2str(year),'_h0ashtMLEP_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0ashtMLEP_',goal,'_',algorithm,'_',txt,'_m.mat'),'values');
 else
     save(strcat('params_options_',num2str(year),'_h0_calibrated_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 end
