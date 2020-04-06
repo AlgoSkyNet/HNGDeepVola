@@ -10,7 +10,7 @@ warning('on')
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2016;
+year                = 2011;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 1; % use last h_t from MLE under P as h0
