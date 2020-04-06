@@ -25,12 +25,21 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
 path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
-
+saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "tanh"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
+choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
+scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
+if saver
+    disp('Saving data and plots is enabled.')
+else
+    disp('Saving data and plots is disabled.')
+end
+if scenario_cleaner
+    disp('Extreme scenarios in the underlying data are filtered out.')
+end
 Maturity        = 30:30:210;
 K               = 0.9:0.025:1.1;
 S               = 1;
@@ -84,13 +93,99 @@ end
 %sig2_0 = sig2_0';
 yields_ = yields(:,[1,3:5]);
 
+figure("Name",'empiricial parameters')
+ha = subplot(2,3,1);
+dim = get(ha, 'position');
+tmp = histogram(params(:,2),'Normalization','probability');title('alpha')
+set(gca, 'XScale', 'log'),ylim([0,0.4])
+str = strcat('mean: ',num2str(mean(params(:,2))),' median: ',num2str(median(params(:,2))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,2);
+dim = get(ha, 'position');
+histogram(params(:,3),'Normalization','probability');title('beta'),ylim([0,0.4])
+str = strcat('mean: ',num2str(mean(params(:,3))),' median: ',num2str(median(params(:,3))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,3);
+dim = get(ha, 'position');
+histogram(params(:,4),'Normalization','probability');title('gamma'),ylim([0,0.4])
+str = strcat('mean: ',num2str(mean(params(:,4))),' median: ',num2str(median(params(:,4))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,4);
+dim = get(ha, 'position');
+tmp = histogram(params(:,1),'Normalization','probability');title('omega')
+set(gca, 'XScale', 'log'),ylim([0,0.035])
+str = strcat('mean: ',num2str(mean(params(:,1))),' median: ',num2str(median(params(:,1))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,5);
+dim = get(ha, 'position');
+tmp = histogram(params(:,5),'Normalization','probability');title('h0')
+set(gca, 'XScale', 'log'),ylim([0,0.4])
+str = strcat('mean: ',num2str(mean(params(:,5))),' median: ',num2str(median(params(:,5))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,6);
+dim = get(ha, 'position');
+emp_constraint = params(:,2).*params(:,4).^2+params(:,3);
+histogram(emp_constraint,'Normalization','probability');title('constraint');
+str = strcat('mean: ',num2str(mean(emp_constraint)),' median: ',num2str(median(emp_constraint)));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+figure
+plot(1:Ninputs,params(:,5)),title('Calibrated h0 over time');
 
 %% Dataset Generator
 normalizer = @(input) (input-repmat(mean(input),length(input),1))./repmat(std(input),length(input),1);
 inv_scaler = @(input,my,sig) input.*repmat(sig,length(input),1)+repmat(my,length(input),1);
 %data_pure  = [params,sig2_0,yields_];
 data_pure  = [params,yields_];
-
+if scenario_cleaner
+    % this option filters out every scenario within the highest 5% of mse
+    % while being outside the symmetric 95% confidence interval of beta and
+    % being outside of the symmetric 95% confidence interval of gamma*
+    
+    %good_mse =  (mse<=quantile(mse,0.95));
+    beta     =  data_pure(:,3);
+    gamma    =  data_pure(:,4);
+    ci_beta  = logical((beta>=quantile(beta,0.025)).*(beta<=quantile(beta,0.975)));
+    ci_gamma = logical((gamma>=quantile(gamma,0.025)).*(gamma<=quantile(gamma,0.975)));
+    good_idx = logical(ci_beta.*ci_gamma);
+    data_pure = data_pure(good_idx,:);
+    filterrate = 1-length(data_pure)/length(beta);
+    disp(strcat(num2str(round(100*filterrate,2)),'% scenarios are filtered out'))
+    figure("Name",'filtered empiricial parameters')
+    ha = subplot(2,3,1);
+    dim = get(ha, 'position');
+    tmp = histogram(data_pure(:,2),'Normalization','probability');title('alpha')
+    set(gca, 'XScale', 'log'),ylim([0,0.4])
+    str = strcat('mean: ',num2str(mean(data_pure(:,2))),' median: ',num2str(median(data_pure(:,2))));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    ha = subplot(2,3,2);
+    dim = get(ha, 'position');
+    histogram(data_pure(:,3),'Normalization','probability');title('beta'),ylim([0,0.4])
+    str = strcat('mean: ',num2str(mean(data_pure(:,3))),' median: ',num2str(median(data_pure(:,3))));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    ha = subplot(2,3,3);
+    dim = get(ha, 'position');
+    histogram(data_pure(:,4),'Normalization','probability');title('gamma'),ylim([0,0.4])
+    str = strcat('mean: ',num2str(mean(data_pure(:,4))),' median: ',num2str(median(data_pure(:,4))));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    ha = subplot(2,3,4);
+    dim = get(ha, 'position');
+    tmp = histogram(data_pure(:,1),'Normalization','probability');title('omega')
+    set(gca, 'XScale', 'log'),ylim([0,0.035])
+    str = strcat('mean: ',num2str(mean(data_pure(:,1))),' median: ',num2str(median(data_pure(:,1))));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    ha = subplot(2,3,5);
+    dim = get(ha, 'position');
+    tmp = histogram(data_pure(:,5),'Normalization','probability');title('h0')
+    set(gca, 'XScale', 'log'),ylim([0,0.4])
+    str = strcat('mean: ',num2str(mean(data_pure(:,5))),' median: ',num2str(median(data_pure(:,5))));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+    ha = subplot(2,3,6);
+    dim = get(ha, 'position');
+    emp_constraint = data_pure(:,2).*data_pure(:,4).^2+data_pure(:,3);
+    histogram(emp_constraint,'Normalization','probability');title('constraint');
+    str = strcat('mean: ',num2str(mean(emp_constraint)),' median: ',num2str(median(emp_constraint)));
+    annotation('textbox',dim,'String',str,'FitBoxToText','on');
+end
 % Choosing good parameters
 if strcmp(choice,"norm") || strcmp(choice,"uni") || strcmp(choice,"unisemiscale")
     data  = data_pure;
@@ -157,7 +252,7 @@ if strcmp(yieldstype,"szenario")
 end
 inv_data = [inv_data(:,1:5),max(inv_data(:,6:end),0)];
 
-% Price Calculations
+%% Price Calculations
 j = 0;
 fail1 = 0;
 fail2 = 0;
@@ -246,10 +341,15 @@ constraint        = constraint(idx);
 if strcmp(yieldstype,"PCA")
     yields_clean = yields_clean(idx,:);
 end
-save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
-save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
-
-
+if saver
+    if scenario_cleaner
+        save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'clean.mat'),'data_price')
+        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
+    else
+        save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
+        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
+    end
+end
 %% Summary and Visualisation for control purposes
 
 prices = data_price(:,4+1+Nmaturities+1:end);
@@ -258,10 +358,15 @@ param  = data_vola(:,1:5);
 tab_data = [Nsim,length(idx),fail1/Nsim,fail3/Nsim,fail2/Nsim,length(bad_idx)/Nsim,...
     max(prices,[],'all'),min(prices,[],'all'),mean(prices,'all'),median(prices,'all'),...
     max(volas,[],'all'),min(volas,[],'all'),mean(volas,'all'),median(volas,'all'),...
-    median(param),median(constraint)];
+    median(param),median(constraint),mean(param),mean(constraint),min(param),min(constraint),max(param),max(constraint)];
 stat = array2table(tab_data);    
-stat.Properties.VariableNames = {'Nsim','Nfinal','fail_con','fail_pos','fail_prices','fail_volas','max_price','min_price','mean_price','median_price',...
-    'max_vola','min_vola','mean_vola','median_vola','median_alpha','median_beta','median_gamma','median_omega','median_sigma2_0','median_con'};
+stat.Properties.VariableNames = {'Nsim','Nfinal','fail_con','fail_pos','fail_prices','fail_volas',....
+    'max_price','min_price','mean_price','median_price',...
+    'max_vola','min_vola','mean_vola','median_vola',...
+    'median_alpha','median_beta','median_gamma','median_omega','median_h0','median_con',...
+    'mean_alpha','mean_beta','mean_gamma','mean_omega','mean_h0','mean_con',...
+    'min_alpha','min_beta','min_gamma','min_omega','min_h0','min_con',...
+    'max_alpha','max_beta','max_gamma','max_omega','max_h0','max_con'};
 stat = table2struct(stat);
 stat.param_type = choice;
 stat.years = years;
@@ -269,17 +374,60 @@ stat.goalfuncs = goals;
 stat.Maturities = Maturity;       
 stat.Moneyness  = K;
 stat.id =id;
+stat.filter = scenario_cleaner;
+if scenario_cleaner
+    stat.filterrate = filterrate;
+end
 disp(stat)
-save(strcat('id_',id,'_summary','.mat'),'stat')   
+if saver
+    save(strcat('id_',id,'_summary','.mat'),'stat')   
+end
 figure("Name",id)
-subplot(2,3,1),histogram(data_vola(:,1),'Normalization','probability');title('alpha')
-subplot(2,3,2),histogram(data_vola(:,2),'Normalization','probability');title('beta')
-subplot(2,3,3),histogram(data_vola(:,3),'Normalization','probability');title('gamma')
-subplot(2,3,4),histogram(data_vola(:,4),'Normalization','probability');title('omega')
-subplot(2,3,5),histogram(data_vola(:,5),'Normalization','probability');title('sigma')
-subplot(2,3,6),histogram(constraint,'Normalization','probability');title('constraint');
-saveas(gcf,strcat('id_',id,'_histograms','.png'))
-
+ha = subplot(2,3,1);
+dim = get(ha, 'position');
+tmp = histogram(data_vola(:,1),'Normalization','probability');title('alpha')
+line([min(data_pure(:,2));min(data_pure(:,2))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(data_pure(:,2));max(data_pure(:,2))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(data_vola(:,1))),' median: ',num2str(median(data_vola(:,1))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,2);
+dim = get(ha, 'position');
+tmp = histogram(data_vola(:,2),'Normalization','probability');title('beta')
+line([min(data_pure(:,3));min(data_pure(:,3))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(data_pure(:,3));max(data_pure(:,3))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(data_vola(:,2))),' median: ',num2str(median(data_vola(:,2))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,3);
+dim = get(ha, 'position');
+tmp = histogram(data_vola(:,3),'Normalization','probability');title('gamma')
+line([min(data_pure(:,4));min(data_pure(:,4))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(data_pure(:,4));max(data_pure(:,4))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(data_vola(:,3))),' median: ',num2str(median(data_vola(:,3))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,4);
+dim = get(ha, 'position');
+tmp = histogram(data_vola(:,4),'Normalization','probability');title('omega')
+line([min(data_pure(:,1));min(data_pure(:,1))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(data_pure(:,1));max(data_pure(:,1))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(data_vola(:,4))),' median: ',num2str(median(data_vola(:,4))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,5);
+dim = get(ha, 'position');
+tmp = histogram(data_vola(:,5),'Normalization','probability');title('h0')
+line([min(data_pure(:,5));min(data_pure(:,5))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(data_pure(:,5));max(data_pure(:,5))],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(data_vola(:,5))),' median: ',num2str(median(data_vola(:,5))));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+ha = subplot(2,3,6);
+dim = get(ha, 'position');
+tmp = histogram(constraint,'Normalization','probability');title('constraint');
+line([min(emp_constraint);min(emp_constraint)],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+line([max(emp_constraint);max(emp_constraint)],[0;max(tmp.Values)],'Color','r','Linestyle','--');
+str = strcat('mean: ',num2str(mean(constraint)),' median: ',num2str(median(constraint)));
+annotation('textbox',dim,'String',str,'FitBoxToText','on');
+if saver
+    saveas(gcf,strcat('id_',id,'_histograms','.png'))
+end
 % Example plot
 %figure
 %[X,Y]=meshgrid(K,Maturity);
