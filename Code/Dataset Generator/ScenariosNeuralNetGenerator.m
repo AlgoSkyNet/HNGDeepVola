@@ -28,7 +28,7 @@ path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calib
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
+choice          = "tanhscale"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
 scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
@@ -344,7 +344,7 @@ end
 if saver
     if scenario_cleaner
         save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'clean.mat'),'data_price')
-        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
+        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'clean.mat'),'data_vola')
     else
         save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
         save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
