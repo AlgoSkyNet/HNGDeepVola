@@ -111,7 +111,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = unique(weeksprices)
+for i = 26:52%unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
@@ -426,7 +426,7 @@ for i = unique(weeksprices)
         struc.vola_idx      =   vola_idx;
     end
     struc.sig20         =   sig2_0(i);
-    struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
+    struc.hngPrice      =   abs(price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i))) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
     struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';

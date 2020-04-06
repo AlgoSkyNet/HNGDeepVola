@@ -425,7 +425,7 @@ for i = unique(weeksprices)
         struc.vola_idx      =   vola_idx;
     end
     struc.sig20         =   sig2_0(i);
-    struc.hngPrice      =   price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i)) ;
+    struc.hngPrice      =   abs(price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i))) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
     struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';

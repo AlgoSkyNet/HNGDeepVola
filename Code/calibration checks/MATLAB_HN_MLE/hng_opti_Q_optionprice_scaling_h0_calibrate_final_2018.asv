@@ -10,7 +10,7 @@ warning('on')
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2014;
+year                = 2018;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 1; % use last h_t from MLE under P as h0
@@ -111,7 +111,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = 30:53%unique(weeksprices)
+for i = 26:52%unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
