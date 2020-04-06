@@ -2,7 +2,7 @@ clear;
 year_nums = {'2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'};
 load('num_weeks');
 num_allweeks = sum(num_weeks);
-num_params = 4;
+num_params = 5;
 num_years = length(year_nums);
 params_tmp = struct();
 allparams = zeros(num_allweeks, num_params);
@@ -13,7 +13,7 @@ mean_sig20_year = zeros(num_years, 1);
 std_sig20_year = zeros(num_years, 1);
 k = 1;
 for cur_num = 1:num_years
-    load(['params_options_', year_nums{cur_num}, '_h0asUncondVarMLEP_MSE_interiorpoint_noYield.mat']);
+    load(['params_options_', year_nums{cur_num}, '_h0_calibrated_MSE_interiorpoint_noYield.mat']);
     num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);
@@ -49,7 +49,7 @@ mean_OptionsLikelihood = arrayfun(@(x) mean(x.OptionsLikelihood), year_data);
 mean_MAPE = arrayfun(@(x) mean(x.MAPE), year_data);
 
 
-FID = fopen('calibrationQ_results_h0QisUncondVar_h0Pest_calls_2010_2018.tex', 'w');
+FID = fopen('calibrationQ_results_h0calibrated_MSE_h0Pest_calls_2010_2018.tex', 'w');
 fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
@@ -61,7 +61,7 @@ fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$ estima
 fprintf(FID, '\\noindent\\makebox[\\textwidth]{ \n');
 fprintf(FID, '\\begin{tabularx}{1.3\\textwidth}{X} \n \\scalebox{0.85}{ \n\\begin{tabular}{cccccccccc} \n');
 fprintf(FID, '\\toprule \n');
-fprintf(FID, '\\multicolumn{10}{c}{{\\bf CALIBRATED PARAMETERS ON WEDNESDAYS, $h_0^Q = \\dfrac{\\omega_0 + \\alpha_0}{1-\\beta_0 - \\alpha_0 \\gamma_0^{*2}}$, WITH $\\omega_0, \\alpha_0, \\beta_0, \\gamma_0^{*2}$ FROM MLE UNDER P}} \\\\\n');
+fprintf(FID, '\\multicolumn{10}{c}{{\\bf CALIBRATED PARAMETERS ON WEDNESDAYS, $h_0^Q$ IS CALIBRATED, CRITERION MSE}} \\\\\n');
 fprintf(FID, '\\midrule \n');
 fprintf(FID, '{$\\boldsymbol{\\theta}$}&{\\bf 2010}&{\\bf 2011}&{\\bf 2012}&{\\bf 2013}&{\\bf 2014}&{\\bf 2015}&{\\bf 2016}&{\\bf 2017}&{\\bf 2018}\\\\ \n');
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
