@@ -10,7 +10,7 @@ warning('on')
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2011;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 1; % use last h_t from MLE under P as h0
@@ -439,7 +439,7 @@ for i = unique(weeksprices)
     struc.hngPrice      =   abs(price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i))) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
-    struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./  struc.blsvega';
+    struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
     s_epsilon2bls       =   mean(struc.epsilonbls(:).^2);
     struc.optionsLikhng =   -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1);
