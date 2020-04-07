@@ -6,17 +6,17 @@ close all;
 warning('on')
 
 %parpool()
-%path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
-goal                =  'MSE'; % 'MSE';   'MAPE';  ,'OptLL';
+goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 
@@ -48,8 +48,8 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
-%load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
-load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
+load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
+%load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
 
 if useRealVola || useMLEPh0
     num_params = 4;
@@ -210,6 +210,14 @@ for i = unique(weeksprices)
     end
     struc.Price         =   data_week(:, 1)';
     struc.yields        =   interestRates;
+    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
+    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
+    indNaN = find(isnan(struc.blsimpv));
+    struc.num_NaN_implVols = length(indNaN);    
+    struc.blsimpv(indNaN) = data_week(indNaN, 6);
+    struc.blsvega = blsvega(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.blsimpv(:));
+
+
     
     %% Goal function
     if useRealVola || useMLEPh0
@@ -221,7 +229,8 @@ for i = unique(weeksprices)
             f_min_raw = @(params,scaler,h0) mean(abs(price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 1));
         % Option Likelyhood
         elseif strcmp(goal,'OptLL')
-            f_min_raw = @(params,scaler,h0) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 5)).^2))));
+            f_min_raw = @(params,scaler,h0) ((log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./struc.blsvega).^2))));
+            %f_min_raw = @(params,scaler,h0) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./data_week(:, 5)).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,'RMSE')
@@ -238,7 +247,8 @@ for i = unique(weeksprices)
             f_min_raw = @(params,scaler) mean(abs(price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 1));
         % Option Likelyhood
         elseif strcmp(goal,'OptLL')
-            f_min_raw = @(params,scaler) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
+            f_min_raw = @(params,scaler) ((log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./struc.blsvega).^2))));
+            %f_min_raw = @(params,scaler) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,'RMSE')
@@ -417,8 +427,6 @@ for i = unique(weeksprices)
         end
     end
     
-    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
-    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     param_vec_weekly(i,:) =  opt_params_clean(i, :);
     struc.optispecs.scaler         =   scale_tmp;
     if useRealVola
