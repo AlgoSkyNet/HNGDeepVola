@@ -30,7 +30,7 @@ saver     = 1; % want to save data or not externally
 %rng('default') % in case we want to check results set to fixed state
 choice          = "unisemiscale"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
-scenario_cleaner = 0;% boolean value indicating whether outlier should be cleaned from the underlying data
+scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
 if saver
     disp('Saving data and plots is enabled.')
@@ -47,7 +47,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 100000;
+Nsim            = 30000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -227,12 +227,12 @@ elseif strcmp(choice,"uni")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
+    inv_data   = [min([data_pure(:,1:5)])+(max([data_pure(:,1:5)])-min([data_pure(:,1:5)])).*rand(Nsim,5),yields_tmp];
 elseif strcmp(choice,"unisemiscale")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([params])+(max([params])-min([params])).*rand(Nsim,5),yields_tmp];
+    inv_data   = [min([data_pure(:,1:5)])+(max([data_pure(:,1:5)])-min([data_pure(:,1:5)])).*rand(Nsim,5),yields_tmp];
     inv_data   = inv_data./std(inv_data).*std(data_pure);
 elseif strcmp(choice,"log")
     inv_data   = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
@@ -426,6 +426,9 @@ line([max(emp_constraint);max(emp_constraint)],[0;max(tmp.Values)],'Color','r','
 str = strcat('mean: ',num2str(mean(constraint)),' median: ',num2str(median(constraint)));
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
 if saver
+    fig = gcf;
+    fig.PaperPositionMode = 'auto';
+    fig.WindowState = 'maximized';
     print(strcat('id_',id,'_histograms'),'-dpng','-r0')
     %saveas(gcf,strcat('id_',id,'_histograms','.png'))
 end
