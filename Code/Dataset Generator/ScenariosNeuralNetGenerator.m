@@ -426,7 +426,8 @@ line([max(emp_constraint);max(emp_constraint)],[0;max(tmp.Values)],'Color','r','
 str = strcat('mean: ',num2str(mean(constraint)),' median: ',num2str(median(constraint)));
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
 if saver
-    saveas(gcf,strcat('id_',id,'_histograms','.png'))
+    print(strcat('id_',id,'_histograms'),'-dpng','-r0')
+    %saveas(gcf,strcat('id_',id,'_histograms','.png'))
 end
 % Example plot
 %figure
