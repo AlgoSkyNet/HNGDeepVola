@@ -228,14 +228,14 @@ elseif strcmp(choice,"uni")
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
     inv_data   = [min(data_pure(:,1:5))+(max(data_pure(:,1:5))-min(data_pure(:,1:5))).*rand(Nsim,5),yields_tmp];
-elseif strcmp(choice,"unisemiscale")
+elseif strcmp(choice,"unisymmetric")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
     inv_data   = mean(data_pure(:,1:5))-0.5*(sqrt(12)*std(data_pure(:,1:5))-mean(data_pure(:,1:5)))+...
         (sqrt(12)*std(data_pure(:,1:5))-mean(data_pure(:,1:5))).*rand(Nsim,5);
     inv_data   = [inv_data,yields_tmp];
-elseif strcmp(choice,"unisymmetric")
+elseif strcmp(choice,"unisemiscale")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
