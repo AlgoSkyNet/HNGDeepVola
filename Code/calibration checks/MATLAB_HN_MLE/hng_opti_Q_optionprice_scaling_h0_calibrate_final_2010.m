@@ -211,7 +211,10 @@ for i = unique(weeksprices)
     end
     struc.Price         =   data_week(:, 1)';
     struc.yields        =   interestRates;
-    
+    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));    
+    struc.blsvega       =   blsvega(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, struc.blsimpv);
+
+
     %% Goal function
     if useRealVola || useMLEPh0
         % MSE
@@ -346,7 +349,6 @@ for i = unique(weeksprices)
             
     struc.optispecs = struct();
     struc.optispecs.optiopt = opt;
-    struc.blsvega       =   blsvega(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
 
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -419,7 +421,6 @@ for i = unique(weeksprices)
     end
     
     struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
-    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     param_vec_weekly(i,:) =  opt_params_clean(i, :);
     struc.optispecs.scaler         =   scale_tmp;
     if useRealVola
