@@ -1,0 +1,43 @@
+%&pdflatex %&cont-en %&pdftex \documentclass[10pt]{article} 
+\usepackage{latexsym,amsmath,amssymb,graphics,amscd} 
+\usepackage{multirow} 
+\usepackage{booktabs} 
+\usepackage{tabularx} 
+\usepackage[hang,footnotesize]{caption} 
+\usepackage[pdftex]{graphicx} 
+\usepackage{color}
+\textwidth15.8 cm
+\textheight20.8 cm
+\oddsidemargin.4cm
+\evensidemargin.4cm 
+\begin{document} 
+\noindent\makebox[\textwidth]{ 
+\begin{tabularx}{1.3\textwidth}{X} 
+ \scalebox{0.85}{ 
+\begin{tabular}{llccccccc} 
+\toprule 
+\multicolumn{9}{c}{{\bf IN-SAMPLE PRICING ERRORS (MSE), , $h_0^Q = h_t^P$ }} \\
+\midrule 
+\multicolumn{2}{c}{ }&\multicolumn{6}{c}{{\bf Moneyness $S _0/K $}}&\multicolumn{1}{c}{{\bf Across}}\\ 
+\cmidrule(r){3-9} 
+ &{\bf Maturities}&\multicolumn{1}{c}{$[0.900, 0.950]$}&\multicolumn{1}{c}{$[0.950, 0.975]$}&\multicolumn{1}{c}{$[0.975, 1.000]$}&\multicolumn{1}{c}{$[1.000, 1.025]$}&\multicolumn{1}{c}{$[1.025, 1.050]$}&\multicolumn{1}{c}{$[1.050, 1.100]$}&\multicolumn{1}{c}{{\bf Moneyness}}\\
+\cmidrule(r){1-9} 
+\multirow{4}{*}{\bf In-Sample Error}&\multirow{1}{*}{\makebox[2cm]{$ {\bf 8}\leq T < {\bf 30}$}} 
+&0.799&1.331&5.843&11.856&7.162&3.289&4.512\\
+  &\multirow{1}{*}{${\bf 30}\leq T < {\bf 80}$} 
+&2.412&2.586&6.226&6.561&9.418&4.493&4.442\\
+  &\multirow{1}{*}{${\bf 80}\leq T < {\bf 180}$} 
+&11.540&7.141&9.860&22.410&30.829&20.348&12.558\\
+  &\multirow{1}{*}{${\bf 180}\leq T \leq {\bf 250}$} 
+&29.845&14.191&33.350&61.956&51.699&74.693&35.591\\
+  \midrule 
+\midrule 
+{\bf Across Maturities}&  &4.061&2.449&6.773&12.308&13.621&21.872&6.123\\
+  \midrule 
+\midrule 
+\\
+  \midrule 
+\bottomrule
+\end{tabular}}
+\end{tabularx}}
+\end{document}
