@@ -28,9 +28,9 @@ path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calib
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "unisemiscale"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale"
+choice          = "unisemiscale"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymetric"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
-scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
+scenario_cleaner = 0;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
 if saver
     disp('Saving data and plots is enabled.')
@@ -187,7 +187,7 @@ if scenario_cleaner
     annotation('textbox',dim,'String',str,'FitBoxToText','on');
 end
 % Choosing good parameters
-if strcmp(choice,"norm") || strcmp(choice,"uni") || strcmp(choice,"unisemiscale")
+if strcmp(choice,"norm") || strcmp(choice,"uni") || strcmp(choice,"unisemiscale") || strcmp(choice,"unisymmetric")
     data  = data_pure;
 elseif strcmp(choice,"log")
     data  = [log(data_pure(:,1:3)),data_pure(:,4),log(data_pure(:,5)),data_pure(:,6:end)];
@@ -227,13 +227,22 @@ elseif strcmp(choice,"uni")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([data_pure(:,1:5)])+(max([data_pure(:,1:5)])-min([data_pure(:,1:5)])).*rand(Nsim,5),yields_tmp];
+    inv_data   = [min(data_pure(:,1:5))+(max(data_pure(:,1:5))-min(data_pure(:,1:5))).*rand(Nsim,5),yields_tmp];
 elseif strcmp(choice,"unisemiscale")
     inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
     yields_tmp = inv_data(:,6:end);
     %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
-    inv_data   = [min([data_pure(:,1:5)])+(max([data_pure(:,1:5)])-min([data_pure(:,1:5)])).*rand(Nsim,5),yields_tmp];
-    inv_data   = inv_data./std(inv_data).*std(data_pure);
+    inv_data   = mean(data_pure(:,1:5))-0.5*(sqrt(12)*std(data_pure(:,1:5))-mean(data_pure(:,1:5)))+...
+        (sqrt(12)*std(data_pure(:,1:5))-mean(data_pure(:,1:5))).*rand(Nsim,5);
+    inv_data   = [inv_data,yields_tmp];
+elseif strcmp(choice,"unisymmetric")
+    inv_data   = inv_scaler(sample_trafo,mean(data_pure),std(data_pure));
+    yields_tmp = inv_data(:,6:end);
+    %inv_data   = [min([params,sig2_0])+(max([params,sig2_0])-min([params,sig2_0])).*rand(Nsim,5),yields_tmp];
+    inv_data   = min([data_pure(:,1:5)])+(max([data_pure(:,1:5)])-min([data_pure(:,1:5)])).*rand(Nsim,5);
+    inv_data   = inv_data(:,1:5)./std(inv_data(:,1:5)).*std(data_pure(:,1:5));
+    inv_data   = mean(data_pure(:,1:5))-mean(inv_data(:,1:5))+inv_data;
+    inv_data   = [inv_data,yields_tmp];
 elseif strcmp(choice,"log")
     inv_data   = [exp(sample_trafo(:,1:3)),sample_trafo(:,4),exp(sample_trafo(:,5)),yields_inv];
     inv_data   = inv_scaler(normalize(inv_data),mean(data_pure),std(data_pure));
