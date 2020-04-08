@@ -8,15 +8,15 @@ warning('on')
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2017;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
-goal                =  'MSE'; % 'MSE';   'MAPE';  ,'OptLL';
+goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 
@@ -50,7 +50,7 @@ Dates                   = Dates(wednessdays);
 % initialize with the data from MLE estimation for each week
 %load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 %load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
-load(strcat('C:/GIT/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+load(strcat('C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
 
 if useRealVola || useMLEPh0
     num_params = 4;
@@ -214,10 +214,7 @@ for i = unique(weeksprices)
     struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     indNaN = find(isnan(struc.blsimpv));
-    struc.num_NaN_implVols = length(indNaN);
-    %struc.blsimpv(indNaN)       =   blsimpv(data_week(indNaN, 4),  data_week(indNaN, 3), r_cur(indNaN), data_week(indNaN, 2)/252, data_week(indNaN, 1), 'Method', 'search', 'Tolerance', 1e-4);
-    %[sigma,C] = calcBSImpVol(1,data_week(indNaN, 1),data_week(indNaN, 4),data_week(indNaN, 3),data_week(indNaN, 2)/252,r_cur(indNaN),0);
-    
+    struc.num_NaN_implVols = length(indNaN);    
     struc.blsimpv(indNaN) = data_week(indNaN, 6);
     struc.blsvega = blsvega(data_week(:, 4),  data_week(:, 3), r_cur(:), data_week(:, 2)/252, struc.blsimpv(:));
     
@@ -232,7 +229,7 @@ for i = unique(weeksprices)
         % Option Likelyhood
         elseif strcmp(goal,'OptLL')
             %f_min_raw = @(params,scaler,h0) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./struc.blsvega).^2))));
-            f_min_raw = @(params,scaler,h0) 0.5+1/1000*(- log(struc.numOptions) +  (log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./struc.blsvega).^2))));
+            f_min_raw = @(params,scaler,h0) ((log(mean(((price_Q(params.*scaler, data_week, r_cur./252, h0)'-data_week(:, 1))./struc.blsvega).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,'RMSE')
@@ -249,7 +246,7 @@ for i = unique(weeksprices)
             f_min_raw = @(params,scaler) mean(abs(price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 1));
         % Option Likelyhood
         elseif strcmp(goal,'OptLL')
-            f_min_raw = @(params,scaler) 0.5+1/1000*(0.5 * struc.numOptions * (log(2*pi) + 1 + log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
+            f_min_raw = @(params,scaler) ((log(mean(((price_Q_h0(params.*scaler, data_week, r_cur./252)'-data_week(:, 1))./data_week(:, 5)).^2))));
         % WE DO NOT USE THIS FOR GOAL FUNCTION
         % RMSE
         %elseif strcmp(goal,'RMSE')
@@ -336,7 +333,7 @@ for i = unique(weeksprices)
     %optimization specs
     if useRealVola || useMLEPh0
         opt = optimoptions('fmincon', ...
-                'Display', 'iter',...
+                'Display', 'final',...
                 'Algorithm', algorithm,...
                 'MaxIterations', 3000,...
                 'MaxFunctionEvaluations',20000, ...
@@ -359,6 +356,12 @@ for i = unique(weeksprices)
 
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+%         rng('default');
+%         gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+%             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3);
+%         problem = createOptimProblem('fmincon','x0',Init_scale,...
+%                 'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+%        [xmin,fmin] = run(gs,problem); 
     % initialisation for first week
     best_fval = 0;
     f_vec = 0;
@@ -435,8 +438,8 @@ for i = unique(weeksprices)
     struc.sig20         =   sig2_0(i);
     struc.hngPrice      =   abs(price_Q(opt_params_clean(i,:), data_week, r_cur./252, sig2_0(i))) ;
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
-    struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./ data_week(:,5)';
-    struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
+    struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
+    struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./  struc.blsvega';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
     s_epsilon2bls       =   mean(struc.epsilonbls(:).^2);
     struc.optionsLikhng =   -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1);
