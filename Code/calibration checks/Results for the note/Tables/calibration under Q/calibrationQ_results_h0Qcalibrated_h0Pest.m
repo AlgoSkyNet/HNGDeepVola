@@ -8,9 +8,13 @@ params_tmp = struct();
 allparams = zeros(num_allweeks, num_params);
 allsig20 = zeros(num_allweeks, num_params);
 mean_params_year = zeros(num_years, num_params);
+cil_params_year = zeros(num_years, num_params);
+ciu_params_year = zeros(num_years, num_params);
 std_params_year = zeros(num_years, num_params);
 mean_sig20_year = zeros(num_years, 1);
 std_sig20_year = zeros(num_years, 1);
+cil_sig20_year = zeros(num_years, 1);
+alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
     load(['params_options_', year_nums{cur_num}, '_h0_calibrated_MSE_interiorpoint_noYield.mat']);
@@ -38,10 +42,14 @@ for cur_num = 1:num_years
             k = k + 1;
         end
     end
-    mean_params_year(cur_num, :) = mean(year_params);
+    n = length(values);
     std_params_year(cur_num, :) = std(year_params);
+    tval = tinv(1-alpha/2,n - 1);
+    cil_params_year(cur_num, :) =  tval.* std_params_year(cur_num, :)/sqrt(n); 
+    mean_params_year(cur_num, :) = mean(year_params);
     mean_sig20_year(cur_num, :) = mean(year_sig20);
     std_sig20_year(cur_num, :) = std(year_sig20);
+    cil_sig20_year(cur_num, :) =  tval.* std_sig20_year(cur_num, :)/sqrt(n); 
 end
 mean_MSE = arrayfun(@(x) mean(x.MSE), year_data);
 mean_IVRMSE = arrayfun(@(x) nanmean(x.IVRMSE), year_data);
@@ -67,23 +75,23 @@ fprintf(FID, '{$\\boldsymbol{\\theta}$}&{\\bf 2010}&{\\bf 2011}&{\\bf 2012}&{\\b
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 1;
 fprintf(FID, ' { $\\omega$}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_params_year(:, param_ind));
-fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_params_year(:, param_ind));
+fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 2;
 fprintf(FID, ' { $\\alpha$}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_params_year(:, param_ind));
-fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_params_year(:, param_ind));
+fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 3;
 fprintf(FID, ' { $\\beta$}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', mean_params_year(:, param_ind));
-fprintf(FID, ' & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', std_params_year(:, param_ind));
+fprintf(FID, ' & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 4;
 fprintf(FID, ' { $\\gamma^{*}$}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', mean_params_year(:, param_ind));
-fprintf(FID, ' & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', std_params_year(:, param_ind));
+fprintf(FID, ' & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 
 fprintf(FID, ' { $h_0^Q$ }& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4f$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_sig20_year(:)');
-fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_sig20_year(:)');
+fprintf(FID, ' & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', cil_sig20_year(:)');
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 
 fprintf(FID, ' { $MSE$ }& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', mean_MSE(:)');
