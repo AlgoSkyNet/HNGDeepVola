@@ -60,7 +60,7 @@ mean_OptionsLikelihood = arrayfun(@(x) mean(x.OptionsLikelihood), year_data);
 mean_MAPE = arrayfun(@(x) mean(x.MAPE), year_data);
 
 
-FID = fopen('calibrationQ_results_h0QisUncondVarUpdateQ_h0Pest_calls_OptLL_2010_2018.tex', 'w');
+FID = fopen('calibrationQ_results_h0QisUncondVarUpdateQ_h0Pest_calls_MSE_2010_2018.tex', 'w');
 fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
@@ -78,26 +78,31 @@ fprintf(FID, '{$\\boldsymbol{\\theta}$}&{\\bf 2010}&{\\bf 2011}&{\\bf 2012}&{\\b
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 1;
 fprintf(FID, ' { $\\omega$}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_params_year(:, param_ind));
+fprintf(FID, ' {{\\bf std}}& $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_params_year(:, param_ind));
 fprintf(FID, ' {{\\bf ci}}& $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$& $(\\pm%.4e)$& $(\\pm%.4e)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, ' { {\\bf median}}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', median_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 2;
 fprintf(FID, ' { $\\alpha$}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_params_year(:, param_ind));
+fprintf(FID, ' {{\\bf std}}& $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_params_year(:, param_ind));
 fprintf(FID, ' {\\bf ci}& $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$& $(\\pm%.4e)$& $(\\pm%.4e)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, ' { {\\bf median}}& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', median_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 3;
 fprintf(FID, ' { $\\beta$}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', mean_params_year(:, param_ind));
+fprintf(FID, ' {{\\bf std}}& $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', std_params_year(:, param_ind));
 fprintf(FID, ' {\\bf ci}& $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$& $(\\pm%.4f)$& $(\\pm%.4f)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, ' { {\\bf median}}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', median_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 param_ind = 4;
 fprintf(FID, ' { $\\gamma^{*}$}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', mean_params_year(:, param_ind));
+fprintf(FID, ' {{\\bf std}}& $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$ & $(%.4f)$& $(%.4f)$& $(%.4f)$ \\\\\n', std_params_year(:, param_ind));
 fprintf(FID, ' {\\bf ci}& $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$ & $(\\pm%.4f)$& $(\\pm%.4f)$& $(\\pm%.4f)$ \\\\\n', cil_params_year(:, param_ind));
 fprintf(FID, ' { {\\bf median}}& $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$ & $%.4f$& $%.4f$& $%.4f$ \\\\\n', median_params_year(:, param_ind));
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
 
 fprintf(FID, ' { $h_0^Q=h_t^P$ }& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', mean_sig20_year(:)');
+fprintf(FID, ' {{\\bf std}}& $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$ & $(%.4e)$& $(%.4e)$& $(%.4e)$ \\\\\n', std_sig20_year(:)');
 fprintf(FID, ' {\\bf ci}& $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$ & $(\\pm%.4e)$& $(\\pm%.4e)$& $(\\pm%.4e)$ \\\\\n', cil_sig20_year(:)');
 fprintf(FID, ' { {\\bf median} }& $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$ & $%.4e$& $%.4e$& $%.4e$ \\\\\n', median_sig20_year(:)');
 

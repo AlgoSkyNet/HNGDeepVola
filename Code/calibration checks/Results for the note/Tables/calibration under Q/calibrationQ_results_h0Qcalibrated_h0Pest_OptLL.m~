@@ -73,7 +73,7 @@ fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$ estima
 fprintf(FID, '\\noindent\\makebox[\\textwidth]{ \n');
 fprintf(FID, '\\begin{tabularx}{1.3\\textwidth}{X} \n \\scalebox{0.7}{ \n\\begin{tabular}{cccccccccc} \n');
 fprintf(FID, '\\toprule \n');
-fprintf(FID, '\\multicolumn{10}{c}{{\\bf CALIBRATED PARAMETERS ON WEDNESDAYS, $h_0^Q$ IS CALIBRATED WITH RESPECT TO OPTIONS LIKELIHOOD}} \\\\\n');
+fprintf(FID, '\\multicolumn{10}{c}{{\\bf CALIBRATED PARAMETERS ON WEDNESDAYS, $h_0^Q$ IS CALIBRATED WITH RESPECT TO OPTIONS}} \\\\\n');
 fprintf(FID, '\\midrule \n');
 fprintf(FID, '{$\\boldsymbol{\\theta}$}&{\\bf 2010}&{\\bf 2011}&{\\bf 2012}&{\\bf 2013}&{\\bf 2014}&{\\bf 2015}&{\\bf 2016}&{\\bf 2017}&{\\bf 2018}\\\\ \n');
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
