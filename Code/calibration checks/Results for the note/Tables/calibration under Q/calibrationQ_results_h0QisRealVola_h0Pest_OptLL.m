@@ -1,8 +1,8 @@
-clear;
-year_nums = {'2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'};
+%clear;
+year_nums = {'2010', '2011', '2012', '2013', '2014', '2015', '2016',  '2018'};
 load('num_weeks');
 num_allweeks = sum(num_weeks);
-num_params = 4;
+num_params = 5;
 num_years = length(year_nums);
 params_tmp = struct();
 allparams = zeros(num_allweeks, num_params);
@@ -18,8 +18,11 @@ std_sig20_year = zeros(num_years, 1);
 alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
-    load(['data for tables/results calibration hoasrelvola esthoP mpoints 1 day/OptLL/params_options_', year_nums{cur_num}, '_h0asRealVola6days_OptLL_interiorpoint_noYield.mat']);
-    num_weeks_in_year = num_weeks(cur_num);
+    %load(['data for tables/results calibration hoasrelvola esthoP mpoints 1 day/OptLL/params_options_', year_nums{cur_num}, '_h0asRealVola6days_OptLL_interiorpoint_noYield.mat']);
+    load(['data for tables/results calibration h0calibarted esth0P OL mp verif/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
+    %load(['data for tables/results calibration h0Calibrated esth0P/OptLL/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
+    
+num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);
     year_data(cur_num).IVRMSE = zeros(num_weeks_in_year, 1);
