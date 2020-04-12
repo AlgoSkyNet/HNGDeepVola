@@ -90,8 +90,8 @@ data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; Optio
 % Initialization  
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
-lb_mat           =   [1e-12, 0, 0, -1500];
-ub_mat           =   [1, 1, 1, 1500];  
+lb_mat           =   [1e-12, 0, 0, -1000];
+ub_mat           =   [1, 1, 1, 1000];  
 
 if ~(useRealVola || useMLEPh0)
     lb_mat = [lb_mat, 1e-12];
