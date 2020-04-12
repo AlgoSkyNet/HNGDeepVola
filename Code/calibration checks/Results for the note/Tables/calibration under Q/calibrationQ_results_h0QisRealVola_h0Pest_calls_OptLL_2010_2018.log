@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  3 APR 2020 13:27
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  11 APR 2020 23:00
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**description_data_pricing_calls_2010.tex
-(./description_data_pricing_calls_2010.tex
+**calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_2018.tex
+(./calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_2018.tex
 LaTeX2e <2018-12-01>
 (/usr/local/texlive/2019/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2018/09/03 v1.4i Standard LaTeX document class
@@ -201,8 +201,9 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package color Info: Driver file: pdftex.def on input line 147.
 )
-(./description_data_pricing_calls_2010.aux)
-\openout1 = `description_data_pricing_calls_2010.aux'.
+(./calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_2018.aux)
+\openout1 = `calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_2018.au
+x'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
 LaTeX Font Info:    ... okay on input line 16.
@@ -283,42 +284,46 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 17.
 
-./description_data_pricing_calls_2010.tex:70: Argument of \TX@get@body has an e
-xtra }.
-<inserted text> 
-                \par 
-l.70 \end{tabular}}
-                   
-? 
-./description_data_pricing_calls_2010.tex:70: Emergency stop.
-<inserted text> 
-                \par 
-l.70 \end{tabular}}
-                   
-End of file on the terminal!
+(/usr/local/texlive/2019/texmf-dist/tex/latex/base/ulasy.fd
+File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msa on input line 17.
 
- 
+(/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 17.
+
+(/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+) [1
+
+{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+(./calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_2018.aux) ) 
 Here is how much of TeX's memory you used:
- 3663 strings out of 492616
- 54316 string characters out of 6129481
- 117723 words of memory out of 5000000
- 7555 multiletter control sequences out of 15000+600000
- 3640 words of font info for 14 fonts, out of 8000000 for 9000
+ 3729 strings out of 492616
+ 55729 string characters out of 6129481
+ 174264 words of memory out of 5000000
+ 7588 multiletter control sequences out of 15000+600000
+ 8520 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,1n,38p,302b,39s stack positions out of 5000i,500n,10000p,200000b,80000s
-./description_data_pricing_calls_2010.tex:70:  ==> Fatal error occurred, no out
-put PDF file produced!
-,312s stack positions out of 5000i,500n,10000p,200000b,80000s
-./description_data_pricing_calls_2010.tex:71:  ==> Fatal error occurred, no out
-put PDF file produced!
-nts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on description_data_pricing_calls_2010.pdf (1 page, 54939 bytes)
-.
+ 41i,23n,38p,330b,322s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/
+local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/l
+ocal/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/lo
+cal/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/loca
+l/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/loca
+l/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/
+texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/tex
+live/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
+ive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
+Output written on calibrationQ_results_h0QisRealVola_h0Pest_calls_OptLL_2010_20
+18.pdf (1 page, 80792 bytes).
 PDF statistics:
- 28 PDF objects out of 1000 (max. 8388607)
- 19 compressed objects within 1 object stream
+ 40 PDF objects out of 1000 (max. 8388607)
+ 28 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
