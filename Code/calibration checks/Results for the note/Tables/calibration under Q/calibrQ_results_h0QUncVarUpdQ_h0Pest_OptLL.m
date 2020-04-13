@@ -1,4 +1,4 @@
-clear;
+%clear;
 year_nums = {'2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'};
 load('num_weeks');
 num_allweeks = sum(num_weeks);
@@ -21,7 +21,7 @@ std_sig20_year = zeros(num_years, 1);
 alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
-    load(['data for tables/results calibration h0asUncondVUpdate esth0P/OptLL/params_options_', year_nums{cur_num}, '_h0asUncVarUpdQ_OptLL_interiorpoint_noYield_m.mat']);
+    load(['data for tables/results calibr h0asUncondVUpdate esth0P/OptLL/params_options_', year_nums{cur_num}, '_h0asUncVarUpdQ_OptLL_interiorpoint_noYield_m.mat']);
     num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);

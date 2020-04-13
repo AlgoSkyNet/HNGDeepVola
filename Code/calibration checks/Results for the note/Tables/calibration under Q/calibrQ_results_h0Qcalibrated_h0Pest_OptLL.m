@@ -22,7 +22,7 @@ cil_sig20_year = zeros(num_years, 1);
 alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
-    load(['data for tables/results calibration h0calibarted esth0P OL mp verif/OptLL/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
+    load(['data for tables/results calibr h0calibarted esth0P OL mp verif/OptLL/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
     num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);
