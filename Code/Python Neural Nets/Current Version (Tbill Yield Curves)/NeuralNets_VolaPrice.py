@@ -281,6 +281,18 @@ y_test_re    = yinversetransform(y_test_trafo_price,0).reshape((Ntest,Nmaturitie
 prediction   = NN1b.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+err_matrix = np.mean(err_rel_mat,axis=(1,2))
+err_idx = np.argsort(err_matrix)
+#plt.plot(err_matrix)
+plt.figure(figsize=(14,4))
+mini = np.min(y_test_price,axis=1)
+mini_idx = mini>10e-5
+tmp_test = np.argsort(mini[mini_idx])
+plt.plot(err_matrix[tmp_test])
+plt.show()
+err_median = np.median(err_rel_mat,axis=(0,1,2))
+err_median = np.median(err_rel_mat,axis=(0,1,2))
+
 # In[2.4 CNN as Encoder / Pricing Kernel with no riskfree rate]:
 
 NN1c = Sequential() 
@@ -319,8 +331,8 @@ X_val_tmp = X_val_trafo[tmp_val[1500:],:,:,:]
 X_test_tmp = X_test_trafo[tmp_test[1500:],:,:,:]
 #NN1c.fit(X_train_tmp, y_train_tmp, batch_size=64, validation_data = (X_val_tmp, y_val_tmp), epochs = 300, verbose = True, shuffle=1)
 NN1c.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1_price), epochs = 300, verbose = True, shuffle=1)
-NN1c.save_weights("pricerweights_noriskfreerate_price.h5")
-#NN1c.load_weights("pricerweights_noriskfreerate_price.h5")
+NN1c.save_weights("pricerweights_noriskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1c.load_weights("pricerweights_noriskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
 # The following plots show the performance on the testing set
@@ -544,9 +556,10 @@ NN2.summary()
 
 #setting
 NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=300, verbose = True, shuffle=1)
-NN2.save_weights("calibrationweights.h5")
-#NN2.load_weights("calibrationweights.h5")
+history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=80, verbose = True, shuffle=1)
+NN2.save_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN2.load_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+
 
 
 # ### 3.1 Results
@@ -596,8 +609,8 @@ NN2c.summary()
 #setting
 NN2c.compile(loss =mse_constraint(0.05), optimizer = "adam",metrics=["MAPE", "MSE"])
 history = NN2c.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=300, verbose = True, shuffle=1)
-#NN2.save_weights("calibrationweights_elutanh_noh0.h5")
-#NN2c.load_weights("calibrationweights_elutanh_noh0.h5")
+NN2.save_weights("calibrationweights_elutanh_noh0.h5")
+NN2c.load_weights("calibrationweights_elutanh_noh0.h5")
 
 
 # 5.1 Results
