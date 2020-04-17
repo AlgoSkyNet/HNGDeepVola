@@ -21,7 +21,8 @@ std_sig20_year = zeros(num_years, 1);
 alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
-    load(['data for tables/results calibr hoasrelvola esthoP mp 1 day/OptLL/params_options_', year_nums{cur_num}, '_h0asRealVola6days_OptLL_interiorpoint_noYield.mat']);
+    %load(['data for tables/results calibr hoasrelvola esthoP mp 1 day/OptLL/params_options_', year_nums{cur_num}, '_h0asRealVola6days_OptLL_interiorpoint_noYield.mat']);
+    load(['data for tables/results calibr hoasrelvola esthoP mp ystrday/OptLL/params_options_', year_nums{cur_num}, '_h0asRealVola2days_OptLL_interiorpoint_noYield.mat']);
     %load(['data for tables/results calibration h0calibarted esth0P OL mp verif/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
     %load(['data for tables/results calibration h0Calibrated esth0P/OptLL/params_options_', year_nums{cur_num}, '_h0_calibrated_OptLL_interiorpoint_noYield.mat']);
     
@@ -72,7 +73,7 @@ mean_OptionsLikelihood = arrayfun(@(x) mean(x.OptionsLikelihood), year_data);
 mean_MAPE = arrayfun(@(x) mean(x.MAPE), year_data);
 
 
-FID = fopen('calibrQ_results_h0QRealVola_h0Pest_calls_OptLL_10_18.tex', 'w');
+FID = fopen('calibrQ_results_h0QRealVolaYstr_h0Pest_calls_OptLL_10_18.tex', 'w');
 fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
