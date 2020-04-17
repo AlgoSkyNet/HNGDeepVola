@@ -28,10 +28,11 @@ path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calib
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "unisemiscale"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymetric"
+choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymetric"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
-scenario_cleaner = 0;% boolean value indicating whether outlier should be cleaned from the underlying data
+scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
+price_cleaner  = 1; %sort out too small prices
 if saver
     disp('Saving data and plots is enabled.')
 else
@@ -47,7 +48,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 30000;
+Nsim            = 500000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -266,6 +267,7 @@ j = 0;
 fail1 = 0;
 fail2 = 0;
 fail3 = 0;
+fail4 = 0;
 yield_matrix  = zeros(Nmaturities*Nstrikes,Nsim);
 scenario_data = zeros(Nsim,Nmaturities*Nstrikes+5+Nmaturities);
 constraint    = zeros(1,Nsim); 
@@ -309,6 +311,12 @@ for i = 1:Nsim
         fail2 = fail2+1;
         continue
     end
+    if price_cleaner
+        if any(any(price<=10e-6))
+            fail4 = fail4+1;
+            continue
+        end
+    end
     j=j+1;
     if strcmp(yieldstype,"PCA")
         yields_clean(j,:) = inv_data(i,6:end); 
@@ -351,13 +359,18 @@ if strcmp(yieldstype,"PCA")
     yields_clean = yields_clean(idx,:);
 end
 if saver
+    name_file_price = strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)));
+    name_file_vola = strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)));
     if scenario_cleaner
-        save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'clean.mat'),'data_price')
-        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'clean.mat'),'data_vola')
-    else
-        save(strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)),'.mat'),'data_price')
-        save(strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)),'.mat'),'data_vola')
+       name_file_price = strcat(name_file_price,'clean');
+       name_file_vola = strcat(name_file_vola,'clean');
     end
+    if price_cleaner
+       name_file_price = strcat(name_file_price,'_bigprice');
+       name_file_vola = strcat(name_file_vola,'_bigprice');
+    end
+    save(strcat(name_file_price,'.mat'),'data_price')
+    save(strcat(name_file_vola,'.mat'),'data_vola')
 end
 %% Summary and Visualisation for control purposes
 
