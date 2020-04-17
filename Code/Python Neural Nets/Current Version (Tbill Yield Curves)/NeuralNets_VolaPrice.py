@@ -556,7 +556,7 @@ NN2.summary()
 
 #setting
 NN2.compile(loss =mse_constraint(0.25), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=80, verbose = True, shuffle=1)
+history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
 NN2.save_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN2.load_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
@@ -608,9 +608,9 @@ NN2c.summary()
 
 #setting
 NN2c.compile(loss =mse_constraint(0.05), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2c.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=300, verbose = True, shuffle=1)
-NN2.save_weights("calibrationweights_elutanh_noh0.h5")
-NN2c.load_weights("calibrationweights_elutanh_noh0.h5")
+history = NN2c.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
+NN2.save_weights("calibrationweights_elutanh.h5")
+NN2c.load_weights("calibrationweights_elutanh.h5")
 
 
 # 5.1 Results
