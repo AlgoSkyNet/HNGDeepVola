@@ -105,9 +105,10 @@ NN1.summary()
 #setting
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
 NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN1.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 300, verbose = True, shuffle=1)
-#NN1.save_weights("pricerweights_noriskfreerate.h5")
-#NN1.load_weights("pricerweights_noriskfreerate.h5")
+#good num of epoch could be 350-(Ntotal/1000)
+NN1.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 100, verbose = True, shuffle=1)
+#NN1.save_weights("pricerweights_noriskfreerate_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN1.load_weights("pricerweights_noriskfreerate_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
 # The following plots show the performance on the testing set
@@ -222,10 +223,11 @@ NN1a.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics
 #NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
 inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
 inputs_val = np.concatenate((X_val_trafo,rates_val.reshape((Nval,Nmaturities,1,1))),axis=1)
+
 inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities,1,1))),axis=1)
 #NN1a.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1), epochs = 300, verbose = True, shuffle=1)
 #NN1a.save_weights("pricerweights_riskfreerate.h5")
-NN1a.load_weights("pricerweights_riskfreerate.h5")
+NN1a.load_weights("pricerweights_riskfreerate_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
 # The following plots show the performance on the testing set
@@ -267,9 +269,10 @@ NN1b.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
 inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
 inputs_val = np.concatenate((X_val_trafo,rates_val.reshape((Nval,Nmaturities,1,1))),axis=1)
 inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities,1,1))),axis=1)
-NN1b.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1_price),epochs = 300, verbose = True, shuffle=1)
-NN1b.save_weights("pricerweights_riskfreerate_price.h5")
-#NN1b.load_weights("pricerweights_riskfreerate_price.h5")
+NN1b.fit(inputs_train, y_train_trafo1, batch_size=64, validation_data = (inputs_val, y_val_trafo1_price),epochs = 80, verbose = True, shuffle=1)
+NN1b.save_weights("pricerweights_riskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN1b.load_weights("pricerweights_riskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+
 
 #  Results 
 # The following plots show the performance on the testing set

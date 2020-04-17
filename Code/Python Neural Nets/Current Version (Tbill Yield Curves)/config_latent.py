@@ -9,9 +9,9 @@ from sklearn.model_selection import train_test_split
 
 
 ### Data Import
-mat         = scipy.io.loadmat("id_1cce18e4138f4dbc_data_vola_norm_21131clean_bigprice.mat")
+mat         = scipy.io.loadmat("id_3283354135d44b67_data_vola_norm_231046clean.mat")
 data_vola        = mat['data_vola']
-mat         = scipy.io.loadmat("id_1cce18e4138f4dbc_data_price_norm_21131clean_bigprice.mat")
+mat         = scipy.io.loadmat("id_3283354135d44b67_data_price_norm_231046clean.mat")
 data_price       = mat['data_price']
 """ data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
 
