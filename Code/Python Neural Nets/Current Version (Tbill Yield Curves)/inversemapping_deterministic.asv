@@ -62,12 +62,12 @@ for i = 1:Nrun
     opt_params_clean(i, :) = opt_params_raw(i, :).*scaler;   
 end
 params_analysed = params(ran_idx(1:Nrun),:);
-save('determinisitc_inv.mat','opt_params_clean','params_analysed')
+save('determinisitc_inv.mat','opt_params_clean',params_analysed')
 %%
-load('determinisitc_inv.mat')
+save
 rel_error= 100*abs((opt_params_clean-params(ran_idx(1:10),:))./params(ran_idx(1:10),:));
 mean_error = mean(rel_error)
 boxplot(rel_error)
-heatmap(rel_error);
+heatmap(rel_error)
 
 
