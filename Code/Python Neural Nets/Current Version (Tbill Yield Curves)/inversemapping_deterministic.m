@@ -5,7 +5,7 @@ load("id_3283354135d44b67_data_vola_norm_231046clean.mat");
 params = data_price(:,[5,1,2,3,4]);
 interest_rate = data_price(:,6:12);
 prices = data_price(:,13:end);
-volas = datavola(:,13:end);
+volas = data_vola(:,13:end);
 % Initialization  
 Init = [1e-5,1e-6,0.7,300,1e-7];
 scaler           =   magnitude(Init);
@@ -76,8 +76,11 @@ rel_error= 100*abs((opt_params_clean-params_analysed)./params_analysed);
 rel_error_vola = 100*abs((autoencoder_vola-volas_analysed)./volas_analysed);
 rel_error_prices = 100*abs((autoencoder_price-prices_analysed)./prices_analysed);
 mean_error = mean(rel_error);
+figure
 boxplot(rel_error)
-heatmap(mean(rel_error_prices));
-heatmap(mean(rel_error_volas));
+figure
+heatmap(reshape(mean(rel_error_prices),9,7));
+figure
+heatmap(reshape(mean(rel_error_vola),9,7));
 
 
