@@ -1,8 +1,22 @@
 ### additional functions for main file
 import numpy as np
 from tensorflow.keras import backend as K
-from config_latent import Nparameters,diff,bound_sum,ub,lb,Ntest,Nstrikes,strikes,Nmaturities,maturities
-from config_latent import myscale,myinverse,ytransform,yinversetransform
+from config_latent import Nparameters,maturities,strikes,Nstrikes,Nmaturities,Ntest,Ntrain,Nval
+from config_latent import xx,rates_train,rates_val,rates_test,ub,lb,diff,bound_sum
+from config_latent import X_train,X_test,X_val,X_train_trafo,X_val_trafo,X_test_trafo,X_train_trafo2,X_val_trafo2,X_test_trafo2
+# vola
+from config_latent import yy,y_train,y_test,y_val,ub_vola,lb_vola,diff_vola,bound_sum_vola
+from config_latent import y_train_trafo,y_val_trafo,y_test_trafo
+from config_latent import y_train_trafo1,y_val_trafo1,y_test_trafo1
+from config_latent import y_train_trafo2,y_val_trafo2,y_test_trafo2
+# price
+from config_latent import yy_price,y_train_price,y_test_price,y_val_price,ub_price,lb_price,diff_price,bound_sum_price
+from config_latent import y_train_trafo_price,y_val_trafo_price,y_test_trafo_price
+from config_latent import y_train_trafo1_price,y_val_trafo1_price,y_test_trafo1_price
+from config_latent import y_train_trafo2_price,y_val_trafo2_price,y_test_trafo2_price
+
+# import custom functions #scaling tools
+from config_latent import ytransform, yinversetransform,myscale,myinverse
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
