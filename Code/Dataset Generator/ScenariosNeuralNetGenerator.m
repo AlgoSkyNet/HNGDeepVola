@@ -307,7 +307,7 @@ for i = 1:Nsim
         r_cur         = interp1(daylengths,interestRates,Maturity/252);
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     end
-    if any(any(price <= 0)) || any(any(isnan(price)))
+    if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >2*S))
         fail2 = fail2+1;
         continue
     end
@@ -344,7 +344,7 @@ for i = 1:size(data_price,1)
      end
     price_vec = data_price(i,4+1+Nmaturities+1:end);
     vola(i,:) = blsimpv(data_vec(:, 3),  data_vec(:, 1), yield_matrix(:,i), data_vec(:, 2)/252,price_vec')';
-    if any(isnan(vola(i,:))) || any(vola(i,:)==0)
+    if any(isnan(vola(i,:))) || any(vola(i,:)==0) || any(vola(i,:) > 1)
         bad_idx(end+1) = i;
     end
 end

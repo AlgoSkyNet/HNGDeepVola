@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 #from sklearn.preprocessing import StandardScaler
 
 
-
 ### Data Import
 mat         = scipy.io.loadmat("id_3283354135d44b67_data_vola_norm_231046clean.mat")
 data_vola        = mat['data_vola']
