@@ -15,3 +15,5 @@ for i =1:length(data_vola)
         j = j+1;
     end
 end
+save("id_3283354135d44b67_data_vola_norm_231046clean.mat","data_vola_new")
+save("id_3283354135d44b67_data_price_norm_231046clean.mat","data_price_new")

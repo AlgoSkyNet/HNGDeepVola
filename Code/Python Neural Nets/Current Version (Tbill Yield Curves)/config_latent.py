@@ -6,13 +6,17 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 #from sklearn.preprocessing import StandardScaler
 
+#from NeuralNets_VolaPrice import names_data
 
+name_price,name_vola =names_data()
 ### Data Import
-mat         = scipy.io.loadmat("id_3283354135d44b67_data_vola_norm_231046clean.mat")
-data_vola        = mat['data_vola']
-mat         = scipy.io.loadmat("id_3283354135d44b67_data_price_norm_231046clean.mat")
-data_price       = mat['data_price']
+mat         = scipy.io.loadmat(name_vola)
+data_vola        = mat['data_vola_new']
+mat         = scipy.io.loadmat(name_price)
+data_price       = mat['data_price_new']
 """ data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
+
+
 
 ### Initialisation
 Nparameters     = 5
