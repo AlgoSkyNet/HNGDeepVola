@@ -32,7 +32,7 @@ choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
 scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
-price_cleaner  = 1; %sort out too small prices
+price_cleaner  = 0; %01%sort out too small prices
 if saver
     disp('Saving data and plots is enabled.')
 else
@@ -41,7 +41,7 @@ end
 if scenario_cleaner
     disp('Extreme scenarios in the underlying data are filtered out.')
 end
-Maturity        = 10:30:250;
+Maturity        = 30:30:210;%30:30:210  10:30:250
 K               = 0.9:0.025:1.1;
 S               = 1;
 K               = K*S;
@@ -353,7 +353,7 @@ end
 fprintf('%s','Generating Volas completed.'),fprintf('\n')
 idx               = setxor(1:size(data_price,1),bad_idx);
 data_vola         = data_price(:,1:4+1+Nmaturities);
-data_vola(:,4+1+Nmaturities+1:75) = vola;
+data_vola(:,4+1+Nmaturities+1:95) = vola;
 data_vola         = data_vola(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
