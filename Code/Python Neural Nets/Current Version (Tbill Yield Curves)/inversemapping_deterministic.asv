@@ -27,13 +27,12 @@ Nrun = 1000;
 for i = 1:Nrun
     int = ran_idx(i);
     interestRates = interest_rate(int,:);
-    %for k = 1:length(interestRates)
-    %    if interestRates(k)<0
-    %        interestRates(k)=0;
-    %    end
-    %end
-    interestRates(interestRates<0) = 0;
-    interestRates(isnan(interestRates)) = 0;
+    for k = 1:length(interestRates)
+        if interestRates(k)<0
+            interestRates(k)=0;
+        end
+    end
+    interestRates(isnan(interestRates)
     interestRates = repmat(interestRates,1,length(K))';
     % Goal function
     f_min_raw = @(params, scaler) (mean((price_Q_clear(params(1:4).*scaler(1:4), data_vec, interestRates/252,params(5).*scaler(5)) - prices(int,:)).^2));
