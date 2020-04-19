@@ -298,12 +298,14 @@ for i = 1:Nsim
         interestRates = yields(int,:);
         notNaN        = ~isnan(interestRates);             
         yieldcurve    = interp1(daylengths(notNaN),interestRates(notNaN),data_vec(:,2)/252);
+        yieldcurve(isnan(yieldcurve)) = 0;
         r_cur         = interp1(daylengths(notNaN),interestRates(notNaN),Maturity/252);
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     elseif strcmp(yieldstype,"PCA")
         daylengths    = [21,13*5, 126, 252]./252;
         interestRates = inv_data(i,6:end);
         yieldcurve    = interp1(daylengths,interestRates,data_vec(:,2)/252);
+        yieldcurve(isnan(yieldcurve)) = 0;
         r_cur         = interp1(daylengths,interestRates,Maturity/252);
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     end
