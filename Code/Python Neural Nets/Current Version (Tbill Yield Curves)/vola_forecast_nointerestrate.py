@@ -1,13 +1,13 @@
 # Vola Forecasting no riskrate adjustments
-"""
+
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
 import keras
 import tensorflow as tf
 config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 56} ) 
 sess = tf.compat.v1.Session(config=config) 
-tf.compat.v1.keras.backend.set_session(sess
-"""
+tf.compat.v1.keras.backend.set_session(sess)
+
 # In[1. Initialisation/ Preambel and Data Import]:
 # This Initialisation will be used for everyfile to ensure the same conditions everytime!
 def names_data():
@@ -152,7 +152,12 @@ NN1.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_t
 # The following plots show the performance on the testing set
 S0=1.
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+
+
+
 prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+dict_test =  {"forecast_test" :prediction,"real_data": y_test_re, "xdata":X_test,"interestrate":rates_train}
+scipy.io.savemat("forecasts.mat",dict_test)
 #plots
 err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 plt.figure(figsize=(14,4))
@@ -240,16 +245,17 @@ NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activatio
 NN2.add(ZeroPadding2D(padding=(1,1)))
 NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
 NN2.add(Flatten())
-NN2.add(Dense(Nparameters,activation = 'linear',use_bias=True,kernel_constraint=tf.keras.constraints.UnitNorm(axis=0)))
+NN2.add(Dense(Nparameters,activation = 'linear',use_bias=True))
+
+#NN2.add(Dense(Nparameters,activation = 'linear',use_bias=True,kernel_constraint=tf.keras.constraints.UnitNorm(axis=0)))
 NN2.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 
 #setting
-#NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
-#NN2.save_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
+history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
+NN2.save_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 NN2.load_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
-
 
 
 # ### 3.1 Results
@@ -257,6 +263,8 @@ NN2.load_weights("calibrationweights_231046.h5")#id_3283354135d44b67_data_price_
 from add_func_latent import calibration_plotter
 prediction_calibration = NN2.predict(y_test_trafo2)
 prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
+dict_test =  {"forecast_x_test" :prediction_invtrafo,"real_data": y_test_re, "xdata":X_test,"interestrate":rates_train}
+scipy.io.savemat("forecasts.mat",dict_test)
 
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)

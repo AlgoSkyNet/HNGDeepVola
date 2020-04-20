@@ -20,7 +20,7 @@ constraint = params(:,2).*params(:,4).^2+params(:,3);
 vio_constraint = constraint>=1;
 vio_clear = constraint <1;
 bad_idx = [];
-Nrun = N;
+Nrun =100;
 for i = 1:Nrun
     
     if mod(i,100)==0
@@ -42,8 +42,6 @@ for i = 1:Nrun
     if any(isnan(real_vola(i,:))) || any(isnan(autoencoder_vola(i,:))) || any(isnan(real_price(i,:))) || any(isnan(autoencoder_price(i,:)))
         bad_idx(end+1) =i;
     elseif any(real_vola(i,:)==0) ||any(real_price(i,:)==0)
-        bad_idx(end+1) =i;
-    elseif any(real_vola(i,:)>1) ||any(real_price(i,:)>1)
         bad_idx(end+1) =i;
     end
 
@@ -68,10 +66,12 @@ boxplot(rel_error)
 subplot(3,5,2)
 heatmap(reshape(mean(rel_error_price),9,7));
 subplot(3,5,3)
-histogram(reshape(rel_error_price,prod(size(rel_error_price),1)))
-subplot(3,5,4)
 heatmap(reshape(mean(rel_error_vola),9,7));
+subplot(3,5,4)
+histogram(reshape(rel_error_price,prod(size(rel_error_price),1)))
 subplot(3,5,5)
+heatmap(reshape(mean(rel_error_vola),9,7));
+subplot(3,5,10)
 histogram(reshape(rel_error_vola,prod(size(rel_error_vola),1)))
 
 %violation
@@ -112,13 +112,9 @@ params_real_tmp = params_real(idx,:);
 rel_error= 100*abs((params_tmp-params_real_tmp)./params_real_tmp);
 rel_error_price = 100*abs((autoencoder_price_tmp-real_price_tmp)./real_price_tmp);
 rel_error_vola = 100*abs((autoencoder_vola_tmp-real_vola_tmp)./real_vola_tmp);
-subplot(3,5,11)
+subplot(3,3,7)
 boxplot(rel_error)
-subplot(3,5,12)
+subplot(3,3,8)
 heatmap(reshape(mean(rel_error_price),9,7));
-subplot(3,5,13)
-histogram(reshape(rel_error_price,prod(size(rel_error_price),1)))
-subplot(3,5,14)
+subplot(3,3,9)
 heatmap(reshape(mean(rel_error_vola),9,7));
-subplot(3,5,15)
-histogram(reshape(rel_error_vola,prod(size(rel_error_vola),1)))

@@ -15,7 +15,7 @@
 %           THIS FILE NEEDS MATLAB VERSION 2018a OR HIGHER TO RUN         %
 %                                                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+parpool(50);
 clearvars; clc;close all;
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
@@ -41,14 +41,14 @@ end
 if scenario_cleaner
     disp('Extreme scenarios in the underlying data are filtered out.')
 end
-Maturity        = 30:30:210;%30:30:210  10:30:250
+Maturity        = 10:30:250;%30:30:210  10:30:250
 K               = 0.9:0.025:1.1;
 S               = 1;
 K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 500000;
+Nsim            = 1000000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -309,12 +309,12 @@ for i = 1:Nsim
         r_cur         = interp1(daylengths,interestRates,Maturity/252);
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     end
-    if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >2*S))
+    if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >1.1*S))
         fail2 = fail2+1;
         continue
     end
     if price_cleaner
-        if any(any(price<=10e-6))
+        if any(any(price<=10e-9))
             fail4 = fail4+1;
             continue
         end
