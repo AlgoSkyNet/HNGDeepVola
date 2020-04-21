@@ -112,9 +112,9 @@ y_val_trafo   = ytransform(y_val)
 y_test_trafo  = ytransform(y_test)
 
 #price
-y_train_trafo_price = ytransform(y_train_price,0)
-y_val_trafo_price   = ytransform(y_val_price,0)
-y_test_trafo_price  = ytransform(y_test_price,0)
+y_train_trafo_price = ytransform(y_train_price,99)
+y_val_trafo_price   = ytransform(y_val_price,99)
+y_test_trafo_price  = ytransform(y_test_price,99)
 
 
 ## reshaping for NN1: Pricer
