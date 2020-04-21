@@ -15,7 +15,7 @@
 %           THIS FILE NEEDS MATLAB VERSION 2018a OR HIGHER TO RUN         %
 %                                                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-parpool(50);
+%parpool(50);
 clearvars; clc;close all;
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
@@ -48,7 +48,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 1000000;
+Nsim            = 100;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -300,6 +300,7 @@ for i = 1:Nsim
         yieldcurve    = interp1(daylengths(notNaN),interestRates(notNaN),data_vec(:,2)/252);
         yieldcurve(isnan(yieldcurve)) = 0;
         r_cur         = interp1(daylengths(notNaN),interestRates(notNaN),Maturity/252);
+        r_cur(isnan(r_cur)) = 0;
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     elseif strcmp(yieldstype,"PCA")
         daylengths    = [21,13*5, 126, 252]./252;
@@ -307,6 +308,7 @@ for i = 1:Nsim
         yieldcurve    = interp1(daylengths,interestRates,data_vec(:,2)/252);
         yieldcurve(isnan(yieldcurve)) = 0;
         r_cur         = interp1(daylengths,interestRates,Maturity/252);
+        r_cur(isnan(r_cur)) = 0;
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);
     end
     if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >1.1*S))
@@ -461,3 +463,4 @@ end
 %[X,Y]=meshgrid(K,Maturity);
 %surf(X',Y',reshape(data_price(1,4+1+Nmaturities+1:end),9,7));hold on;
 %scatter3(data_vec(:,1),data_vec(:,2),scenario_data(1,4+1+Nmaturities+1:end));
+
