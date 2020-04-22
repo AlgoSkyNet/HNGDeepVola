@@ -14,12 +14,15 @@ from sklearn.model_selection import train_test_split
 
 name_price = "id_dfc18d626cbb42f1_data_price_norm_cutted.mat"
 name_vola = "id_dfc18d626cbb42f1_data_vola_norm_cutted.mat"
-
+name_vega = "id_dfc18d626cbb42f1_vega_cutted.mat"
 path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola        = mat['data_vola']
 mat         = scipy.io.loadmat(path+name_price)
 data_price       = mat['data_price']
+mat         = scipy.io.loadmat(path+name_vega)
+data_vega       = mat['data_vega_cut']
+
 """ data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
 
 
@@ -86,10 +89,10 @@ def myinverse(x):
     return res
 
 ### Trainset generation
-X_train, X_test, y_train, y_test = train_test_split(
-    xx, y_all, test_size=0.15, random_state=42)
-X_train, X_val, y_train, y_val = train_test_split(
-   X_train, y_train, test_size=0.15, random_state=42)
+X_train, X_test, y_train, y_test,vega_train,vega_test = train_test_split(
+    xx, y_all,data_vega, test_size=0.15, random_state=42)
+X_train, X_val, y_train, y_val,vega_train,vega_val = train_test_split(
+   X_train, y_train,vega_train, test_size=0.15, random_state=42)
 rates_train   = y_train[:,:Nmaturities]
 rates_val     = y_val[:,:Nmaturities]
 rates_test    = y_test[:,:Nmaturities]

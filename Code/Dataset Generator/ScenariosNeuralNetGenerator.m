@@ -9,7 +9,9 @@
 % id _ {12digit id} _ {type of file}
 % The two dataset files have the parameter type and size added to the name:
 % id _ {12digit id} _ {type of file} _ {type of params} _ {Numbers Szenarios}
-
+%
+% OPTION VEGAS ARE KNOW CALCULATED FOR OPTION LIKELYHOOD!
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                         %
 %           THIS FILE NEEDS MATLAB VERSION 2018a OR HIGHER TO RUN         %
@@ -32,7 +34,7 @@ choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
 scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
-price_cleaner  = 0; %01%sort out too small prices
+price_cleaner  = 1; %01%sort out too small prices
 if saver
     disp('Saving data and plots is enabled.')
 else
@@ -48,7 +50,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 100;
+Nsim            = 10000000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -316,7 +318,7 @@ for i = 1:Nsim
         continue
     end
     if price_cleaner
-        if any(any(price<=10e-9))
+        if any(any(price<=1e-4))
             fail4 = fail4+1;
             continue
         end
@@ -348,6 +350,7 @@ for i = 1:size(data_price,1)
      end
     price_vec = data_price(i,4+1+Nmaturities+1:end);
     vola(i,:) = blsimpv(data_vec(:, 3),  data_vec(:, 1), yield_matrix(:,i), data_vec(:, 2)/252,price_vec')';
+    vega(i,:) = blsvega(data_vec(:,3),  data_vec(:, 1),yield_matrix(:,i), data_vec(:,2)/252, vola(i,:)');
     if any(isnan(vola(i,:))) || any(vola(i,:)==0) || any(vola(i,:) > 1)
         bad_idx(end+1) = i;
     end
@@ -357,6 +360,7 @@ idx               = setxor(1:size(data_price,1),bad_idx);
 data_vola         = data_price(:,1:4+1+Nmaturities);
 data_vola(:,4+1+Nmaturities+1:95) = vola;
 data_vola         = data_vola(idx,:);
+data_vega         = vega(idx,:);
 data_price        = data_price(idx,:);
 constraint        = constraint(idx);
 if strcmp(yieldstype,"PCA")
@@ -365,16 +369,20 @@ end
 if saver
     name_file_price = strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)));
     name_file_vola = strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)));
+    name_file_vega = strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vega,1)));
     if scenario_cleaner
        name_file_price = strcat(name_file_price,'clean');
        name_file_vola = strcat(name_file_vola,'clean');
+       name_file_vola = strcat(name_file_vega,'clean');
     end
     if price_cleaner
        name_file_price = strcat(name_file_price,'_bigprice');
        name_file_vola = strcat(name_file_vola,'_bigprice');
+       name_file_vola = strcat(name_file_vega,'_bigprice');
     end
     save(strcat(name_file_price,'.mat'),'data_price')
     save(strcat(name_file_vola,'.mat'),'data_vola')
+    save(strcat(name_file_vega,'.mat'),'data_vega')
 end
 %% Summary and Visualisation for control purposes
 
