@@ -12,16 +12,24 @@ from sklearn.model_selection import train_test_split
 #name_price,name_vola =names_data()
 ### Data Import
 
-name_price = "id_dfc18d626cbb42f1_data_price_norm_cutted.mat"
-name_vola = "id_dfc18d626cbb42f1_data_vola_norm_cutted.mat"
-name_vega = "id_dfc18d626cbb42f1_vega_cutted.mat"
+#name_price = "id_dfc18d626cbb42f1_data_price_norm_cutted.mat"
+#name_vola = "id_dfc18d626cbb42f1_data_vola_norm_cutted.mat"
+#name_vega = "id_dfc18d626cbb42f1_vega_cutted.mat"
+
+#dataset huge prices 1e-4>
+name_price = "id_dfc18d626cbb42f1_data_price_norm_e5.mat"
+name_vola = "id_dfc18d626cbb42f1_data_vola_norm_e5.mat"
+name_vega = "id_dfc18d626cbb42f1_data_vega_norm_e5.mat"
+
+
 path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola        = mat['data_vola']
 mat         = scipy.io.loadmat(path+name_price)
 data_price       = mat['data_price']
 mat         = scipy.io.loadmat(path+name_vega)
-data_vega       = mat['data_vega_cut']
+#data_vega       = mat['data_vega_cut']
+data_vega       = mat['data_vega']
 
 """ data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
 

@@ -14,12 +14,15 @@ data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
 N               = length(data_price);
 
 %% small price cutter
-threshold = 10e-8;
+load("id_dfc18d626cbb42f1_vega.mat")
+threshold = 1e-5;
 idx = ~any(data_price(:,15:end)'<threshold);
 data_price = data_price(idx,:);
 data_vola = data_vola(idx,:);
-save("id_dfc18d626cbb42f1_data_vola_norm_cutted.mat","data_vola")
-save("id_dfc18d626cbb42f1_data_price_norm_cutted.mat","data_price")
+data_vega = data_vega(idx,:);
+save("id_dfc18d626cbb42f1_data_vola_norm_e5.mat","data_vola")
+save("id_dfc18d626cbb42f1_data_price_norm_e5.mat","data_price")
+save("id_dfc18d626cbb42f1_data_vega_norm_e5.mat","data_vega")
 %% vega calculation
 
 data_vega = zeros(length(data_price),Nmaturities*Nstrikes);
