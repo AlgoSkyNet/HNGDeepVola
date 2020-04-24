@@ -29,6 +29,8 @@ import numpy as np
 from tensorflow.compat.v1.keras.models import Sequential,Model
 from tensorflow.compat.v1.keras.layers import Reshape,InputLayer,Dense,Flatten, Conv2D,Conv1D, Dropout, Input,ZeroPadding2D,ZeroPadding1D,MaxPooling2D
 from tensorflow.compat.v1.keras import backend as K
+from tensorflow.compat.v1.keras.callbacks import EarlyStopping
+
 import matplotlib.pyplot as plt
 #import matplotlib.ticker as mtick
 #from scipy.optimize import minimize,NonlinearConstraint
@@ -75,12 +77,11 @@ from config_9x9 import ytransform, yinversetransform,myscale,myinverse
 #custom errors
 from add_func_9x9 import root_mean_squared_error,root_relative_mean_squared_error,mse_constraint,rmse_constraint
 #else
-from add_func_9x9 import constraint_violation,pricing_plotter,calibration_plotter_deterministic,plotter_autoencoder
+from add_func_9x9 import constraint_violation,pricing_plotter,plotter_autoencoder
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
-from add_func_9x9 import ownTimer
-t = ownTimer()
+
 
 def autoencoder(nn1,nn2):
     def autoencoder_predict(y_values):
@@ -89,9 +90,6 @@ def autoencoder(nn1,nn2):
         forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
         return forecast
     return autoencoder_predict
-
-
-
 
 
 def option_likelyhood(y_true_with_vega, y_pred):
@@ -133,8 +131,9 @@ vega_val1 = np.asarray([vega_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in
 y_train_tmp = np.concatenate((y_train_trafo1_price,vega_train1),axis=1)
 y_test_tmp = np.concatenate((y_test_trafo1_price,vega_test1),axis=1)
 y_val_tmp = np.concatenate((y_val_trafo1_price,vega_val1),axis=1)
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 
-NN1price.fit(X_train_trafo, y_train_tmp, batch_size=64, validation_data = (X_val_trafo, y_val_tmp), epochs = 50, verbose = True, shuffle=1)
+NN1price.fit(X_train_trafo, y_train_tmp, batch_size=64, validation_data = (X_val_trafo, y_val_tmp), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
 #NN1c.save_weights("pricerweights_noriskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN1c.load_weights("pricerweights_noriskfreerate_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
@@ -153,6 +152,8 @@ err_idx = np.argsort(err_matrix)
 plt.figure(figsize= (14,4))
 #plt.plot(np.min(y_test_re,axis=(1,2)))
 #plt.plot(err_matrix)
+plt.yscale("log")
+plt.xscale("log")
 plt.scatter(y_test_re.flatten(),err_rel_mat.flatten())
 plt.show()
 

@@ -29,6 +29,8 @@ import numpy as np
 from tensorflow.compat.v1.keras.models import Sequential,Model
 from tensorflow.compat.v1.keras.layers import Reshape,InputLayer,Dense,Flatten, Conv2D,Conv1D, Dropout, Input,ZeroPadding2D,ZeroPadding1D,MaxPooling2D
 from tensorflow.compat.v1.keras import backend as K
+from tensorflow.compat.v1.keras.callbacks import EarlyStopping
+
 import matplotlib.pyplot as plt
 #import matplotlib.ticker as mtick
 #from scipy.optimize import minimize,NonlinearConstraint
@@ -74,74 +76,13 @@ from config_9x9 import ytransform, yinversetransform,myscale,myinverse
 #custom errors
 from add_func_9x9 import root_mean_squared_error,root_relative_mean_squared_error,mse_constraint,rmse_constraint
 #else
-from add_func_9x9 import constraint_violation,pricing_plotter,calibration_plotter_deterministic,plotter_autoencoder
+from add_func_9x9 import constraint_violation,pricing_plotter,plotter_autoencoder
 
 tf.compat.v1.keras.backend.set_floatx('float64')  
 
-from add_func_9x9 import ownTimer
-t = ownTimer()
-
-def autoencoder(nn1,nn2):
-    def autoencoder_predict(y_values):
-        prediction = nn2.predict(y_values)
-        prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
-        forecast = nn1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
-        return forecmatast
-    return autoencoder_predict
 
 
-# In[2.1 CNN as Encoder / Vola Kernel with no riskfree rate]:
-"""
-NN1 = Sequential() 
-NN1.add(InputLayer(input_shape=(Nparameters,1,1,)))
-NN1.add(ZeroPadding2D(padding=(2, 2)))
-NN1.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NN1.add(ZeroPadding2D(padding=(3,1)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(2,2)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(1,1)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(1,1)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(1,2)))
-NN1.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(2,2)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1.add(ZeroPadding2D(padding=(2,1)))
-NN1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-#NN1.add(MaxPooling2D(pool_size=(2, 1)))
-#NN1.add(Dropout(0.25))
-#NN1.add(ZeroPadding2D(padding=(0,1)))
-NN1.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NN1.add(MaxPooling2D(pool_size=(4, 1)))
-NN1.summary()
-#setting
-#NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
-#NN1.compile(loss = "MAPE", optimizer = "adam",metrics=["MSE"])
-NN1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-#good num of epoch could be 350-(Ntotal/1000)
-NN1.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 100, verbose = True, shuffle=1)
-NN1.save_weights("vola_weights_noriskfreerate_9x9.h5")
-#NN1.load_weights("vola_weights_noriskfreerate_9x9.h5")
-#  Results 
-# The following plots show the performance on the testing set
-S0=1.
-y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-#plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
-plt.figure(figsize=(14,4))
-plt.hist(err_rel_mat.flatten(),log=True,density =True)
-plt.figure(figsize=(14,4))
-plt.hist(err_rel_mat.flatten(),density =True)
-plt.figure(figsize=(14,4))
-plt.scatter(y_test_re.flatten(),err_rel_mat.flatten())
-plt.figure(figsize=(14,4))
-plt.hist((prediction.flatten(),y_test_re.flatten()))
-"""
+
 
 
 NN1a = Sequential() 
@@ -179,15 +120,11 @@ NN1a.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics
 y_tmp_train = y_train_trafo1[:,:,[0,1,2,3,4,5],:]
 y_tmp_val = y_val_trafo1[:,:,[0,1,2,3,4,5],:]
 y_tmp_test= y_test_trafo1[:,:,[0,1,2,3,4,5],:]
-NN1a.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 300, verbose = True, shuffle=1)
-NN1a.save_weights("vola_weights_noRate_9x9_a.h5")
-#NN1a.load_weights("vola_weights_noRate_9x9_a.h5")
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+#NN1a.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
+#NN1a.save_weights("vola_weights_noRate_9x9_a.h5")
+NN1a.load_weights("vola_weights_noRate_9x9_a.h5")
 
-#  Results 
-# The following plots show the performance on the testing set
-S0=1.
-prediction_a   = NN1a.predict(X_test_trafo).reshape((Ntest,6,Nstrikes))
-#plots
 
 
 NN1b = Sequential() 
@@ -225,16 +162,22 @@ NN1b.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics
 y_tmp_train = y_train_trafo1[:,:,[5,6,7,8],:]
 y_tmp_val = y_val_trafo1[:,:,[5,6,7,8],:]
 y_tmp_test= y_test_trafo1[:,:,[5,6,7,8],:]
-NN1b.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 300, verbose = True, shuffle=1)
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+# fit model
+#NN1b.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
+
+
 #NN1b.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 100, verbose = True, shuffle=1)
-NN1b.save_weights("vola_weights_noRate_9x9_b.h5")
-#NN1b.load_weights("vola_weights_noRate_9x9_a.h5")
+#NN1b.save_weights("vola_weights_noRate_9x9_b.h5")
+NN1b.load_weights("vola_weights_noRate_9x9_a.h5")
 #  Results 
 # The following plots show the performance on the testing set
 
 
-
+#  Results 
+# The following plots show the performance on the testing set
 S0=1.
+prediction_a   = NN1a.predict(X_test_trafo).reshape((Ntest,6,Nstrikes))
 prediction_b   = NN1b.predict(X_test_trafo).reshape((Ntest,4,Nstrikes))
 prediction = np.concatenate((prediction_a[:,[0,1,2,3,4],:],prediction_b[:,[0,1,2,3],:]),axis =1)
 y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
@@ -249,83 +192,6 @@ plt.figure(figsize=(14,4))
 plt.scatter(y_test_re.flatten(),err_rel_mat.flatten())
 plt.figure(figsize=(14,4))
 plt.hist((prediction.flatten(),y_test_re.flatten()))
-
-
-
-
-
-
-
-
-"""
-# define two sets of inputs
-inputA = Input(shape=(32,))
-inputB = Input(shape=(128,))
-# the first branch operates on the first input
-x = Dense(8, activation="relu")(inputA)
-x = Dense(4, activation="relu")(x)
-x = Model(inputs=inputA, outputs=x)
-# the second branch opreates on the second input
-y = Dense(64, activation="relu")(inputB)
-y = Dense(32, activation="relu")(y)
-y = Dense(4, activation="relu")(y)
-y = Model(inputs=inputB, outputs=y)
-# combine the output of the two branches
-combined = concatenate([x.output, y.output])
-# apply a FC layer and then a regression prediction on the
-# combined outputs
-z = Dense(2, activation="relu")(combined)
-z = Dense(1, activation="linear")(z)
-# our model will accept the inputs of the two branches and
-# then output a single value
-model = Model(inputs=[x.input, y.input], outputs=z)
-"""
-
-
-
-
-# In[2.6 CNN as Encoder / Conv1D]:
-
-NN1e = Sequential() 
-NN1e.add(InputLayer(input_shape=(Nparameters,1,)))
-NN1e.add(ZeroPadding1D(padding=(1, 1)))
-NN1e.add(Conv1D(4, 2, padding='valid',use_bias =True,strides =(1),activation='elu'))
-NN1e.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
-NN1e.add(ZeroPadding1D(padding=(3,3)))
-NN1e.add(Conv1D(24, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
-NN1e.add(Conv1D(36, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
-NN1e.add(ZeroPadding1D(padding=(3,3)))
-NN1e.add(Conv1D(48, 2,padding='valid',use_bias =True,strides =(2),activation ='elu'))
-NN1e.add(Conv1D(48, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
-NN1e.add(ZeroPadding1D(padding=(3,3)))
-NN1e.add(Conv1D(36, 2,padding='valid',use_bias =True,strides =(2),activation ='elu'))
-NN1e.add(Conv1D(24, 2,padding='valid',use_bias =True,strides =(1),activation ='elu'))
-NN1e.add(ZeroPadding1D(padding=(2,2)))
-NN1e.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='sigmoid'))
-NN1e.add(Conv1D(12, 2,padding='valid',use_bias =True,strides =(1),activation ='sigmoid'))
-NN1e.add(Conv1D(9, 1,padding='valid',use_bias =True,strides =(1),activation ='linear',kernel_constraint = tf.keras.constraints.NonNeg()))
-NN1e.summary()
-
-#setting
-NN1e.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN1e.fit(X_train_trafo[:,:,:,0], y_train_trafo2.reshape((Ntrain,7,9)), batch_size=64, validation_data = (X_val_trafo[:,:,:,0], y_val_trafo2.reshape((Nval,7,9))),
-        epochs = 70, verbose = True, shuffle=1)
-#NN1e.save_weights("pricerweights_conv1d.h5")
-NN1e.load_weights("pricerweights_conv1d.h5")
-
-#  Results 
-# The following plots show the performance on the testing set
-S0=1.
-y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1e.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-#plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
-
-
-
-
-
-
 
 
 
@@ -361,9 +227,10 @@ NN2.summary()
 
 #setting
 NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
-#NN2.save_weights("calibrationweights_full.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN2.load_weights("calibrationweights_full.h5")#id_3283354135d44b67_data_price_norm_231046clean
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks = [es])
+#NN2.save_weights("calibrationweights_vola_9x9.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN2.load_weights("calibrationweights_vola_9x9.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 
@@ -372,7 +239,8 @@ NN2.load_weights("calibrationweights_full.h5")#id_3283354135d44b67_data_price_no
 from add_func_9x9 import calibration_plotter
 prediction_calibration = NN2.predict(y_test_trafo2)
 prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
-
+dict_params ={"params_real":X_test, "params_NN":prediction_invtrafo,"rates":rates_test}
+scipy.io.savemat("id_dfc18d626cbb42f1_calibrationNN.mat",dict_params)
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
 plt.figure()
@@ -394,363 +262,63 @@ plt.hist(error[:,4],bins=100)
 plt.show()
 
 
-
-NN2a = Sequential() 
-NN2a.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NN2a.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(MaxPooling2D(pool_size=(2, 2)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Flatten())
-NN2a.add(Dense(3,activation = 'linear',use_bias=True))
-NN2a.summary()
-#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-
-#setting
-NN2a.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2a.fit(y_train_trafo2,X_train_trafo2[:,[0,1,2]], batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2[:,[0,1,2]]), epochs=40, verbose = True, shuffle=1)
-#NN2a.save_weights("calibrationweights_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN2a.load_weights("calibrationweights_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
+def autoencoder_surface(nn2,nn1):
+    def autoencoder_predict(y_values):
+        prediction = nn2.predict(y_values)
+        prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+        forecast = nn1.predict(prediction_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+        return forecast
+    return autoencoder_predict
 
 
 
-# ### 3.1 Results
+forecast_a   = NN1a.predict(prediction_invtrafo.reshape((Ntest,Nparameters,1,1))).reshape((Ntest,6,Nstrikes))
+forecast_b   = NN1b.predict(prediction_invtrafo.reshape((Ntest,Nparameters,1,1))).reshape((Ntest,4,Nstrikes))
+auto_enc_surface = np.concatenate((prediction_a[:,[0,1,2,3,4],:],prediction_b[:,[0,1,2,3],:]),axis =1)
 
-prediction_calibration_a = NN2a.predict(y_test_trafo2)
 
-
-NN2b = Sequential() 
-NN2b.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NN2b.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(MaxPooling2D(pool_size=(2, 2)))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(ZeroPadding2D(padding=(1,1)))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(ZeroPadding2D(padding=(1,1)))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(ZeroPadding2D(padding=(1,1)))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(ZeroPadding2D(padding=(1,1)))
-NN2b.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2b.add(Flatten())
-NN2b.add(Dense(2,activation = 'linear',use_bias=True))
-NN2b.summary()
-#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-
-#setting
-NN2b.compile(loss ="MSE", optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2b.fit(y_train_trafo2,X_train_trafo2[:,[3,4]], batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2[:,[3,4]]), epochs=40, verbose = True, shuffle=1)
-#NN2b.save_weights("calibrationweights_b.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN2b.load_weights("calibrationweights_b.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#prediction = NN2.predict(y_test_trafo2)
+#prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
+#forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
+y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
+mape_autoencoder,mse_autoencoder = plotter_autoencoder(auto_enc_surface,y_true_test,y_test,testing_violation,testing_violation2)
 
 
 
-# ### 3.1 Results
+def autoencoder_params(nn1,nn2):
+    def autoencoder_predict(x_values):
+        prediction = nn1.predict(x_values)
+        prediction_trafo = prediction.reshape((Ntest,Nmaturities,Nstrikes))
+        forecast = nn2.predict(prediction_trafo)
+        return forecast
+    return autoencoder_predict
 
-from add_func_9x9 import calibration_plotter
-prediction_calibration_b = NN2b.predict(y_test_trafo2)
-prediction_calibration = np.concatenate((prediction_calibration_a,prediction_calibration_b),axis=1)
 
-prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
 
-#plots
-error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
+auto_enc_params =NN2.predict(prediction.reshape((Ntest,Nmaturities,Nstrikes,1)))
+auto_enc_params_invtrafo =  np.array([myinverse(x) for x in auto_enc_params])
+error_au,err1_au,err2_au,vio_error_au,vio_error2_au,c_au,c2_au,testing_violation_au,testing_violation2_au = calibration_plotter(auto_enc_params,X_test_trafo2,X_test)
 plt.figure()
 plt.subplot(2,3,1)
-plt.yscale("log")
-plt.hist(error[:,0],bins=100)
+#plt.yscale("log")
+plt.xscale("log")
+plt.hist(error_au[:,0],bins=100,weights=np.zeros_like(error_au[:,0]) + 1. / error_au[:,0].size)
 plt.subplot(2,3,2)
-plt.yscale("log")
-plt.hist(error[:,1],bins=100)
+#plt.yscale("log")
+plt.xscale("log")
+plt.hist(error_au[:,1],bins=100,weights=np.zeros_like(error_au[:,0]) + 1. / error_au[:,0].size)
 plt.subplot(2,3,3)
-plt.yscale("log")
-plt.hist(error[:,2],bins=100)
+#plt.yscale("log")
+plt.xscale("log")
+plt.hist(error_au[:,2],bins=100,weights=np.zeros_like(error_au[:,0]) + 1. / error_au[:,0].size)
 plt.subplot(2,3,4)
-plt.yscale("log")
-plt.hist(error[:,3],bins=100)
+#plt.yscale("log")
+plt.xscale("log")
+plt.hist(error_au[:,3],bins=100,weights=np.zeros_like(error_au[:,0]) + 1. /error_au[:,0].size)
 plt.subplot(2,3,5)
-plt.yscale("log")
-plt.hist(error[:,4],bins=100)
+#plt.yscale("log")
+plt.xscale("log")
+plt.hist(error_au[:,4],bins=100,weights=np.zeros_like(error_au[:,0]) + 1. / error_au[:,0].size)
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ### 3.2 Testing the performace of the AutoEncoder/Decoder Combination
-# We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
-
-#forecast = autoencoder(NN1,NN2)(y_test_trafo2)
-#prediction = NN2.predict(y_test_trafo2)
-#prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
-#forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
-y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
-mape_autoencoder,mse_autoencoder = plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2)
-# In[3.1 CNN as  Decoder/Inverse Mapping / Prices]:
-
-NN2a = Sequential() 
-NN2a.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NN2a.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(MaxPooling2D(pool_size=(2, 2)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(ZeroPadding2D(padding=(1,1)))
-NN2a.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
-NN2a.add(Flatten())
-NN2a.add(Dense(Nparameters,activation = 'linear',use_bias=True))
-NN2a.summary()
-#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-
-#setting
-NN2a.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2a.fit(y_train_trafo2_price,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
-NN2.save_weights("calibrationweights_price_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
-#NN2a.load_weights("calibrationweights_pric_231046.h5")#id_3283354135d44b67_data_price_norm_231046clean
-
-
-
-# ### 3.1 Results
-
-from add_func_9x9 import calibration_plotter
-prediction_calibration = NN2a.predict(y_test_trafo2_price)
-prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
-
-#plots
-error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
-
-
-# ### 3.2 Testing the performace of the AutoEncoder/Decoder Combination
-# We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
-
-forecast = autoencoder(NN1,NN2)(y_test_trafo2)
-#prediction = NN2.predict(y_test_trafo2)
-#prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
-#forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
-y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
-mape_autoencoder,mse_autoencoder = plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2)
-
-
-# In[3.2 CNN as  Decoder/Inverse Mapping / Calibration TANHELU]:
-
-NN2c = Sequential() 
-NN2c.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NN2c.add(Conv2D(12,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(Conv2D(24,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(MaxPooling2D(pool_size=(2, 2)))
-NN2c.add(Conv2D(32,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(ZeroPadding2D(padding=(1,1)))
-NN2c.add(Conv2D(32,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(ZeroPadding2D(padding=(1,1)))
-NN2c.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(ZeroPadding2D(padding=(1,1)))
-NN2c.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(ZeroPadding2D(padding=(1,1)))
-NN2c.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
-NN2c.add(Flatten())
-NN2c.add(Dense(Nparameters,activation = "tanh", kernel_constraint = tf.keras.constraints.NonNeg(),use_bias=True))
-NN2c.summary()
-
-#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-
-#setting
-NN2c.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2c.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=40, verbose = True, shuffle=1)
-NN2.save_weights("calibrationweights_elutanh.h5")
-NN2c.load_weights("calibrationweights_elutanh.h5")
-
-
-# 5.1 Results
-
-
-from add_func_9x9 import calibration_plotter
-prediction_calibration = NN2c.predict(y_test_trafo2)
-prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
-
-#plots
-error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
-
-# In[4.1 Testing the performace of the AutoEncoder/Decoder Combination]
-# We test how the two previously trained NN work together. First, HNG-Vola surfaces are used to predict the underlying parameters with NN2. Those predictions are fed into NN1 to get Vola-Surface again. The results are shown below.
-
-
-forecast = autoencoder(NN1,NN2c)(y_test_trafo2)
-#prediction = NN2.predict(y_test_trafo2)
-#prediction_trafo = prediction.reshape((Ntest,Nparameters,1,1))
-#forecast = NN1.predict(prediction_trafo).reshape(Ntest,Nmaturities,Nstrikes)
-y_true_test = y_test_trafo2.reshape(Ntest,Nmaturities,Nstrikes)
-mape_autoencoder,mse_autoencoder = plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""TEST"""
-# In[2.1 TESTING CNN as Encoder / Pricing Kernel with noriskfree rate]:
-NN1t = Sequential() 
-NN1t.add(InputLayer(input_shape=(Nparameters,)))
-NN1t.add(Dense(10,activation = "elu",use_bias=True))
-NN1t.add(Dense(30,activation = "elu",use_bias=True))
-NN1t.add(Dense(60,activation = "elu",use_bias=True))
-NN1t.add(Dense(120,activation = "elu",use_bias=True))
-NN1t.add(Reshape((15, 2,4), input_shape=(120,)))
-NN1t.add(ZeroPadding2D(padding=(1, 2)))
-NN1t.add(Conv2D(32, (3, 3), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,1)))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,2)))
-NN1t.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,2)))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,1)))
-NN1t.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-#NN1.add(MaxPooling2D(pool_size=(2, 1)))
-#NN1.add(Dropout(0.25))
-#NN1.add(ZeroPadding2D(padding=(0,1)))
-NN1t.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NN1.add(MaxPooling2D(pool_size=(4, 1)))
-NN1t.summary()
-#setting
-#NN1.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
-NN1t.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN1t.fit(X_train_trafo2, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo2, y_val_trafo1), epochs = 30, verbose = True, shuffle=1)
-#NN1t.save_weights("pricerweights_noriskfreerate.h5")
-#NN1t.load_weights("pricerweights_noriskfreerate.h5")
-
-#  Results 
-# The following plots show the performance on the testing set
-S0=1.
-y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1t.predict(X_test_trafo2).reshape((Ntest,Nmaturities,Nstrikes))
-#plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
-# In[2.1 TESTING 2 CNN as Encoder / Pricing Kernel with noriskfree rate]:
-NN1t = Sequential() 
-NN1t.add(InputLayer(input_shape=(Nparameters,)))
-NN1t.add(Dense(10,activation = "elu",use_bias=True))
-NN1t.add(Dense(30,activation = "elu",use_bias=True))
-NN1t.add(Dense(60,activation = "elu",use_bias=True))
-NN1t.add(Dense(120,activation = "elu",use_bias=True))
-NN1t.add(Dense(240,activation = "elu",use_bias=True))
-NN1t.add(Reshape((15, 4,4), input_shape=(240,)))
-NN1t.add(ZeroPadding2D(padding=(1, 1)))
-NN1t.add(Conv2D(32, (3, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,2)))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(2,2)))
-NN1t.add(Conv2D(32, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,1)))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1t.add(ZeroPadding2D(padding=(1,1)))
-NN1t.add(Conv2D(32, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-#NN1.add(MaxPooling2D(pool_size=(2, 1)))
-#NN1.add(Dropout(0.25))
-#NN1.add(ZeroPadding2D(padding=(0,1)))
-NN1t.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NN1.add(MaxPooling2D(pool_size=(4, 1)))
-NN1t.summary()
-#setting
-#NN1t.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
-NN1t.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NN1t.fit(X_train_trafo2, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo2, y_val_trafo1), epochs = 30, verbose = True, shuffle=1)
-#NN1t.save_weights("pricerweights_noriskfreerate.h5")
-#NN1t.load_weights("pricerweights_noriskfreerate.h5")
-
-#  Results 
-# The following plots show the performance on the testing set
-S0=1.
-y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1t.predict(X_test_trafo2).reshape((Ntest,Nmaturities,Nstrikes))
-#plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 
