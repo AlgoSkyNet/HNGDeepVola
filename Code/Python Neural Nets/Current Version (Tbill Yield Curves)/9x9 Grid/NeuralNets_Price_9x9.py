@@ -930,9 +930,9 @@ NN2.summary()
 #setting
 NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-history = NN2.fit(y_train_trafo2_price,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=40, verbose = True, shuffle=1,callbacks =[es])
-NN2.save_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
-#NN2.load_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#history = NN2.fit(y_train_trafo2_price,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=40, verbose = True, shuffle=1,callbacks =[es])
+#NN2.save_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN2.load_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 
@@ -968,9 +968,9 @@ NN2a.summary()
 
 #setting
 NN2a.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2a.fit(y_train_trafo2_price,X_train_trafo2[:,[0,1,2]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[0,1,2]]), epochs=40, verbose = True, shuffle=1)
-NN2a.save_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
-#NN2a.load_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#history = NN2a.fit(y_train_trafo2_price,X_train_trafo2[:,[0,1,2]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[0,1,2]]), epochs=40, verbose = True, shuffle=1)
+#NN2a.save_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN2a.load_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 
@@ -1001,9 +1001,9 @@ NN2b.summary()
 
 #setting
 NN2b.compile(loss ="MSE", optimizer = "adam",metrics=["MAPE", "MSE"])
-history = NN2b.fit(y_train_trafo2_price,X_train_trafo2[:,[3,4]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[3,4]]), epochs=40, verbose = True, shuffle=1)
-NN2b.save_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
-#NN2b.load_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#history = NN2b.fit(y_train_trafo2_price,X_train_trafo2[:,[3,4]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[3,4]]), epochs=40, verbose = True, shuffle=1)
+#NN2b.save_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+NN2b.load_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 

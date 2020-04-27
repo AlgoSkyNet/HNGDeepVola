@@ -16,10 +16,14 @@ from sklearn.model_selection import train_test_split
 #name_vola = "id_dfc18d626cbb42f1_data_vola_norm_cutted.mat"
 #name_vega = "id_dfc18d626cbb42f1_vega_cutted.mat"
 
-#dataset huge prices 1e-4>
+#dataset huge prices 1e-5>
 name_price = "id_dfc18d626cbb42f1_data_price_norm_e5.mat"
 name_vola = "id_dfc18d626cbb42f1_data_vola_norm_e5.mat"
 name_vega = "id_dfc18d626cbb42f1_data_vega_norm_e5.mat"
+#dataset huge prices 1e-4>
+#name_price = "id_f3ebb7438baf424d_data_price_norm_3539clean_bigprice.mat"
+#name_vola = "id_f3ebb7438baf424d_data_vola_norm_3539_bigprice.mat"
+#name_vega = "id_f3ebb7438baf424d_data_vega_norm_3539.mat"
 
 
 path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
