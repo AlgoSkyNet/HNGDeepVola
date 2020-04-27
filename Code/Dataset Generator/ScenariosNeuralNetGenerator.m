@@ -318,7 +318,7 @@ for i = 1:Nsim
         continue
     end
     if price_cleaner
-        if any(any(price<=1e-4))
+        if any(any(price<=1e-5))
             fail4 = fail4+1;
             continue
         end
@@ -369,7 +369,7 @@ end
 if saver
     name_file_price = strcat('id_',id,'_data_price_',choice,'_',num2str(size(data_price,1)));
     name_file_vola = strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vola,1)));
-    name_file_vega = strcat('id_',id,'_data_vola_',choice,'_',num2str(size(data_vega,1)));
+    name_file_vega = strcat('id_',id,'_data_vega_',choice,'_',num2str(size(data_vega,1)));
     if scenario_cleaner
        name_file_price = strcat(name_file_price,'clean');
        name_file_vola = strcat(name_file_vola,'clean');

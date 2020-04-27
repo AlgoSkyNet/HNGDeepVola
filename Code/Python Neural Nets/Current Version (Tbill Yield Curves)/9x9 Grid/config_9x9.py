@@ -71,6 +71,9 @@ def ytransform(y,specs=99):
     elif specs ==0: 
         #price
         return (y - (ub_price + lb_price)*0.5) * 2 / (ub_price - lb_price)
+    elif specs ==2: 
+        #price minmax shift 0,1
+        return 0.5*((y - (ub_price + lb_price)*0.5) * 2 / (ub_price - lb_price) +1)  
     
 def yinversetransform(y,specs = 99):
     if specs == 99:
@@ -82,6 +85,9 @@ def yinversetransform(y,specs = 99):
     elif specs == 0:
         #price minmax
         return y*(ub_price - lb_price) *0.5 + (ub_price + lb_price)*0.5
+    elif specs == 2:
+        #price minmax shift
+        return (2*y-1)*(ub_price - lb_price) *0.5 + (ub_price + lb_price)*0.5
 
     
 def myscale(x):
