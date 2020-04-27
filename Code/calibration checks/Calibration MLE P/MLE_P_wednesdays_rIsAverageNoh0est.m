@@ -16,7 +16,7 @@ shortdata       = data(doi,:);
 
 
 %% optimization
-ifEstimateh0 = 1;
+ifEstimateh0 = 0;
 % Setup and Inital Values
 if ifEstimateh0
     num_params  = 6;
@@ -166,11 +166,11 @@ for i=1:length(index)
     opt_ll(i)                       = -fmin;
     params_mle_weekly(i,:)          = params;
     params_mle_weekly_original(i,:) = params_original;
-    if ifEstimateh0
-        [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
-    else
-        [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
-    end
+%     if ifEstimateh0
+%         [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
+%     else
+%         [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
+%     end
     
 end
 
@@ -182,6 +182,6 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_rAv_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+save('weekly_10to18_mle_opt_h0est_rAvNoh0_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
     'params_Q_mle_weekly','params_P_mle_weekly')
-save('weekly_10to18_mle_opt_h0est_rAv_rng_allResSaved.mat')
+save('weekly_10to18_mle_opt_h0est_rAvNoh0_rng_allResSaved.mat')

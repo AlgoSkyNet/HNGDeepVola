@@ -14,14 +14,17 @@ doi             = years & wednesdays; %days of interest
 index           = find(doi);
 shortdata       = data(doi,:);
 
-
+ifEstimater = 1;
 %% optimization
-ifEstimateh0 = 1;
+ifEstimateh0 = 0;
 % Setup and Inital Values
 if ifEstimateh0
     num_params  = 6;
 else
     num_params  = 5;
+end
+if ifEstimater
+    num_params = num_params + 1;
 end
 
 omega           = 1.8e-9;
@@ -40,8 +43,8 @@ else
     ub_h0       = [1,1,100,2000,100];
 end
 sc_fac          = magnitude(Init);
-Init_scale      = Init./sc_fac;
-scaler          = sc_fac(1,:);  
+        Init_scale      = Init./sc_fac;
+        scaler          = sc_fac(1,:); 
 A               = [];
 b               = [];
 Aeq             = [];
@@ -52,7 +55,7 @@ params_mle_weekly           = NaN*ones(length(index),num_params);
 params_mle_weekly_original  = NaN*ones(length(index),num_params);
 hist_vola                   = NaN*ones(length(index),1);
 sigma2_last                 = NaN*ones(length(index),1);
-useYield = 1;
+useYield = 0;
 
 %path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                = 'C:/GIT/HenrikAlexJP/Data/Datasets';
@@ -86,10 +89,10 @@ for i=1:length(index)
 %                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
 %         end
     else
-        dates = data(index(i)-win_len:index(i)-1,1);
-        [ig1,ig2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==dates);
-        r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
-            ig2);
+        %dates = data(index(i)-win_len:index(i)-1,1);
+        %[ig1,ig2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==dates);
+        %r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
+        %    ig2);
         r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==shortdata(i,1));
         if isempty(r)
@@ -102,10 +105,26 @@ for i=1:length(index)
         end
     end
     r=max(r,0)/252;
-    
-    
+    if ifEstimater
+        if i == 1
+            Init        = [Init, r];
+            lb_h0       = [lb_h0, 1e-12];
+            ub_h0       = [ub_h0, 1e-5];
+        else
+            Init(end) = r;
+        end
+        sc_fac          = magnitude(Init);
+        Init_scale      = Init./sc_fac;
+        scaler          = sc_fac(1,:); 
+    end
     if ifEstimateh0
-        f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+        if ~ifEstimater
+            f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+        else
+            f_min_raw = @(par, scaler) ll_hng_n_h0r(par.*scaler,logret);
+        end
+    elseif (~ifEstimateh0 && ifEstimater)
+         f_min_raw = @(par, scaler) ll_hng_n_r(par.*scaler,logret,sigma0);
     else
         f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
     end
@@ -166,22 +185,27 @@ for i=1:length(index)
     opt_ll(i)                       = -fmin;
     params_mle_weekly(i,:)          = params;
     params_mle_weekly_original(i,:) = params_original;
-    if ifEstimateh0
-        [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
-    else
-        [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
-    end
+%     if ifEstimateh0
+%         if ~ifEstimater
+%             [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
+%         else
+%             [likVal, sigma2_last(i)] = ll_hng_n_h0r(params_original,logret);
+%         end
+%     else
+%         [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
+%     end
     
 end
 
 params_P_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4),params_mle_weekly_original(:,5)];
 params_Q_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4)+params_mle_weekly_original(:,5)+0.5];
+r = params_mle_weekly_original(:,7);
 if ifEstimateh0
     sig2_0 = params_mle_weekly_original(:,num_params);
 else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_rAv_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
-    'params_Q_mle_weekly','params_P_mle_weekly')
-save('weekly_10to18_mle_opt_h0est_rAv_rng_allResSaved.mat')
+save('weekly_10to18_mle_opt_h0est_rEstNoh0_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+    'params_Q_mle_weekly','params_P_mle_weekly','r')
+save('weekly_10to18_mle_opt_h0est_rEstNoh0_rng_allResSaved.mat')
