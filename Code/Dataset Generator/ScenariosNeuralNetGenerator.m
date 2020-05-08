@@ -17,7 +17,7 @@
 %           THIS FILE NEEDS MATLAB VERSION 2018a OR HIGHER TO RUN         %
 %                                                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%parpool(50);
+parpool(10);
 clearvars; clc;close all;
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
@@ -30,11 +30,11 @@ path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calib
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
-choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymmetric"
+choice          = "log"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymmetric"
 yieldstype      = "szenario"; % "PCA" only! "szenario" not working yet.
 scenario_cleaner = 1;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
-price_cleaner  = 1; %01%sort out too small prices
+price_cleaner  = 0; %01%sort out too small prices
 if saver
     disp('Saving data and plots is enabled.')
 else
@@ -50,7 +50,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 10000000;
+Nsim            = 1000000;
 
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
@@ -350,9 +350,10 @@ for i = 1:size(data_price,1)
      end
     price_vec = data_price(i,4+1+Nmaturities+1:end);
     vola(i,:) = blsimpv(data_vec(:, 3),  data_vec(:, 1), yield_matrix(:,i), data_vec(:, 2)/252,price_vec')';
-    vega(i,:) = blsvega(data_vec(:,3),  data_vec(:, 1),yield_matrix(:,i), data_vec(:,2)/252, vola(i,:)');
     if any(isnan(vola(i,:))) || any(vola(i,:)==0) || any(vola(i,:) > 1)
         bad_idx(end+1) = i;
+    else 
+        vega(i,:) = blsvega(data_vec(:,3),  data_vec(:, 1),yield_matrix(:,i), data_vec(:,2)/252, vola(i,:)');
     end
 end
 fprintf('%s','Generating Volas completed.'),fprintf('\n')
