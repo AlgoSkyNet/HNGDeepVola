@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  16 APR 2020 22:35
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  29 APR 2020 18:20
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -201,7 +201,7 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package color Info: Driver file: pdftex.def on input line 147.
 )
-No file calibrQ_results_h0UncVarNoUpd_h0Pest_calls_OS_10_18.aux.
+(./calibrQ_results_h0UncVarNoUpd_h0Pest_calls_OS_10_18.aux)
 \openout1 = `calibrQ_results_h0UncVarNoUpd_h0Pest_calls_OS_10_18.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
@@ -216,6 +216,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
 LaTeX Font Info:    ... okay on input line 16.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
 LaTeX Font Info:    ... okay on input line 16.
+
 (/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count108
@@ -301,9 +302,9 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 {/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 (./calibrQ_results_h0UncVarNoUpd_h0Pest_calls_OS_10_18.aux) ) 
 Here is how much of TeX's memory you used:
- 3727 strings out of 492616
- 55509 string characters out of 6129481
- 170788 words of memory out of 5000000
+ 3729 strings out of 492616
+ 55621 string characters out of 6129481
+ 184557 words of memory out of 5000000
  7588 multiletter control sequences out of 15000+600000
  8520 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -318,7 +319,7 @@ e/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive
 xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/tex
 mf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
 Output written on calibrQ_results_h0UncVarNoUpd_h0Pest_calls_OS_10_18.pdf (1 pa
-ge, 79608 bytes).
+ge, 80315 bytes).
 PDF statistics:
  40 PDF objects out of 1000 (max. 8388607)
  28 compressed objects within 1 object stream

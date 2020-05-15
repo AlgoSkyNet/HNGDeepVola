@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  13 APR 2020 20:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.12.9)  27 APR 2020 22:21
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -201,21 +201,22 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package color Info: Driver file: pdftex.def on input line 147.
 )
-No file estMLEP_results_h0Pest_calls_10_18.aux.
+(./estMLEP_results_h0Pest_calls_10_18.aux)
 \openout1 = `estMLEP_results_h0Pest_calls_10_18.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+
 (/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count108
@@ -282,17 +283,17 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Try loading font information for U+lasy on input line 17.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 14.
 
 (/usr/local/texlive/2019/texmf-dist/tex/latex/base/ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 17.
+LaTeX Font Info:    Try loading font information for U+msa on input line 14.
 
 (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 17.
+LaTeX Font Info:    Try loading font information for U+msb on input line 14.
 
 (/usr/local/texlive/2019/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
@@ -301,9 +302,9 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 {/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 (./estMLEP_results_h0Pest_calls_10_18.aux) ) 
 Here is how much of TeX's memory you used:
- 3727 strings out of 492616
- 55390 string characters out of 6129481
- 164723 words of memory out of 5000000
+ 3729 strings out of 492616
+ 55468 string characters out of 6129481
+ 153723 words of memory out of 5000000
  7588 multiletter control sequences out of 15000+600000
  8520 words of font info for 35 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -316,7 +317,7 @@ ts/type1/public/amsfonts/cm/cmmib10.pfb></usr/local/texlive/2019/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/ty
 pe1/public/amsfonts/cm/cmsy10.pfb>
-Output written on estMLEP_results_h0Pest_calls_10_18.pdf (1 page, 71322 bytes).
+Output written on estMLEP_results_h0Pest_calls_10_18.pdf (1 page, 71845 bytes).
 
 PDF statistics:
  36 PDF objects out of 1000 (max. 8388607)
