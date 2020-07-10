@@ -1,1 +1,0 @@
-This folder contains code for estimating optimal HNG parameters based on returns as well as call prices.
