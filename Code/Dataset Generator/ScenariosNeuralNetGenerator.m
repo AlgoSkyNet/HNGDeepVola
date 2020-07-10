@@ -17,7 +17,7 @@
 %           THIS FILE NEEDS MATLAB VERSION 2018a OR HIGHER TO RUN         %
 %                                                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-parpool(10);
+%parpool(10);
 clearvars; clc;close all;
 id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
 
@@ -26,7 +26,8 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 % Configuration of underlying data
 years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
-path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
+%path_data = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
+path_data = 'D:/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state

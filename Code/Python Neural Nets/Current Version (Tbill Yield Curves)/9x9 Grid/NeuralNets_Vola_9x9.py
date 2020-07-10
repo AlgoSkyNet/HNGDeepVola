@@ -121,9 +121,10 @@ y_tmp_train = y_train_trafo1[:,:,[0,1,2,3,4,5],:]
 y_tmp_val = y_val_trafo1[:,:,[0,1,2,3,4,5],:]
 y_tmp_test= y_test_trafo1[:,:,[0,1,2,3,4,5],:]
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-#NN1a.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
-#NN1a.save_weights("vola_weights_noRate_9x9_a.h5")
+#NN1a.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 100, verbose = True, shuffle=1,callbacks=[es])
+#NN1a.save_weights("vola_weights_noRate_9x9_a_log.h5")
 NN1a.load_weights("vola_weights_noRate_9x9_a.h5")
+#NN1a.load_weights("vola_weights_noRate_9x9_a_log.h5")
 
 
 
@@ -164,12 +165,12 @@ y_tmp_val = y_val_trafo1[:,:,[5,6,7,8],:]
 y_tmp_test= y_test_trafo1[:,:,[5,6,7,8],:]
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 # fit model
-#NN1b.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
+#NN1b.fit(X_train_trafo, y_tmp_train, batch_size=64, validation_data = (X_val_trafo, y_tmp_val), epochs = 100, verbose = True, shuffle=1,callbacks=[es])
+NN1b.load_weights("vola_weights_noRate_9x9_b.h5")
 
 
-#NN1b.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 100, verbose = True, shuffle=1)
-#NN1b.save_weights("vola_weights_noRate_9x9_b.h5")
-NN1b.load_weights("vola_weights_noRate_9x9_a.h5")
+#NN1b.save_weights("vola_weights_noRate_9x9_b_log.h5")
+#NN1b.save_weights("vola_weights_noRate_9x9_a_uni.h5")
 #  Results 
 # The following plots show the performance on the testing set
 
@@ -228,8 +229,8 @@ NN2.summary()
 #setting
 NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks = [es])
-#NN2.save_weights("calibrationweights_vola_9x9.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#history = NN2.fit(y_train_trafo2,X_train_trafo2, batch_size=64, validation_data = (y_val_trafo2,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks = [es])
+#NN2.save_weights("calibrationweights_vola_9x9_log.h5")#id_3283354135d44b67_data_price_norm_231046clean
 NN2.load_weights("calibrationweights_vola_9x9.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
@@ -239,10 +240,98 @@ NN2.load_weights("calibrationweights_vola_9x9.h5")#id_3283354135d44b67_data_pric
 from add_func_9x9 import calibration_plotter
 prediction_calibration = NN2.predict(y_test_trafo2)
 prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
-dict_params ={"params_real":X_test, "params_NN":prediction_invtrafo,"rates":rates_test}
-scipy.io.savemat("id_dfc18d626cbb42f1_calibrationNN.mat",dict_params)
+#dict_params ={"params_real":X_test, "params_NN":prediction_invtrafo,"rates":rates_test}
+#scipy.io.savemat("id_2f5cc69bd20a436d_calibrationNN.mat",dict_params)
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
+
+
+
+error = 100*error
+label_list = [r"$\alpha$",r"$\beta$",r"$\gamma$",r"$\omega$",r"$h_0$"]
+plt.figure(figsize=(40,4))
+for i in range(5):
+    ax = plt.subplot(1,5,i+1)
+    #plt.yscale("log")
+           
+    plt.scatter(X_test[:,i],error[:,i],s=10)
+    if i == 3:
+        plt.ylim((0,2000))                    
+ #   else:
+  #      plt.ylim((0,30)) 
+    plt.xlim((np.min(X_test[:,i]),np.max(X_test[:,i])))
+
+    plt.hlines(np.mean(error[:,i]),np.min(X_test[:,i]),np.max(X_test[:,i]),linestyles ='dashed')
+    plt.hlines(np.median(error[:,i]),np.min(X_test[:,i]),np.max(X_test[:,i]),linestyles ='dashed')
+    plt.xlabel(label_list[i])
+    ax.xaxis.set_major_locator(plt.MaxNLocator(3))
+    textstr = '\n'.join((r'$\mathrm{mean}  =%.3f$' % (np.mean(error[:,i]), ),
+                         r'$\mathrm{median}=%.3f$' % (np.median(error[:,i]), )))  
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+        verticalalignment='top', bbox=props)
+    if i==0:
+        plt.ylabel("MAPE in %")
+plt.show()
+error = 1/100*error
+
+
+error = 100*error
+label_list = [r"$\alpha$",r"$\beta$",r"$\gamma$",r"$\omega$",r"$h_0$"]
+plt.figure(figsize=(40,4))
+for i in range(5):
+    ax = plt.subplot(1,5,i+1)
+    #plt.yscale("log")
+        
+    plt.scatter(X_test[testing_violation,i],error[testing_violation,i],s=10)
+    if i==3:
+        plt.ylim((0,2000))                    
+    #else:
+   #     plt.ylim((0,30)) 
+    #    
+    plt.xlim((np.min(X_test[testing_violation,i]),np.max(X_test[testing_violation,i])))
+    plt.hlines(np.mean(error[testing_violation,i]),np.min(X_test[testing_violation,i]),np.max(X_test[testing_violation,i]),linestyles ='dashed')
+    plt.hlines(np.median(error[testing_violation,i]),np.min(X_test[testing_violation,i]),np.max(X_test[testing_violation,i]),linestyles ='dashed')
+    plt.xlabel(label_list[i])
+    ax.xaxis.set_major_locator(plt.MaxNLocator(3))
+    textstr = '\n'.join((r'$\mathrm{mean}  =%.3f$' % (np.mean(error[testing_violation,i]), ),
+                         r'$\mathrm{median}=%.3f$' % (np.median(error[testing_violation,i]), )))  
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+        verticalalignment='top', bbox=props)
+    if i==0:
+        plt.ylabel("MAPE in %")
+plt.show()
+error = 1/100*error
+
+error = 100*error
+label_list = [r"$\alpha$",r"$\beta$",r"$\gamma$",r"$\omega$",r"$h_0$"]
+plt.figure(figsize=(40,4))
+for i in range(5):
+    ax = plt.subplot(1,5,i+1)
+    #plt.yscale("log")        
+    plt.scatter(X_test[testing_violation2,i],error[testing_violation2,i],s=10)
+    if i == 3:
+       plt.ylim((0,2000))                    
+  #  else:
+  #      plt.ylim((0,30))
+    plt.xlim((np.min(X_test[testing_violation2,i]),np.max(X_test[testing_violation2,i])))
+    plt.hlines(np.mean(error[testing_violation2,i]),np.min(X_test[testing_violation2,i]),np.max(X_test[testing_violation2,i]),linestyles ='dashed')
+    plt.hlines(np.median(error[testing_violation2,i]),np.min(X_test[testing_violation2,i]),np.max(X_test[testing_violation2,i]),linestyles ='dashed')
+    plt.xlabel(label_list[i])
+    ax.xaxis.set_major_locator(plt.MaxNLocator(3))
+    textstr = '\n'.join((r'$\mathrm{mean}  =%.3f$' % (np.mean(error[testing_violation2,i]), ),
+                         r'$\mathrm{median}=%.3f$' % (np.median(error[testing_violation2,i]), )))  
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+        verticalalignment='top', bbox=props)
+    if i==0:
+        plt.ylabel("MAPE in %")
+plt.show()
+error = 1/100*error
+
+
+
 plt.figure()
 plt.subplot(2,3,1)
 plt.yscale("log")

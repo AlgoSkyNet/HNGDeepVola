@@ -12,21 +12,27 @@ from sklearn.model_selection import train_test_split
 #name_price,name_vola =names_data()
 ### Data Import
 
-#name_price = "id_dfc18d626cbb42f1_data_price_norm_cutted.mat"
-#name_vola = "id_dfc18d626cbb42f1_data_vola_norm_cutted.mat"
-#name_vega = "id_dfc18d626cbb42f1_vega_cutted.mat"
-
-#dataset huge prices 1e-5>
-name_price = "id_dfc18d626cbb42f1_data_price_norm_e5.mat"
-name_vola = "id_dfc18d626cbb42f1_data_vola_norm_e5.mat"
-name_vega = "id_dfc18d626cbb42f1_data_vega_norm_e5.mat"
-#dataset huge prices 1e-4>
-#name_price = "id_f3ebb7438baf424d_data_price_norm_3539clean_bigprice.mat"
-#name_vola = "id_f3ebb7438baf424d_data_vola_norm_3539_bigprice.mat"
-#name_vega = "id_f3ebb7438baf424d_data_vega_norm_3539.mat"
 
 
-path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
+#name_price ="id_2f5cc69bd20a436d_data_price_log_191193clean.mat"
+#name_vola = "id_2f5cc69bd20a436d_data_vola_log_191193clean.mat"
+#name_vega = "id_2f5cc69bd20a436d_data_vega_log_191193.mat"
+name_price ="id_70977270efb64685_data_price_unisymmetric_164830clean.mat"
+name_vola = "id_70977270efb64685_data_vola_unisymmetric_164830clean.mat"
+name_vega = "id_70977270efb64685_data_vega_unisymmetric_164830.mat"
+
+
+
+
+name_price2 = "id_dfc18d626cbb42f1_data_price_norm_205851clean.mat"
+name_vola2 = "id_dfc18d626cbb42f1_data_vola_norm_205851clean.mat"
+name_vega2 = "id_dfc18d626cbb42f1_vega.mat"
+
+
+
+
+path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
+#path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola        = mat['data_vola']
 mat         = scipy.io.loadmat(path+name_price)
@@ -36,7 +42,8 @@ mat         = scipy.io.loadmat(path+name_vega)
 data_vega       = mat['data_vega']
 
 """ data is of structure N*(Nparameters+1(h0)+Nmaturitites(yieldcurve)+Nstrikes*Nmaturites(grid))""" 
-
+mat2         = scipy.io.loadmat(path+name_vola2)
+data_vola2        = mat2['data_vola']
 
 
 ### Initialisation
@@ -46,10 +53,15 @@ strikes         = np.array([0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.
 Nstrikes        = len(strikes)   
 Nmaturities     = len(maturities) 
 xx              = data_vola[:,:Nparameters]
-ub              = np.amax(xx, axis=0)
-lb              = np.amin(xx, axis=0)
+xx2             = data_vola2[:,:Nparameters]
+#ub              = np.amax(xx, axis=0)
+#lb              = np.amin(xx, axis=0)
+ub             = np.amax(xx2, axis=0)
+lb             = np.amin(xx2, axis=0)
 diff            = ub-lb
 bound_sum       = ub+lb
+
+
 # vola  
 yy              = data_vola[:,Nparameters:]
 ub_vola         = np.amax(yy)

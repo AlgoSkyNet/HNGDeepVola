@@ -174,6 +174,5 @@ if ifEstimateh0
 else
     sig2_0 = sigma0*ones(length(index),1);
 end
-
 save('weekly_10to18_mle_opt_h0est_check_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
     'params_Q_mle_weekly','params_P_mle_weekly', 'stream')

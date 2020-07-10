@@ -33,3 +33,13 @@ end
 data_vega_cut = data_vega(idx,:);
 save("id_dfc18d626cbb42f1_vega.mat","data_vega")
 save("id_dfc18d626cbb42f1_vega_cutted.mat","data_vega_cut")
+%% MLE CALL DATA
+for year = 2010:2018
+    load(strcat('mle_calls_',num2str(year),'.mat'))
+    mean_mse(year-2009) = mean(MSE_vec);
+    mean_mape(year-2009) = mean(MAPE_vec);
+    mean_optll(year-2009) = mean(OPTLL_vec);
+    std_mse(year-2009) = std(MSE_vec);
+    std_mape(year-2009) = std(MAPE_vec);
+    std_optll(year-2009) = std(OPTLL_vec);
+end

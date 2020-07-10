@@ -159,9 +159,9 @@ def pricing_plotter(prediction,y_test):
     return err_rel_mat,err_mat,idx,bad_idx
 
 #errror calibration
-def calibration_plotter(prediction,X_test_trafo2,X_test,extra_plots = 0):
-    prediction_invtrafo= np.array([myinverse(x) for x in prediction])
-    prediction_std = np.std(prediction,axis=0)
+def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots = 0):
+    prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
+    prediction_std = np.std(prediction_calibration,axis=0)
     error = np.zeros((Ntest,Nparameters))
     for i in range(Ntest):
         #error[i,:] =  np.abs((X_test_trafo2[i,:]-prediction[i,:])/X_test_trafo2[i,:])
