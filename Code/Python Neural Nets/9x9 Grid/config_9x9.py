@@ -1,5 +1,6 @@
 # config file
-
+# This file preprocesses the underlying price and volatility data for later usage
+# in the neural networks
 ### Preambel
 import scipy.io
 import numpy as np
@@ -10,20 +11,19 @@ from sklearn.model_selection import train_test_split
 
 #from NeuralNets_VolaPrice import names_data
 #name_price,name_vola =names_data()
+
+
 ### Data Import
 
+#normal
+#name_price ="id_5480b1c6d8034498_data_price_norm_92737_bigprice.mat"
+#name_vola = "id_5480b1c6d8034498_data_vola_norm_92737_bigprice.mat"
+#name_vega = "id_5480b1c6d8034498_data_vega_norm_92737_bigprice.mat"
+name_price = "id_be31b109d2bb4c5d_data_price_norm_71351_bigprice.mat"
+name_vola  = "id_be31b109d2bb4c5d_data_vola_norm_71351_bigprice.mat"
+name_vega  = "id_be31b109d2bb4c5d_data_vega_norm_71351_bigprice.mat"
 
-
-#name_price ="id_2f5cc69bd20a436d_data_price_log_191193clean.mat"
-#name_vola = "id_2f5cc69bd20a436d_data_vola_log_191193clean.mat"
-#name_vega = "id_2f5cc69bd20a436d_data_vega_log_191193.mat"
-name_price ="id_70977270efb64685_data_price_unisymmetric_164830clean.mat"
-name_vola = "id_70977270efb64685_data_vola_unisymmetric_164830clean.mat"
-name_vega = "id_70977270efb64685_data_vega_unisymmetric_164830.mat"
-
-
-
-
+#iz id theoretically possible to import two dataset in at once to allows for  faster comparison
 name_price2 = "id_dfc18d626cbb42f1_data_price_norm_205851clean.mat"
 name_vola2 = "id_dfc18d626cbb42f1_data_vola_norm_205851clean.mat"
 name_vega2 = "id_dfc18d626cbb42f1_vega.mat"
@@ -31,8 +31,8 @@ name_vega2 = "id_dfc18d626cbb42f1_vega.mat"
 
 
 
-path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
-#path = "C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
+#path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
+path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola        = mat['data_vola']
 mat         = scipy.io.loadmat(path+name_price)

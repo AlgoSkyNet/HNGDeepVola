@@ -3,7 +3,7 @@
 % Each file has a 12 digit unique id for identification 4 files are saved: 
 % 1 mat-file with parameters and prices. 
 % 1 mat-file with parameters and imp volas.
-% 1 mat-file with option vegas
+% 1 m
 % 1 mat-file which summarizes the characteristics and specifics of the generator
 % 1 png-file with histograms. 
 % The filenames are always of the following structure:
@@ -58,6 +58,11 @@ Nsim            = 10000000;
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
 % 10% for uni dist
+
+%% TODO (sorted by importance)
+% pca yieldcurves only positive!
+% Smarter way for incorperation of yieldcurve to the neural net
+% Nsim fix
 
 
 %% Concentate underlying Data

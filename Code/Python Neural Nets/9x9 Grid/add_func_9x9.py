@@ -208,9 +208,10 @@ def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots 
         ax=plt.subplot(1,Nparameters,i+1)
         if np.max(error[:,i])>1.5:    
             plt.xscale("log")
-            plt.hist(error[:,i],bins=50,weights=np.zeros_like(error[:,i]) + 1. / error[:,i].size)
+            plt.hist(error[:,i],bins=np.logspace(np.log10(0.001),np.log10(10000), 200))
+    
         else: 
-            plt.hist(error[:,i],bins=100,weights=np.zeros_like(error[:,i]) + 1. / error[:,i].size)
+            plt.hist(error[:,i],bins=np.logspace(np.log10(0.001),np.log10(10000), 200))
         plt.xlabel("relative deviation")
 
     
