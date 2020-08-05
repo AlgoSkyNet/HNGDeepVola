@@ -1359,7 +1359,6 @@ prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
 
-"""
 NN2a = Sequential() 
 NN2a.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
 NN2a.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
@@ -1426,7 +1425,7 @@ history = NN2b.fit(y_train_price_scale,X_train_trafo2[:,[3,4]], batch_size=50, v
 # ### 3.1 Results
 
 from add_func_9x9 import calibration_plotter
-prediction_calibration_b = NN2b.predict(y_test_trafo2)
+prediction_calibration_b = NN2b.predict(y_test_price_scale)
 prediction_calibration = np.concatenate((prediction_calibration_a,prediction_calibration_b),axis=1)
 
 prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
@@ -1437,7 +1436,7 @@ error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 =
 
 
 
-
+""""
 
 
 

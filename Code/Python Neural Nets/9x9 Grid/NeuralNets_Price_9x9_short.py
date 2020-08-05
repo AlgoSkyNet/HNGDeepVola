@@ -74,9 +74,9 @@ NNprice_sig2.add(Conv2D(4, (2, 2),padding='valid',use_bias =False,strides =(2,1)
 
 ### trainingsetting
 NNprice_sig2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_sig2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_sig2.save_weights("price_weights_rate_9x9_sig2.h5")
-#NNprice_sig2.load_weights("price_weights_rate_9x9_sig2.h5")
+#NNprice_sig2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_sig2.save_weights("price_weights_rate_9x9_sig2.h5")
+NNprice_sig2.load_weights("price_weights_rate_9x9_sig2.h5")
 
 
 
@@ -106,9 +106,9 @@ NNprice_sig1.add(Conv2D(5, (2, 2),padding='valid',use_bias =False,strides =(2,1)
 
 #setting
 NNprice_sig1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_sig1.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_sig1.save_weights("priceweights_rates_9x9_sig1.h5")
-#NNprice_sig1.load_weights("priceweights_rates_9x9_sig1.h5")
+#NNprice_sig1.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_sig1.save_weights("priceweights_rates_9x9_sig1.h5")
+NNprice_sig1.load_weights("priceweights_rates_9x9_sig1.h5")
 
 
 
@@ -139,9 +139,9 @@ NNprice_sig3.summary()
 
 #setting
 NNprice_sig3.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_sig3.fit(inputs_train, y_train_trafo1_price[:,:,[0,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_sig3.save_weights("priceweights_rates_9x9_sig3.h5")
-#NNprice_sig3.load_weights("priceweights_rates_9x9_sig3.h5")
+#NNprice_sig3.fit(inputs_train, y_train_trafo1_price[:,:,[0,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_sig3.save_weights("priceweights_rates_9x9_sig3.h5")
+NNprice_sig3.load_weights("priceweights_rates_9x9_sig3.h5")
 
 
 ###  Results 
@@ -233,9 +233,9 @@ NNprice_lin2.add(Conv2D(4, (2, 2),padding='valid',use_bias =False,strides =(2,1)
 
 ### trainingsetting
 NNprice_lin2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_lin2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_lin2.save_weights("price_weights_rate_9x9_linear2.h5")
-#NNprice_lin2.load_weights("price_weights_rate_9x9_linear2.h5")
+#NNprice_lin2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_lin2.save_weights("price_weights_rate_9x9_linear2.h5")
+NNprice_lin2.load_weights("price_weights_rate_9x9_linear2.h5")
 
 
 
@@ -265,9 +265,9 @@ NNprice_lin1.add(Conv2D(5, (2, 2),padding='valid',use_bias =False,strides =(2,1)
 
 #setting
 NNprice_lin1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_lin1.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_lin1.save_weights("priceweights_rates_9x9_linear.h5")
-#NNprice_lin1.load_weights("priceweights_rates_9x9_linear.h5")
+#NNprice_lin1.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_lin1.save_weights("priceweights_rates_9x9_linear.h5")
+NNprice_lin1.load_weights("priceweights_rates_9x9_linear.h5")
 
 NNprice_lin3 = Sequential() 
 NNprice_lin3.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
@@ -295,9 +295,9 @@ NNprice_lin3.summary()
 
 #setting
 NNprice_lin3.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-NNprice_lin3.fit(inputs_train, y_train_trafo1_price[:,:,[0,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNprice_lin3.save_weights("priceweights_rates_9x9_linear3.h5")
-#NNprice_lin3.load_weights("priceweights_rates_9x9_linear3.h5")
+#NNprice_lin3.fit(inputs_train, y_train_trafo1_price[:,:,[0,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNprice_lin3.save_weights("priceweights_rates_9x9_linear3.h5")
+NNprice_lin3.load_weights("priceweights_rates_9x9_linear3.h5")
 
 
 ###  Results 
