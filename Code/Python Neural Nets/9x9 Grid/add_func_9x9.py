@@ -1,4 +1,4 @@
-### additional functions for main file
+# In[Preambel]:
 import numpy as np
 from tensorflow.keras import backend as K
 from config_9x9 import Nparameters,maturities,strikes,Nstrikes,Nmaturities,Ntest,Ntrain,Nval
@@ -17,7 +17,7 @@ from config_9x9 import y_train_trafo2_price,y_val_trafo2_price,y_test_trafo2_pri
 
 # import custom functions #scaling tools
 from config_9x9 import ytransform, yinversetransform,myscale,myinverse
-
+import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola
@@ -34,7 +34,7 @@ import cmath
 import math
 
 
-### custom errors
+# In[Custom Errors]:
 def root_mean_squared_error(y_true, y_pred):
         return K.sqrt(K.mean(K.square(y_pred - y_true)))   
     
@@ -50,6 +50,12 @@ def rmse_constraint(param):
             #constraint = K.variable(value=constraint, dtype='float64')
             return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true)))  +param*K.mean(K.greater(constraint,1))
     return rel_mse_constraint
+def miss_count(y_true, y_pred):
+    traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
+    traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
+    traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
+    constraint = traf_a*K.square(traf_g)+traf_b
+    return K.mean(K.greater(constraint,1))
 
 def mse_constraint(param):
     def rel_mse_constraint(y_true, y_pred):
@@ -61,101 +67,238 @@ def mse_constraint(param):
             return K.mean(K.square(y_pred - y_true)) +param*K.mean(K.greater(constraint,1))
     return rel_mse_constraint
 
+def log_constraint(param,p2=30):
+    def log_mse_constraint(y_true, y_pred):
+            traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
+            traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
+            traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
+            constraint = traf_a*K.square(traf_g)+traf_b
+            #constraint = K.variable(value=constraint, dtype='float64')
+            return K.mean(K.square(y_pred - y_true)) +param*K.mean(1/(1+K.exp(-p2*(constraint-1))))
+    return log_mse_constraint
+def mape_constraint(param,p2=30):
+    def r_constraint(y_true, y_pred):
+            traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
+            traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
+            traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
+            constraint = traf_a*K.square(traf_g)+traf_b
+            #constraint = K.variable(value=constraint, dtype='float64')
+            return K.mean(K.abs((y_true - y_pred) / y_true)) +param*K.mean(1/(1+K.exp(-p2*(constraint-1))))
+    return r_constraint
 
-### constraints
+def log_constraint_noscale(param,p2=30):
+    def log_mse_constraint_noscale(y_true, y_pred):
+            constraint = y_pred[:,0]*K.square(y_pred[:,2])+y_pred[:,1]
+            #constraint = K.variable(value=constraint, dtype='float64')
+            return K.mean(K.square(y_pred - y_true)) +param*K.mean(1/(1+K.exp(-p2*(constraint-1))))
+    return log_mse_constraint_noscale
+
 def constraint_violation(x):
     return np.sum(x[:,0]*x[:,2]**2+x[:,1]>=1)/x.shape[0],x[:,0]*x[:,2]**2+x[:,1]>=1,x[:,0]*x[:,2]**2+x[:,1]
 
-### error plot
+# In[ErrorPlots]:
 
 # error pricer
-def pricing_plotter(prediction,y_test):     
+def pricing_plotter(prediction,y_test,vega_test):     
     err_rel_mat  = np.zeros(prediction.shape)
     err_mat      = np.zeros(prediction.shape)
+    err_optll    = np.zeros(prediction.shape)
+    err_iv_approx= np.zeros(prediction.shape)
     for i in range(y_test.shape[0]):
-        err_rel_mat[i,:,:] =  np.abs((y_test[i,:,:]-prediction[i,:,:])/y_test[i,:,:])
-        err_mat[i,:,:] =  np.square((y_test[i,:,:]-prediction[i,:,:]))
+        err_rel_mat[i,:,:]  =  np.abs((y_test[i,:,:]-prediction[i,:,:])/y_test[i,:,:])
+        err_mat[i,:,:]      =  np.square((y_test[i,:,:]-prediction[i,:,:]))
+        err_optll[i,:,:]    = np.log(np.square((y_test[i,:,:]-prediction[i,:,:])/vega_test[i,:,:])) 
+        err_iv_approx[i,:,:]= np.square((y_test[i,:,:]-prediction[i,:,:])/vega_test[i,:,:]) 
     idx = np.argsort(np.max(err_rel_mat,axis=tuple([1,2])), axis=None)
     
     #bad_idx = idx[:-200]
     bad_idx = idx
     #from matplotlib.colors import LogNorm
-    plt.figure(figsize=(14,4))
+    fig = plt.figure()
     plt.suptitle('Errors Neural Net Pricing', fontsize=16)
-    ax=plt.subplot(2,3,1)
+    
+    
+    
+    ax=plt.subplot(4,3,1)
     err1 = 100*np.mean(err_rel_mat[bad_idx,:,:],axis=0)
-    plt.title("Average relative error",fontsize=15,y=1.04)
+    plt.title("Average relative error",fontsize=10,y=1.04)
     plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.colorbar(format=mtick.PercentFormatter())
-    ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-    ax.set_xticklabels(strikes)
+    ax.axes.get_xaxis().set_visible(False)
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
     ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
     ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
-    ax=plt.subplot(2,3,2)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,2)
     err2 = 100*np.std(err_rel_mat[bad_idx,:,:],axis = 0)
-    plt.title("Std relative error",fontsize=15,y=1.04)
+    plt.title("Std relative error",fontsize=10,y=1.04)
     plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
     plt.colorbar(format=mtick.PercentFormatter())
-    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-    ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-    ax.set_xticklabels(strikes)
-    ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-    ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
-    ax=plt.subplot(2,3,3)
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,3)
     err3 = 100*np.max(err_rel_mat[bad_idx,:,:],axis = 0)
-    plt.title("Maximum relative error",fontsize=15,y=1.04)
+    plt.title("Maximum relative error",fontsize=10,y=1.04)
     plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
     plt.colorbar(format=mtick.PercentFormatter())
-    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-    ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-    ax.set_xticklabels(strikes)
-    ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-    ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
-    ax=plt.subplot(2,3,4)
-    err1 = np.sqrt(np.mean(err_mat[bad_idx,:,:],axis=0))
-    plt.title("RMSE",fontsize=15,y=1.04)
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    
+    
+    
+    ax=plt.subplot(4,3,4)
+    err1 = np.mean(err_mat[bad_idx,:,:],axis=0)
+    plt.title("MSE",fontsize=10,y=1.04)
     plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
-    plt.colorbar(format=mtick.PercentFormatter())
-    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-    ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-    ax.set_xticklabels(strikes)
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
     ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
     ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
-    ax=plt.subplot(2,3,5)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,5)
     err2 = np.std(err_mat[bad_idx,:,:],axis = 0)
-    plt.title("Std MSE",fontsize=15,y=1.04)
+    plt.title("Std MSE",fontsize=10,y=1.04)
     plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
-    plt.colorbar(format=mtick.PercentFormatter())
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,6)
+    err3 = np.max(err_mat[bad_idx,:,:],axis = 0)
+    plt.title("Maximum MSE",fontsize=10,y=1.04)
+    plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+    ax=plt.subplot(4,3,7)
+    err1 = np.mean(err_optll[bad_idx,:,:],axis=0)
+    plt.title("OptLL",fontsize=10,y=1.04)
+    plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,8)
+    err2 = np.std(err_optll[bad_idx,:,:],axis = 0)
+    plt.title("Std OPtll",fontsize=10,y=1.04)
+    plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,9)
+    err3 = np.max(err_optll[bad_idx,:,:],axis = 0)
+    plt.title("Maximum Optll",fontsize=10,y=1.04)
+    plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    
+    #ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    #ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    #plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    #plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+    
+    ax=plt.subplot(4,3,10)
+    err1 = np.sqrt(np.mean(err_iv_approx[bad_idx,:,:],axis=0))
+    plt.title("IVRMSE Approx",fontsize=10,y=1.04)
+    plt.imshow(err1)#,norm=LogNorm(vmin=err1.min(), vmax=err1.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
     ax.set_xticklabels(strikes)
     ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
     ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
-    ax=plt.subplot(2,3,6)
-    err3 = np.max(err_mat[bad_idx,:,:],axis = 0)
-    plt.title("Maximum MSE",fontsize=15,y=1.04)
-    plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
-    plt.colorbar(format=mtick.PercentFormatter())
+    plt.xlabel("Strike",fontsize=10,labelpad=5)
+    plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,11)
+    err2 = np.std(err_iv_approx[bad_idx,:,:],axis = 0)
+    plt.title("Std IVRMSE",fontsize=10,y=1.04)
+    plt.imshow(err2)#,norm=LogNorm(vmin=err2.min(), vmax=err2.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_yaxis().set_visible(False)
+    
+    plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
     ax.set_xticklabels(strikes)
-    ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-    ax.set_yticklabels(maturities)
-    plt.xlabel("Strike",fontsize=15,labelpad=5)
-    plt.ylabel("Maturity",fontsize=15,labelpad=5)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
+    ax=plt.subplot(4,3,12)
+    err3 = np.max(err_iv_approx[bad_idx,:,:],axis = 0)
+    plt.title("Maximum IVRMSE",fontsize=10,y=1.04)
+    plt.imshow(err3)#,norm=LogNorm(vmin=err3.min(), vmax=err3.max()))
+    plt.colorbar()#format=mtick.PercentFormatter())
+    ax.axes.get_yaxis().set_visible(False)
+    
+    ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+    ax.set_xticklabels(strikes)
+    #ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+    #ax.set_yticklabels(maturities)
+    plt.xlabel("Strike",fontsize=10,labelpad=5)
+    #plt.ylabel("Maturity",fontsize=10,labelpad=5)
     plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
     plt.tight_layout()
+    
+    #for ax in fig.get_axes():
+    #    ax.label_outer()
     plt.show()
+    
     return err_rel_mat,err_mat,idx,bad_idx
 
 #errror calibration

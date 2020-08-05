@@ -15,13 +15,15 @@ from sklearn.model_selection import train_test_split
 
 ### Data Import
 
-#normal
-#name_price ="id_5480b1c6d8034498_data_price_norm_92737_bigprice.mat"
-#name_vola = "id_5480b1c6d8034498_data_vola_norm_92737_bigprice.mat"
-#name_vega = "id_5480b1c6d8034498_data_vega_norm_92737_bigprice.mat"
-name_price = "id_be31b109d2bb4c5d_data_price_norm_71351_bigprice.mat"
-name_vola  = "id_be31b109d2bb4c5d_data_vola_norm_71351_bigprice.mat"
-name_vega  = "id_be31b109d2bb4c5d_data_vega_norm_71351_bigprice.mat"
+
+name_price ="id_aa11a111a1aa1a1a_data_price_norm_143032.mat"
+name_vola = "id_aa11a111a1aa1a1a_data_vola_norm_143032.mat"
+name_vega = "id_aa11a111a1aa1a1a_data_vega_norm_143032.mat"
+
+#SAVED WEIGHTS BASED ON:
+#name_price = "id_be31b109d2bb4c5d_data_price_norm_71351_bigprice.mat"
+#name_vola  = "id_be31b109d2bb4c5d_data_vola_norm_71351_bigprice.mat"
+#name_vega  = "id_be31b109d2bb4c5d_data_vega_norm_71351_bigprice.mat"
 
 #iz id theoretically possible to import two dataset in at once to allows for  faster comparison
 name_price2 = "id_dfc18d626cbb42f1_data_price_norm_205851clean.mat"

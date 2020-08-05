@@ -138,7 +138,7 @@ y_val_tmp = np.concatenate((y_val_trafo1_price,vega_val1),axis=1)
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 
 NN1price.fit(X_train_trafo, y_train_tmp, batch_size=200, validation_data = (X_val_trafo, y_val_tmp), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
-NN1price.save_weights("pricerweights_norate_optll.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1price.save_weights("pricerweights_norate_optll.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN1price.load_weights("pricerweights_norate_optll.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
@@ -207,7 +207,7 @@ y_val_tmp = np.concatenate((y_val_trafo1_price,vega_val1),axis=1)
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
 
 NN1price_a.fit(X_train_trafo, y_train_tmp[:,:,:,[0,1,2,3,4]], batch_size=200, validation_data = (X_val_trafo, y_val_tmp[:,:,:,[0,1,2,3,4]]), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
-NN1price_a.save_weights("pricerweights_norate_optll_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1price_a.save_weights("pricerweights_norate_optll_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN1price.load_weights("pricerweights_norate_optll.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
@@ -219,7 +219,7 @@ S0=1.
 y_test_re    = yinversetransform(y_test_trafo1_price[:,:,:,[0,1,2,3,4]]).reshape((Ntest,Nmaturities,5))
 prediction_a_optll   = NN1price_a.predict(X_test_trafo).reshape((Ntest,Nmaturities,5))
 #plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction_a_optll,y_test_re)
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction_a_optll,y_test_re,vega_test.reshape(Ntest,9,9)[:,:,[0,1,2,3,4]])
 err_matrix = np.mean(err_rel_mat,axis=(1,2))
 err_idx = np.argsort(err_matrix)
 plt.figure(figsize= (14,4))
@@ -282,7 +282,7 @@ y_val_tmp = np.concatenate((y_val_trafo1_price,vega_val1),axis=1)
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
 
 NN1price_b.fit(X_train_trafo, y_train_tmp[:,:,:,[4,5,6,7,8]], batch_size=200, validation_data = (X_val_trafo, y_val_tmp[:,:,:,[4,5,6,7,8]]), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
-NN1price_b.save_weights("pricerweights_norate_optll_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1price_b.save_weights("pricerweights_norate_optll_a.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN1price.load_weights("pricerweights_norate_optll.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 #  Results 
@@ -368,7 +368,7 @@ inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
 
 #NN1price2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NN1price2.save_weights("price_weights_rate_9x9.h5")
+#NN1price2.save_weights("price_weights_rate_9x9_linear.h5")
 NN1price2.load_weights("price_weights_rate_9x9.h5")
 
 #  Results 
@@ -377,7 +377,7 @@ S0=1.
 y_test_re    = yinversetransform(y_test_trafo1_price[:,:,:,[5,6,7,8]]).reshape((Ntest,Nmaturities,4))
 prediction   = NN1price2.predict(inputs_test).reshape((Ntest,Nmaturities,4))
 #plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re,vega_test.reshape(Ntest,Nmaturities,Nstrikes)[:,:,[5,6,7,8]])
 err_matrix = np.mean(err_rel_mat,axis=(1,2))
 err_idx = np.argsort(err_matrix)
 #plt.plot(err_matrix)
@@ -430,7 +430,7 @@ NN1price2a.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(1,1),
 #NN1.add(MaxPooling2D(pool_size=(2, 1)))
 #NN1price2a.add(Dropout(0.25))
 #NN1.add(ZeroPadding2D(padding=(0,1)))
-NN1price2a.add(Conv2D(5, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+NN1price2a.add(Conv2D(5, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
 #NN1.add(MaxPooling2D(pool_size=(4, 1)))
 NN1price2a.summary()
 
@@ -443,9 +443,9 @@ inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities
 #es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 
 #NN1price2a.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NN1price2a.save_weights("priceweights_rates_left2a.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1price2a.save_weights("priceweights_rates_left2a_linear.h5")#id_3283354135d44b67_data_price_norm_231046clean
 NN1price2a.load_weights("priceweights_rates_left2a.h5")#id_3283354135d44b67_data_price_norm_231046clean
-
+#
 #  Results 
 # The following plots show the performance on the testing set
 S0=1.
@@ -469,7 +469,7 @@ plt.show()
 
 
 
-
+"""
 
 
 NN1price2b = Sequential() 
@@ -511,7 +511,7 @@ inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities
 
 #NN1price2b.fit(inputs_train, y_train_trafo1_price[:,:,:,[7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
 #NN1price2b.save_weights("priceweights_rates_left2b.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN1price2b.load_weights("priceweights_rates_left2b.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN1price2b.load_weights("priceweights_rates_left2b.h5")#id_3283354135d44b67_data_price_norm_231046clean
 S0=1.
 #y_test_re    = yinversetransform(y_test_tmp,0).reshape((Ntest-1500,Nmaturities,Nstrikes))
 #prediction   = NN1c.predict(X_test_tmp).reshape((Ntest-1500,Nmaturities,Nstrikes))
@@ -569,7 +569,7 @@ inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
 NN1price2c.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 
-NN1price2c.fit(inputs_train, np.power(y_train_trafo1_price[:,:,0,[5,6,7,8]], 0.01), batch_size=64, validation_data = (inputs_val, np.power(y_val_trafo1_price[:,:,0,[5,6,7,8]],0.01)), epochs =10, verbose = True, shuffle=1,callbacks=[es])
+#NN1price2c.fit(inputs_train, np.power(y_train_trafo1_price[:,:,0,[5,6,7,8]], 0.01), batch_size=64, validation_data = (inputs_val, np.power(y_val_trafo1_price[:,:,0,[5,6,7,8]],0.01)), epochs =10, verbose = True, shuffle=1,callbacks=[es])
 #NN1price2c.save_weights("priceweights_rates_righttop_c.h5")#id_3283354135d44b67_data_price_norm_231046clean
 #NN1price2a.load_weights("priceweights_rates_righttop_c.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
@@ -613,7 +613,7 @@ plt.show()
 
 
 
-
+"""
 
 
 #prediction_full = np.zeros_like(prediction)
@@ -682,6 +682,65 @@ for i in range(Nmaturities):
 for ax in fig.get_axes():
     ax.label_outer()
 plt.show
+
+FFNN = Sequential()
+FFNN.add(InputLayer(input_shape=(Nparameters,)))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(30, activation = 'elu'))
+FFNN.add(Dense(Nstrikes*Nmaturities, activation = 'sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+FFNN.summary()
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 15 ,restore_best_weights=True)
+FFNN.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+
+FFNN.fit(X_train, y_train_price, batch_size=64, validation_data = (X_val, y_val_price), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
+
+prediction_FFNN   = FFNN.predict(X_test).reshape((Ntest,9,9))
+
+
+err_rel_mat_FFNN,tmp,tmp,tmp= pricing_plotter(prediction_FFNN,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
+err_mean_FFNN = np.mean(err_rel_mat_FFNN,axis=0)
+
+FFNN2 = Sequential()
+FFNN2.add(InputLayer(input_shape=(Nparameters,)))
+FFNN2.add(Dense(30, activation = 'elu'))
+FFNN2.add(Dense(30, activation = 'elu'))
+FFNN2.add(Dense(54, activation = 'sigmoid'))
+FFNN2.summary()
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
+FFNN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+
+FFNN2.fit(X_train, y_train_price.reshape(Ntrain,9,9)[:,:,[0,1,2,3,4,5]].reshape((Ntrain,54)), batch_size=64, validation_data = (X_val, y_val_price.reshape(Nval,9,9)[:,:,[0,1,2,3,4,5]].reshape((Nval,54))), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
+y_test_re2 = y_test_re[:,:,[0,1,2,3,4,5]]
+prediction_FFNN2   = FFNN2.predict(X_test).reshape((Ntest,9,6))
+err_rel_mat_FFNN2,tmp,tmp,tmp= pricing_plotter(prediction_FFNN2,y_test_re2,vega_test.reshape((Ntest,Nmaturities,Nstrikes))[:,:,[0,1,2,3,4,5]])
+err_mean_FFNN2 = np.mean(err_rel_mat_FFNN2,axis=0)
+
+
+FFNN3 = Sequential()
+FFNN3.add(InputLayer(input_shape=(Nparameters,)))
+FFNN3.add(Dense(30, activation = 'elu'))
+FFNN3.add(Dense(30, activation = 'elu'))
+FFNN3.add(Dense(27, activation = 'sigmoid'))
+FFNN3.summary()
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
+FFNN3.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+
+FFNN3.fit(X_train, y_train_price.reshape(Ntrain,9,9)[:,:,[6,7,8]].reshape((Ntrain,27)), batch_size=64, validation_data = (X_val, y_val_price.reshape(Nval,9,9)[:,:,[6,7,8]].reshape((Nval,27))), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
+y_test_re3 = y_test_re[:,:,[6,7,8]]
+prediction_FFNN3   = FFNN3.predict(X_test).reshape((Ntest,9,3))
+err_rel_mat_FFNN3,tmp,tmp,tmp= pricing_plotter(prediction_FFNN3,y_test_re3,vega_test.reshape((Ntest,Nmaturities,Nstrikes))[:,:,[6,7,8]])
+err_mean_FFNN3 = np.mean(err_rel_mat_FFNN3,axis=0)
+
 
 """
 prediction   = NN1price2.predict(inputs_test).reshape((Ntest,Nmaturities,4))
@@ -983,13 +1042,9 @@ plt.scatter(y_test_re.flatten(),err_rel_mat.flatten())
 
 plt.show()
 
+"""
 # In[Test CNN as Decoder / MultiInputStructure]:
 
-#model_comb = InputLayer(input_shape=(Nparameters))
-#model_comb = Dense(30, activation="relu")(model_comb)
-#model_comb = Dense(30, activation="relu")(model_comb)
-#model_comb = Dense(Nparameters, activation="linear")(model_comb)
-tf.config.experimental_run_functions_eagerly(False)
 y_train_comb = np.concatenate((y_train_trafo2,y_train_trafo2_price),axis = 3)
 y_test_comb = np.concatenate((y_test_trafo2,y_test_trafo2_price),axis = 3)
 y_val_comb = np.concatenate((y_val_trafo2,y_val_trafo2_price),axis = 3)
@@ -997,49 +1052,80 @@ y_val_comb = np.concatenate((y_val_trafo2,y_val_trafo2_price),axis = 3)
 y_train_comb1 = np.concatenate((y_train_trafo1,y_train_trafo1_price),axis = 1)
 y_test_comb1 = np.concatenate((y_test_trafo1,y_test_trafo1_price),axis = 1)
 y_val_comb1 = np.concatenate((y_val_trafo1,y_val_trafo1_price),axis = 1)
-NN1comb = Sequential() 
-NN1comb.add(InputLayer(input_shape=(Nparameters,)))
-NN1comb.add(Dense(10,activation = "elu",use_bias=True))
-NN1comb.add(Dense(30,activation = "elu",use_bias=True))
-NN1comb.add(Dense(60,activation = "elu",use_bias=True))
-NN1comb.add(Dense(120,activation = "elu",use_bias=True))
-NN1comb.add(Reshape((15, 2,4), input_shape=(120,)))
-NN1comb.add(ZeroPadding2D(padding=(2, 2)))
-NN1comb.add(Conv2D(8, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NN1comb.add(ZeroPadding2D(padding=(1,1)))
-NN1comb.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NN1comb.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1comb.add(ZeroPadding2D(padding=(1,1)))
-NN1comb.add(Conv2D(9, (3,3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1comb.add(ZeroPadding2D(padding=(1,1)))
-NN1comb.add(Conv2D(9, (3, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1comb.add(ZeroPadding2D(padding=(1,1)))
-NN1comb.add(Conv2D(9, (2, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NN1comb.add(ZeroPadding2D(padding=(1,1)))
-NN1comb.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-#NN1.add(MaxPooling2D(pool_size=(2, 1)))
-#NN1.add(Dropout(0.25))
-#NN1.add(ZeroPadding2D(padding=(0,1)))
-#NN1comb.add(Conv2D(Nstrikes, (1, 1),padding='valid',use_bias =True,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NN1.add(MaxPooling2D(pool_size=(4, 1)))
-NN1comb.summary()
-#setting
-NN1comb.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE"])
-#NN1comb.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+
+def l4_rel_error(y_true, y_pred):
+        return K.sqrt(K.mean(K.pow((y_pred - y_true)/y_true,4)))   
+
+NNcomb = Sequential() 
+NNcomb.add(InputLayer(input_shape=(Nparameters,1,1,)))
+NNcomb.add(ZeroPadding2D(padding=(2, 3)))
+NNcomb.add(Conv2D(32, (3, 1), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NNcomb.add(ZeroPadding2D(padding=(3,1)))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(2,2)))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(1,1)))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(1,1)))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(1,1)))
+NNcomb.add(Conv2D(32, (2,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(2,1)))
+NNcomb.add(Conv2D(32, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNcomb.add(ZeroPadding2D(padding=(2,1)))
+NNcomb.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNcomb.add(Conv2D(Nstrikes, (2, 1),padding='valid',use_bias =True,strides =(1,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
+NNcomb.summary()
+NNcomb.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MSE","MAPE"])
+#NNcomb.compile(loss = l4_rel_error, optimizer = "adam",metrics=["MAPE","MSE"])
 #NN1comb.fit(X_train_trafo, y_train_trafo1, batch_size=64, validation_data = (X_val_trafo, y_val_trafo1), epochs = 300, verbose = True, shuffle=1)
-NN1comb.fit(X_train_trafo.reshape((Ntrain,Nparameters)), y_train_comb1, batch_size=64, validation_data = (X_val_trafo.reshape((Nval,Nparameters)), y_val_comb1), epochs = 300, verbose = True, shuffle=1)
-NN1comb.save_weights("pricerweights_comb.h5")
-#NN1.load_weights("pricerweights_noriskfreerate.h5")
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
 
-#  Results 
-# The following plots show the performance on the testing set
+#NNcomb.fit(X_train_trafo.reshape((Ntrain,Nparameters,1,1)), y_train_comb1, batch_size=64, validation_data = (X_val_trafo.reshape((Nval,Nparameters,1,1)), y_val_comb1), epochs = 1000, verbose = True, shuffle=1,callbacks=[es])
+NNcomb.load_weights("pricerweights_comb.h5")
+#
 S0=1.
-y_test_re    = yinversetransform(y_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
-prediction   = NN1.predict(X_test_trafo).reshape((Ntest,Nmaturities,Nstrikes))
+prediction   = NNcomb.predict(X_test_trafo.reshape((Ntest,Nparameters,1,1)))
 #plots
-err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
+err_rel_comb= (np.abs((prediction - y_test_comb1)/y_test_comb1))   
+err_rel_comb_mean = np.mean(err_rel_comb,axis =0)
+mape_comb_price = err_rel_comb_mean[1,:,:]
+mape_comb_vola = err_rel_comb_mean[0,:,:]
+mapemax_comb_price = np.max(err_rel_comb[:,1,:,:],axis=0)
+mapemax_comb_vola= np.max(err_rel_comb[:,0,:,:],axis=0)
+err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction[:,1,:,:].reshape((Ntest,9,9)),y_test_re)
+plt.figure(figsize= (14,4))
+ax = plt.subplot(1,1,1)
+plt.imshow(100*mape_comb_price,norm=LogNorm(vmin=100*mape_comb_price.min(), vmax=100*mape_comb_price.max()))
+plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
+plt.colorbar(format=mtick.PercentFormatter())
+ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
+ax.set_xticklabels(strikes)
+ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
+ax.set_yticklabels(maturities)
+plt.xlabel("Strike",fontsize=15,labelpad=5)
+plt.ylabel("Maturity",fontsize=15,labelpad=5)
+
+plt.show()
+plt.figure()
+plt.hist(err_rel_comb[:,1,0,8].flatten())
+plt.show()
 
 
+
+
+
+
+
+
+
+"""
+
+
+
+#comb for calibration
 
 NN2comb = Sequential() 
 NN2comb.add(InputLayer(input_shape=(Nmaturities,Nstrikes,2)))
@@ -1165,6 +1251,74 @@ err_rel_mat,err_mat,idx,bad_idx = pricing_plotter(prediction,y_test_re)
 
 
 # In[3.1 CNN as  Decoder/Inverse Mapping / Calibration]:
+from add_func_9x9 import calibration_plotter
+
+#SCALE PRICES BEFORE!!!!!
+y_train_price_scale = ytransform(y_train_price,0).reshape((Ntrain,Nmaturities,Nstrikes,1))
+y_test_price_scale = ytransform(y_test_price,0).reshape((Ntest,Nmaturities,Nstrikes,1))
+y_val_price_scale = ytransform(y_val_price,0).reshape((Nval,Nmaturities,Nstrikes,1))
+NN2s = Sequential() 
+NN2s.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
+NN2s.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(MaxPooling2D(pool_size=(2, 2)))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(ZeroPadding2D(padding=(1,1)))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(ZeroPadding2D(padding=(1,1)))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(ZeroPadding2D(padding=(1,1)))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(ZeroPadding2D(padding=(1,1)))
+NN2s.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
+NN2s.add(Flatten())
+NN2s.add(Dense(Nparameters,activation = 'linear',use_bias=True,kernel_constraint = tf.keras.constraints.NonNeg()))
+NN2s.summary()
+#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+from add_func_9x9 import log_constraint,miss_count,mape_constraint
+#setting
+#NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+NN2s.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
+NN2s.compile(loss =log_constraint(param=0.01,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+NN2s.save_weights("calibrationweights_price_scale.h5")
+#NN2s.load_weights("calibrationweights_price_scale.h5")
+
+es = EarlyStopping(monitor='val_MAPE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
+NN2s.save_weights("calibrationweights_price_scale2.h5")
+#NN2s.load_weights("calibrationweights_price_scale.h5")
+
+
+prediction_calibration = NN2s.predict(y_test_price_scale)
+prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
+
+#plots
+error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+
 
 NN2 = Sequential() 
 NN2.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
@@ -1182,15 +1336,16 @@ NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activatio
 NN2.add(ZeroPadding2D(padding=(1,1)))
 NN2.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='tanh'))
 NN2.add(Flatten())
-NN2.add(Dense(Nparameters,activation = 'linear',use_bias=True))
+NN2.add(Dense(Nparameters,activation = 'linear',use_bias=True))#,kernel_constraint = tf.keras.constraints.NonNeg()))
 NN2.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-
+from add_func_9x9 import log_constraint,miss_count,mape_constraint
 #setting
-NN2.compile(loss =mse_constraint(0.90), optimizer = "adam",metrics=["MAPE", "MSE"])
-es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-history = NN2.fit(y_train_trafo2_price,X_train_trafo2, batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=40, verbose = True, shuffle=1,callbacks =[es])
-#NN2.save_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+NN2.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+history = NN2.fit(y_train_trafo2_price,X_train_trafo2, batch_size=240, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
+NN2.save_weights("calibrationweights_price.h5")
 #NN2.load_weights("calibrationweights_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
@@ -1204,7 +1359,7 @@ prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
 #plots
 error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
 
-
+"""
 NN2a = Sequential() 
 NN2a.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
 NN2a.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation ='tanh'))
@@ -1224,12 +1379,14 @@ NN2a.add(Flatten())
 NN2a.add(Dense(3,activation = 'linear',use_bias=True))
 NN2a.summary()
 #NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+es = EarlyStopping(monitor='val_MAPE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
 
 #setting
-NN2a.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2a.fit(y_train_trafo2_price,X_train_trafo2[:,[0,1,2]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[0,1,2]]), epochs=40, verbose = True, shuffle=1)
+#NN2a.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE"])
+NN2a.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history = NN2a.fit(y_train_price_scale,X_train_trafo2[:,[0,1,2]], batch_size=100, validation_data = (y_val_price_scale,X_val_trafo2[:,[0,1,2]]), epochs=100, verbose = True, shuffle=1)
 #NN2a.save_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN2a.load_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN2a.load_weights("calibrationweights_a_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 
@@ -1260,9 +1417,9 @@ NN2b.summary()
 
 #setting
 NN2b.compile(loss ="MSE", optimizer = "adam",metrics=["MAPE", "MSE"])
-#history = NN2b.fit(y_train_trafo2_price,X_train_trafo2[:,[3,4]], batch_size=50, validation_data = (y_val_trafo2_price,X_val_trafo2[:,[3,4]]), epochs=40, verbose = True, shuffle=1)
+history = NN2b.fit(y_train_price_scale,X_train_trafo2[:,[3,4]], batch_size=50, validation_data = (y_val_price_scale,X_val_trafo2[:,[3,4]]), epochs=40, verbose = True, shuffle=1)
 #NN2b.save_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
-NN2b.load_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
+#NN2b.load_weights("calibrationweights_b_price.h5")#id_3283354135d44b67_data_price_norm_231046clean
 
 
 
