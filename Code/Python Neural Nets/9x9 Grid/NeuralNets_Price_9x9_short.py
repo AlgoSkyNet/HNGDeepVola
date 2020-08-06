@@ -159,13 +159,19 @@ sig_mape_mean = np.mean(err_rel_mat_sig,axis=0)
 sig_mape_max = np.max(err_rel_mat_sig,axis =0)
 
 plt.figure(figsize= (14,4))
+plt.title("Empirical Relative Error Distribution")
 #plt.xscale("log")
 #plt.yscale("log")
+plt.xlabel("Rel Error")
+plt.ylabel("Count")
 plt.hist(err_rel_mat_sig.flatten(),bins=100)
 plt.show()
 plt.figure(figsize= (14,4))
+plt.title("Empirical Relative Error Distributrion per Surface")
 #plt.xscale("log")
 #plt.yscale("log")
+plt.xlabel("Mean Relative Error per Surface")
+plt.ylabel("Count")
 plt.hist(err_matrix_sig.flatten(),bins=100)
 plt.show()
 #plt.figure(figsize= (14,4))
@@ -188,14 +194,17 @@ plt.show()
 #plt.ylabel("Maturity",fontsize=15,labelpad=5)
 #plt.show()
 fig = plt.figure()
+plt.suptitle("Distribution of True Prices per Gridpoint")
 for i in range(Nmaturities):
     for j in range(Nstrikes):
         plt.subplot(Nmaturities,Nstrikes,Nmaturities*i+j+1)
         plt.hist(y_test_re[:,i,j].flatten(),bins=100)
 for ax in fig.get_axes():
     ax.label_outer()
-plt.show
+plt.show()
 fig = plt.figure()
+plt.suptitle("Distribution of Relative Errors per Gridpoint")
+
 for i in range(Nmaturities):
     for j in range(Nstrikes):
         plt.subplot(Nmaturities,Nstrikes,Nmaturities*i+j+1)
@@ -391,23 +400,32 @@ from add_func_9x9 import log_constraint,miss_count,mape_constraint
 #setting
 #NN2.compile(loss =mse_constraint(0.75), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
 NN2s.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
-es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
-history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
-NN2s.compile(loss =log_constraint(param=0.01,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
-NN2s.save_weights("calibrationweights_price_scale.h5")
-#NN2s.load_weights("calibrationweights_price_scale.h5")
+#es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+#history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
+#NN2s.save_weights("calibrationweights_price_scale.h5")
+NN2s.load_weights("calibrationweights_price_scale.h5")
 
-es = EarlyStopping(monitor='val_MAPE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
-history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
-NN2s.save_weights("calibrationweights_price_scale2.h5")
-#NN2s.load_weights("calibrationweights_price_scale.h5")
-
-
-prediction_calibration = NN2s.predict(y_test_price_scale)
-prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
+prediction_calibration1 = NN2s.predict(y_test_price_scale)
+prediction_invtrafo1= np.array([myinverse(x) for x in prediction_calibration1])
 
 #plots
-error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
+error_cal1,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp = calibration_plotter(prediction_calibration1,X_test_trafo2,X_test)
+
+
+
+
+NN2s.compile(loss =log_constraint(param=0.01,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#es = EarlyStopping(monitor='val_MAPE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+#history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
+#NN2s.save_weights("calibrationweights_price_scale2.h5")
+NN2s.load_weights("calibrationweights_price_scale.h5")
+
+
+prediction_calibration2 = NN2s.predict(y_test_price_scale)
+prediction_invtrafo2= np.array([myinverse(x) for x in prediction_calibration2])
+
+#plots
+error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp = calibration_plotter(prediction_calibration2,X_test_trafo2,X_test)
 
 
 

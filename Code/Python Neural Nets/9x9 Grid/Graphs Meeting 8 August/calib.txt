@@ -1,0 +1,18 @@
+#fullscale 2
+violation error mean in %: [nan nan nan nan nan]
+no violation error mean in %: [ 28.63273262  12.25478545  80.9674464  346.56266741   3.45241841]
+violation error median in %: [nan nan nan nan nan]
+no violation error median in %: [ 5.03850417 12.03102847 46.7452873  37.05935054  2.31704689]
+error mean in %: [ 28.63273262  12.25478545  80.9674464  346.56266741   3.45241841]
+error median in %: [ 5.03850417 12.03102847 46.7452873  37.05935054  2.31704689
+
+#fullscale 1
+violation error mean in %: [nan nan nan nan nan]
+no violation error mean in %: [ 31.99596067  13.16020942  73.91469919 455.35591018   1.90055793]
+violation error median in %: [nan nan nan nan nan]
+no violation error median in %: [ 6.12503029 13.23726687 46.00669307 48.96635229  1.35020096]
+error mean in %: [ 31.99596067  13.16020942  73.91469919 455.35591018   1.90055793]
+error median in %: [ 6.12503029 13.23726687 46.00669307 48.96635229  1.35020096]
+
+
+#partial scale

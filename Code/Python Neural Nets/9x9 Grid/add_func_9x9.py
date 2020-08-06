@@ -325,37 +325,45 @@ def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots 
     vio_error2 = error[testing_violation2,:]
     
     # BOXPLOTS
-    plt.figure(figsize=(14,4))
-    plt.suptitle('Errors Neural Net Calibration', fontsize=16)
-    ax=plt.subplot(1,3,1)
-    plt.boxplot(error)
-    #plt.yscale("log")
-    plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
-    plt.ylabel("Errors")
-    ax=plt.subplot(1,3,2)
-    plt.boxplot(vio_error)
-    #plt.yscale("log")
-    plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
-    plt.ylabel("Errors parameter violation")
-    ax=plt.subplot(1,3,3)
-    plt.boxplot(vio_error2)
-    #plt.yscale("log")
-    plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
-    plt.ylabel("Errors no parameter violation")
-    plt.show()
+    if vio_error.size != 0:  
+        plt.figure(figsize=(14,4))
+        plt.suptitle("Boxploit of Rel Errors Neural Net Calibration per Parameter", fontsize=16)
     
+        ax=plt.subplot(1,3,1)
+        plt.boxplot(error)
+        #plt.yscale("log")
+        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.ylabel("Errors")
+        ax=plt.subplot(1,3,2)
+        plt.boxplot(vio_error)
+        #plt.yscale("log")
+        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.ylabel("Errors parameter violation")
+        ax=plt.subplot(1,3,3)
+        plt.boxplot(vio_error2)
+        #plt.yscale("log")
+        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.ylabel("Errors no parameter violation")
+        plt.show()
+        plt.show()
     #HISTOGRAM
     plt.figure(figsize=(14,4))
-    plt.suptitle('Errors Neural Net Calibration', fontsize=16)
+    plt.suptitle('Rel Errors Neural Net Calibration per Parameter', fontsize=16)
+    legendlist = ['w','a','b','g*','h0']
     for i in range(Nparameters):
-        ax=plt.subplot(1,Nparameters,i+1)
-        if np.max(error[:,i])>1.5:    
-            plt.xscale("log")
-            plt.hist(error[:,i],bins=np.logspace(np.log10(0.001),np.log10(10000), 200))
-    
-        else: 
-            plt.hist(error[:,i],bins=np.logspace(np.log10(0.001),np.log10(10000), 200))
+        ax=plt.subplot(2,Nparameters,i+1)
+        plt.xscale("log")
+        plt.hist(100*error[:,i],bins=np.logspace(np.log10(0.001),np.log10(10000), 200))
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter())
         plt.xlabel("relative deviation")
+        ax=plt.subplot(2,5,i+6)
+        plt.yscale("log")
+        plt.boxplot(100*error[:,i])
+        plt.xticks([1],legendlist[i])
+        if i==0:
+            plt.ylabel("Relative Deviation")
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    plt.show()
 
     
     
