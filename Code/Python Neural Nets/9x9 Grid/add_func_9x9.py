@@ -299,7 +299,7 @@ def pricing_plotter(prediction,y_test,vega_test):
     #    ax.label_outer()
     plt.show()
     
-    return err_rel_mat,err_mat,idx,bad_idx
+    return err_rel_mat,err_mat,err_optll,err_iv_approx,idx,bad_idx
 
 #errror calibration
 def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots = 0):

@@ -152,7 +152,7 @@ prediction_full_sig = np.concatenate((prediction_sig1,prediction_sig2),axis = 2)
 prediction_full_sig[:,[0,8],:] = prediction_sig3
 y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
 
-err_rel_mat_sig,tmp,tmp,tmp = pricing_plotter(prediction_full_sig,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
+err_rel_mat_sig,err_mse_mat_sig,err_optt_mat_sig,err_iv_mat_sig,tmp,tmp = pricing_plotter(prediction_full_sig,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
 err_matrix_sig = np.mean(err_rel_mat_sig,axis=(1,2))
 sig_mape_median = np.median(err_rel_mat_sig,axis=0)
 sig_mape_mean = np.mean(err_rel_mat_sig,axis=0)
@@ -199,6 +199,7 @@ for i in range(Nmaturities):
     for j in range(Nstrikes):
         plt.subplot(Nmaturities,Nstrikes,Nmaturities*i+j+1)
         plt.hist(y_test_re[:,i,j].flatten(),bins=100)
+        plt.xlim([0,0.31])
 for ax in fig.get_axes():
     ax.label_outer()
 plt.show()
@@ -213,162 +214,6 @@ for ax in fig.get_axes():
     ax.label_outer()
 plt.show()
 
-# In[PricingNetwork Linear Activation RelMSE Train]:
-
-### architecture
-NNprice_lin2 = Sequential() 
-NNprice_lin2.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
-NNprice_lin2.add(ZeroPadding2D(padding=(2, 2)))
-NNprice_lin2.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin2.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(1,1),activation ='elu'))
-NNprice_lin2.add(Conv2D(4, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NNprice_lin2.summary()
-
-### trainingsetting
-NNprice_lin2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-#NNprice_lin2.fit(inputs_train, y_train_trafo1_price[:,:,:,[5,6,7,8]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[5,6,7,8]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NNprice_lin2.save_weights("price_weights_rate_9x9_linear2.h5")
-NNprice_lin2.load_weights("price_weights_rate_9x9_linear2.h5")
-
-
-
-NNprice_lin1 = Sequential() 
-NNprice_lin1.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
-NNprice_lin1.add(ZeroPadding2D(padding=(2, 2)))
-NNprice_lin1.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin1.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(1,1),activation ='elu'))
-NNprice_lin1.add(Conv2D(5, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-#NNprice_lin1.summary()
-
-#setting
-NNprice_lin1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-#NNprice_lin1.fit(inputs_train, y_train_trafo1_price[:,:,:,[0,1,2,3,4]], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,:,[0,1,2,3,4]]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NNprice_lin1.save_weights("priceweights_rates_9x9_linear.h5")
-NNprice_lin1.load_weights("priceweights_rates_9x9_linear.h5")
-
-NNprice_lin3 = Sequential() 
-NNprice_lin3.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
-NNprice_lin3.add(ZeroPadding2D(padding=(2, 1)))
-NNprice_lin3.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,1)))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,2)))
-NNprice_lin3.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,1)))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,1)))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(ZeroPadding2D(padding=(2,1)))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
-NNprice_lin3.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(1,1),activation ='elu'))
-NNprice_lin3.add(Conv2D(9, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='linear', kernel_constraint = tf.keras.constraints.NonNeg()))
-NNprice_lin3.summary()
-
-#setting
-NNprice_lin3.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
-#NNprice_lin3.fit(inputs_train, y_train_trafo1_price[:,:,[0,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NNprice_lin3.save_weights("priceweights_rates_9x9_linear3.h5")
-NNprice_lin3.load_weights("priceweights_rates_9x9_linear3.h5")
-
-
-###  Results 
-prediction_lin2   = NNprice_lin2.predict(inputs_test).reshape((Ntest,Nmaturities,4))
-prediction_lin1   = NNprice_lin1.predict(inputs_test).reshape((Ntest,Nmaturities,5))
-prediction_lin3   = NNprice_lin3.predict(inputs_test).reshape((Ntest,2,Nstrikes))
-prediction_full_lin = np.concatenate((prediction_lin1,prediction_lin2),axis = 2)
-prediction_full_lin[:,[0,8],:] = prediction_lin3
-y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
-
-err_rel_mat_lin,tmp,tmp,tmp = pricing_plotter(prediction_full_lin,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
-err_matrix_lin = np.mean(err_rel_mat_lin,axis=(1,2))
-lin_mape_median = np.median(err_rel_mat_lin,axis=0)
-lin_mape_mean = np.mean(err_rel_mat_lin,axis=0)
-lin_mape_max = np.max(err_rel_mat_lin,axis =0)
-
-plt.figure(figsize= (14,4))
-#plt.xscale("log")
-#plt.yscale("log")
-plt.hist(err_rel_mat_lin.flatten(),bins=100)
-plt.show()
-plt.figure(figsize= (14,4))
-#plt.xscale("log")
-#plt.yscale("log")
-plt.hist(err_matrix_lin.flatten(),bins=100)
-plt.show()
-#plt.figure(figsize= (14,4))
-#plt.yscale("log")
-#plt.xscale("log")
-#plt.scatter(y_test_re.flatten(),err_rel_mat.flatten())
-#plt.show()
-
-#from matplotlib.colors import LogNorm
-#plt.figure(figsize= (14,4))
-#ax = plt.subplot(1,1,1)
-#plt.imshow(100*lin_mape_mean,norm=LogNorm(vmin=100*lin_mape_mean.min(), vmax=100*lin_mape_mean.max()))
-#plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
-#plt.colorbar(format=mtick.PercentFormatter())
-#ax.set_xticks(np.linspace(0,Nstrikes-1,Nstrikes))
-#ax.set_xticklabels(strikes)
-#ax.set_yticks(np.linspace(0,Nmaturities-1,Nmaturities))
-#ax.set_yticklabels(maturities)
-#plt.xlabel("Strike",fontsize=15,labelpad=5)
-#plt.ylabel("Maturity",fontsize=15,labelpad=5)
-#plt.show()
-
-fig = plt.figure()
-for i in range(Nmaturities):
-    for j in range(Nstrikes):
-        plt.subplot(Nmaturities,Nstrikes,Nmaturities*i+j+1)
-        plt.hist(y_test_re[:,i,j].flatten(),bins=100)
-for ax in fig.get_axes():
-    ax.label_outer()
-plt.show
-fig = plt.figure()
-for i in range(Nmaturities):
-    for j in range(Nstrikes):
-        plt.subplot(Nmaturities,Nstrikes,Nmaturities*i+j+1)
-        plt.hist(err_rel_mat_lin[:,i,j].flatten(),bins=100)
-for ax in fig.get_axes():
-    ax.label_outer()
-plt.show()
 
 # In[3.1 CNN as  Decoder/Inverse Mapping / Calibration]:
 from add_func_9x9 import calibration_plotter
@@ -429,10 +274,219 @@ error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp = calibration_plotter(prediction_cali
 
 
 
+# In[NEWMODEL]:
+# In[PricingNetwork Sigmoid Activation RelMSE Train]:
+inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
+inputs_val = np.concatenate((X_val_trafo,rates_val.reshape((Nval,Nmaturities,1,1))),axis=1)
+inputs_test = np.concatenate((X_test_trafo,rates_test.reshape((Ntest,Nmaturities,1,1))),axis=1)
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
 
 
 
+NNprice_sigNEW1 = Sequential() 
+NNprice_sigNEW1.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2, 1)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW1.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW1.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW1.add(Conv2D(9, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+NNprice_sigNEW1.summary()
+NNprice_sigNEW2 = Sequential() 
+NNprice_sigNEW2.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2, 1)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW2.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW2.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW2.add(Conv2D(9, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+NNprice_sigNEW2.summary()
+NNprice_sigNEW3 = Sequential() 
+NNprice_sigNEW3.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2, 1)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))#X_train_trafo.shape[1:],activation='elu'))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,2)))
+NNprice_sigNEW3.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(ZeroPadding2D(padding=(2,1)))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNprice_sigNEW3.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNprice_sigNEW3.add(Conv2D(9, (2, 1),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+NNprice_sigNEW3.summary()
+
+#setting
+NNprice_sigNEW1.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+NNprice_sigNEW1.fit(inputs_train, y_train_trafo1_price[:,:,[0,1,2],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[0,1,2],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+NNprice_sigNEW2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+NNprice_sigNEW2.fit(inputs_train, y_train_trafo1_price[:,:,[3,4,5],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[3,4,5],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+NNprice_sigNEW3.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+NNprice_sigNEW3.fit(inputs_train, y_train_trafo1_price[:,:,[6,7,8],:], batch_size=64, validation_data = (inputs_val, y_val_trafo1_price[:,:,[6,7,8],:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+
+###  Results 
+prediction_sigNEW1   = NNprice_sigNEW1.predict(inputs_test).reshape((Ntest,3,Nmaturities))
+prediction_sigNEW2   = NNprice_sigNEW2.predict(inputs_test).reshape((Ntest,3,Nmaturities))
+prediction_sigNEW3   = NNprice_sigNEW3.predict(inputs_test).reshape((Ntest,3,Nmaturities))
+
+prediction_full_sigNEW = np.concatenate((prediction_sigNEW1,prediction_sigNEW2,prediction_sigNEW3),axis = 1)
+y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
+err_rel_mat_full,err_mse_mat_full,err_opt_mat_full,err_iv_mat_full,tmp,tmp = pricing_plotter(prediction_full_sigNEW,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
+err_matrix_sig = np.mean(err_rel_mat_full,axis=(1,2))
+full_mape_median = np.median(err_rel_mat_full,axis=0)
+full_mape_mean = np.mean(err_rel_mat_full,axis=0)
+full_mape_max = np.max(err_rel_mat_full,axis =0)
 
 
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(err_iv_mat_full[:,0,0])
+
+plt.subplot(2,1,2)
+plt.plot(vega_test1[:,0,0,0])
+plt.show()
+
+    
+
+# In[2.3 CNN as Encoder / Pricing Kernel with riskfree rate]:
+NNpriceFULL = Sequential() 
+NNpriceFULL.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
+NNpriceFULL.add(ZeroPadding2D(padding=(2, 2)))
+NNpriceFULL.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,2),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =False,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+NNpriceFULL.summary()
+
+#NNpriceFULL.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+#NNpriceFULL.fit(inputs_train, y_train_trafo1_price, batch_size=64, validation_data = (inputs_val, y_val_trafo1_price), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+vega_train1 = np.asarray([vega_train[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntrain)])
+vega_test1 = np.asarray([vega_test[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Ntest)])
+vega_val1 = np.asarray([vega_val[i,:].reshape((1,Nmaturities,Nstrikes)) for i in range(Nval)])
+
+y_train_tmp = np.concatenate((y_train_trafo1_price,vega_train1),axis=1) 
+y_test_tmp = np.concatenate((y_test_trafo1_price,vega_test1),axis=1)
+y_val_tmp = np.concatenate((y_val_trafo1_price,vega_val1),axis=1)
+bad_test  = vega_test1[:,0,0,0] <1e-6    
+bad_train  = vega_train1[:,0,0,0] <1e-6    
+bad_val  = vega_val1[:,0,0,0] <1e-6    
+good_test  = vega_test1[:,0,0,0] >=1e-6    
+good_train  = vega_train1[:,0,0,0] >=1e-6    
+good_val  = vega_val1[:,0,0,0] >=1e-6    
+n_valg = np.sum(good_val)
+n_testg = np.sum(good_test)
+n_traing = np.sum(good_train)
 
 
+def ivrmse_approx(y_true_with_vega, y_pred):
+        return K.sqrt(K.mean(K.square((y_pred - y_true_with_vega[:,0,:,:])/y_true_with_vega[:,1,:,:])))
+
+def option_log_likelyhood(y_true_with_vega, y_pred):
+        return K.mean(K.log(K.square((y_pred - y_true_with_vega[:,0,:,:])/y_true_with_vega[:,1,:,:])))
+
+NNpriceFULL.compile(loss = ivrmse_approx, optimizer = "adam",metrics=["MAPE","MSE"])
+NNpriceFULL.fit(inputs_train[good_train,:,:,:], y_train_tmp[good_train,:,:,:], batch_size=64, validation_data = (inputs_val[good_val,:,:,:], y_val_tmp[good_val,:,:,:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+
+prediction_iv_test_g   = NNpriceFULL.predict(inputs_test[good_test,:,:,:]).reshape((n_testg,Nmaturities,Nstrikes))
+y_test_re_g    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:]
+tmp,tmp,tmp,ivtest,tmp,tmp = pricing_plotter(prediction_iv_test_g,y_test_re_g,vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
+
+###  Results 
+prediction_iv_test   = NNpriceFULL.predict(inputs_test).reshape((Ntest,Nmaturities,Nstrikes))
+prediction_iv_val   = NNpriceFULL.predict(inputs_val).reshape((Nval,Nmaturities,Nstrikes))
+prediction_iv_train   = NNpriceFULL.predict(inputs_train).reshape((Ntrain,Nmaturities,Nstrikes))
+
+y_test_re    = yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))
+y_train_re    = yinversetransform(y_train_trafo_price).reshape((Ntrain,Nmaturities,Nstrikes))
+y_val_re    = yinversetransform(y_val_trafo_price).reshape((Nval,Nmaturities,Nstrikes))
+
+
+tmp,tmp,tmp,ivtest,tmp,tmp = pricing_plotter(prediction_iv_test,y_test_re,vega_test.reshape((Ntest,Nmaturities,Nstrikes)))
+tmp,tmp,tmp,ivtrain,tmp,tmp = pricing_plotter(prediction_iv_train,y_train_re,vega_train.reshape((Ntrain,Nmaturities,Nstrikes)))
+tmp,tmp,tmp,ivval,tmp,tmp = pricing_plotter(prediction_iv_val,y_val_re,vega_val.reshape((Nval,Nmaturities,Nstrikes)))
+
+plt.figure()
+plt.subplot(3,1,1)
+plt.plot(ivtest[:,0,0])
+plt.subplot(3,1,2)
+plt.plot(ivtrain[:,0,0])
+plt.subplot(3,1,3)
+plt.plot(ivval[:,0,0])
+
+#plt.subplot(2,1,2)
+#plt.plot(vega_test1[:,0,0,0])
+plt.show()
+#idx_approx = np.argsort(err_iv_mat_full[:,0,0], axis=None)
+    
+plt.figure()
+plt.subplot(3,1,1)
+plt.xscale("log")
+plt.scatter(vega_test1[:,0,0,0],ivtest[:,0,0])
+plt.subplot(3,1,2)
+plt.xscale("log")
+plt.scatter(vega_train1[:,0,0,0],ivtrain[:,0,0])
+plt.subplot(3,1,3)
+plt.xscale("log")
+plt.scatter(vega_val1[:,0,0,0],ivval[:,0,0])
+plt.show()
+
+plt.figure()
+plt.subplot(3,1,1)
+plt.hist(vega_test1[:,0,0,0],bins=100)
+plt.subplot(3,1,2)
+plt.hist(vega_val1[:,0,0,0],bins=100)
+plt.subplot(3,1,3)
+plt.hist(vega_val1[:,0,0,0],bins=100)
+plt.show()
