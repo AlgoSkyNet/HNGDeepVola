@@ -1441,11 +1441,13 @@ history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validatio
 NN2s.compile(loss =log_constraint(param=0.01,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
 NN2s.save_weights("calibrationweights_price_scale.h5")
 #NN2s.load_weights("calibrationweights_price_scale.h5")
+#error mean in %: [ 31.99596067  13.16020942  73.91469919 455.35591018   1.90055793]
+#error median in %: [ 6.12503029 13.23726687 46.00669307 48.96635229  1.35020096]
 
 es = EarlyStopping(monitor='val_MAPE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
 history = NN2s.fit(y_train_price_scale,X_train_trafo2, batch_size=120, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
 NN2s.save_weights("calibrationweights_price_scale2.h5")
-#NN2s.load_weights("calibrationweights_price_scale.h5")
+#NN2s.load_weights("calibrationweights_price_scale2.h5")
 
 
 prediction_calibration = NN2s.predict(y_test_price_scale)
@@ -1459,16 +1461,36 @@ error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 =
 
 
 
+def sig_scaled(a,b,c,d):
+    def sig_tmp(x):
+        return a / (1 + K.exp(-b*(x-c)))-d
+    return sig_tmp
+NN2new = Sequential() 
+NN2new.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True, padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(MaxPooling2D(pool_size=(2, 2)))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(ZeroPadding2D(padding=(1,1)))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation ='elu'))
+NN2new.add(Flatten())
+NN2new.add(Dense(Nparameters,activation = sig_scaled(3.5,1.5,0,2),use_bias=True))#kernel_constraint = tf.keras.constraints.NonNeg()))
+#NN2new.add(Dense(Nparameters,activation = 'linear',use_bias=True))#kernel_constraint = tf.keras.constraints.NonNeg()))
+NN2new.summary()
+#NN2.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
+from add_func_9x9 import log_constraint,miss_count,mape_constraint,l2rel_log_constraint
+#setting
+NN2new.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 40 ,restore_best_weights=True)
+history = NN2new.fit(y_train_price_scale,X_train_trafo2, batch_size=64, validation_data = (y_val_price_scale,X_val_trafo2), epochs=100, verbose = True, shuffle=1,callbacks =[es])
 
-
-
-
-
-
-
-
-
-
+prediction_calibration = NN2new.predict(y_test_price_scale)
+prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
+error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2 = calibration_plotter(prediction_calibration,X_test_trafo2,X_test)
+NN2new.save_weights("calibrationweights_price_scalenew.h5")
+#NN2new.load_weights("calibrationweights_price_scalenew.h5")
 
 
 

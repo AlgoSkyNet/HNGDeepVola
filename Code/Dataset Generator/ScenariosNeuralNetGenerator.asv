@@ -52,7 +52,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 1000000;
+Nsim            = 15000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
@@ -261,7 +261,7 @@ end
 inv_data = [inv_data(:,1:5),max(inv_data(:,6:end),0)];
 interest_rates_test = zeros(Nsim,9);
 for aaa=1:9
-    interest_rates_test(:,aaa) =0.01*aaa+0.009*rand(Nsim,1);
+    interest_rates_test(:,) =0.01*aaa+0.009*rand(Nsim,1);
 end
 %% Price Calculations
 j = 0;
