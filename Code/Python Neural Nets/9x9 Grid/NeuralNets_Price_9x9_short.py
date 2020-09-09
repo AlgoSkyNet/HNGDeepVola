@@ -10,7 +10,7 @@ import matplotlib.ticker as mtick
 import scipy
 import tensorflow as tf
 from tensorflow.compat.v1.keras.backend import set_session
-config = tf.compat.v1.ConfigProto( device_count = {'GPU': 0 , 'CPU': 64} ) 
+config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 2} ) 
 sess = tf.compat.v1.Session(config=config) 
 K.set_session(sess)
 from tensorflow.python.client import device_lib
@@ -1329,6 +1329,9 @@ y_test_re_g    = 2000*yinversetransform(y_test_trafo_price).reshape((Ntest,Nmatu
 err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(prediction_fullnormal,y_test_re_g,2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
 
 
+dict_iv ={"price" : y_test_re_g,"forecast" : prediction_fullnormal , "vega": 2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:], "param" : X_test[good_test,:],"rates": rates_test[good_test,:] }
+scipy.io.savemat('data_for_IVfullnormal.mat', dict_iv)
+
 
 
 
@@ -1341,7 +1344,7 @@ err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(prediction_
 
 # In[Intrinsic Value Penalty:]
 
-
+from tensorflow.compat.v1.keras.optimizers import Adam
 NNpriceFULL = Sequential() 
 NNpriceFULL.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
 NNpriceFULL.add(ZeroPadding2D(padding=(2, 2)))
@@ -1365,30 +1368,98 @@ NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),
 NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
 NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
 NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
-NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation =sig_scaled(2000,1,0)))#, kernel_constraint = tf.keras.constraints.NonNeg()))
+NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation =sig_scaled(1000,1,0)))#, kernel_constraint = tf.keras.constraints.NonNeg()))
 #NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
 #NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='relu'))#, kernel_constraint = tf.keras.constraints.NonNeg()))
 NNpriceFULL.summary()
+import numpy.matlib as npm
+strike_net = 2000*npm.repmat(np.asarray([0.9,0.925,0.95,0.975,1,1.025,1.05,1.075,1.1]).reshape(1,9), 9,1)
+maturity_net = 1/252*npm.repmat(np.asarray([10,40,70,100,130,160,190,220,250]).reshape(9,1), 1,9)
+intrinsicnet_test = [];
+for i in range(n_testg):
+    rates_net = npm.repmat(rates_test[good_test,:][i,:].reshape((9,1)),1,9)
+    tmp = 2000-np.exp(-rates_net*maturity_net)*strike_net
+    tmp[tmp<0] = 0
+    intrinsicnet_test.append(tmp)
+intrinsicnet_test = np.asarray(intrinsicnet_test).reshape(n_testg,1,9,9)
+intrinsicnet_train = [];
+for i in range(n_traing):
+    rates_net = npm.repmat(rates_train[good_train,:][i,:].reshape((9,1)),1,9)
+    tmp = 2000-np.exp(-rates_net*maturity_net)*strike_net
+    tmp[tmp<0] = 0
+    intrinsicnet_train.append(tmp)
+intrinsicnet_train = np.asarray(intrinsicnet_train).reshape(n_traing,1,9,9)
+intrinsicnet_val = [];
+for i in range(n_valg):
+    rates_net = npm.repmat(rates_val[good_val,:][i,:].reshape((9,1)),1,9)
+    tmp = 2000-np.exp(-rates_net*maturity_net)*strike_net
+    tmp[tmp<0] = 0
+    intrinsicnet_val.append(tmp)
+intrinsicnet_val = np.asarray(intrinsicnet_val).reshape(n_valg,1,9,9)
+pos_ratio1 = np.mean(2000*y_train_trafo1_price[good_train,:,:,:]>intrinsicnet_train)
+pos_ratio2 = np.mean(2000*y_test_trafo1_price[good_test,:,:,:]>intrinsicnet_test)
+pos_ratio3 = np.mean(2000*y_val_trafo1_price[good_val,:,:,:]>intrinsicnet_val)
 
-
-intrinsicnet_test  = 2000*np.matlib.repmat(np.matlib.repmat(np.asarray([0.1,0.075,0.05,0.025,0,0,0,0,0]), (9,1,1)).reshape(1,9,9),(n_testg,1,1,1))
-intrinsicnet_train  = 2000*np.matlib.repmat(np.matlib.repmat(np.asarray([0.1,0.075,0.05,0.025,0,0,0,0,0]), (9,1,1)).reshape(1,9,9),(n_traing,1,1,1))
-intrinsicnet_val  = 2000*np.matlib.repmat(np.matlib.repmat(np.asarray([0.1,0.075,0.05,0.025,0,0,0,0,0]), (9,1,1)).reshape(1,9,9),(n_valg,1,1,1))
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 NNpriceFULL.compile(loss = root_relative_mean_squared_error, optimizer = Adam(clipvalue =1,clipnorm=1),metrics=["MAPE","MSE"])#"adam",metrics=["MAPE",root_mean_squared_error])
 history_Fullnormal_LONG = NNpriceFULL.fit(inputs_train[good_train,:,:,:], 2000*y_train_trafo1_price[good_train,:,:,:]-intrinsicnet_train, batch_size=64, validation_data = (inputs_val[good_val,:,:,:],2000*y_val_trafo1_price[good_val,:,:,:]-intrinsicnet_val), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNpriceFULL.save_weights("price_rrmse_weights_1net_2000_normal_intrinsic.h5")
-NNpriceFULL.load_weights("price_rrmse_weights_1net_2000_normal_intrinsic.h5")
-prediction_fullnormal_LONG  = intrinsicnet_test+NNpriceFULL.predict(inputs_test[good_test,:,:,:]).reshape((n_testg,Nmaturities,Nstrikes))
+NNpriceFULL.save_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
+#NNpriceFULL.load_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
+prediction_fullnormal_LONG  = (intrinsicnet_test+NNpriceFULL.predict(inputs_test[good_test,:,:,:])).reshape((n_testg,Nmaturities,Nstrikes))
 y_test_re_g    = 2000*yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:]
-err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(prediction_fullnormal,y_test_re_g,2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
+err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(prediction_fullnormal_LONG,y_test_re_g,2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
+plt.figure()
+plt.subplot(1,3,1)
+plt.plot(history_Fullnormal_LONG.history["MAPE"])
+plt.plot(history_Fullnormal_LONG.history["val_MAPE"])
+plt.legend(["MAPE","valMAPE"])
+plt.subplot(1,3,2)
+plt.plot(history_Fullnormal_LONG.history["val_MSE"])
+plt.plot(history_Fullnormal_LONG.history["MSE"])
+plt.legend(["val_MSE","MSE"])
+plt.subplot(1,3,3)
+plt.plot(history_Fullnormal_LONG.history["loss"])
+plt.plot(history_Fullnormal_LONG.history["val_loss"])
+plt.legend(["loss","val_loss"])
+plt.show()
+meanfull_mape = np.mean(err_rel_mat,axis=0)
+meanfull_mse = np.mean(err_mat,axis=0)
+meanfull_optll = np.mean(err_optll,axis=0)
+meanfull_ivrmse = np.sqrt(np.mean(err_iv_approx,axis=0))
+
+
+# DATA FOR IV ANALYSIS
+dict_iv ={"price" : y_test_re_g,"forecast" : prediction_fullnormal_LONG , "vega": 2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:], "param" : X_test[good_test,:],"rates": rates_test[good_test,:] }
+scipy.io.savemat('data_for_IVfullnormal_intrinsic.mat', dict_iv)
 
 
 
+# DATA FOR REAL ANALYSIS:
+name_price_tmp = "MLE_calib_price.mat"
+name_vola_tmp = "MLE_calib_vola.mat"
+name_vega_tmp = "MLE_calib_vega.mat"
 
+path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
+tmp         = scipy.io.loadmat(path+name_vola_tmp)
+data_vola_tmp        =tmp['data_vola']
+tmp         = scipy.io.loadmat(path+name_price_tmp)
+data_price_tmp       = tmp['data_price']
+tmp         = scipy.io.loadmat(path+name_vega_tmp)
+data_vega_tmp       = tmp['data_vega'].reshape((459,9,9))
+X_tmp = data_vola_tmp[:,:5]
+X_tmp_trafo = np.array([myscale(x) for x in X_tmp])
+rates_tmp = data_vola_tmp[:,5:14]
+y_vola_tmp = data_vola_tmp[:,14:].reshape((459,9,9))
+y_price_tmp = data_price_tmp[:,14:].reshape((459,9,9))
+intrinsicnet_tmp = np.zeros((459,9,9))
+for i in range(459):
+    intrinsicnet_tmp[i,:,:] =   2000*npm.repmat(np.asarray([0.1,0.075,0.05,0.025,0,0,0,0,0]).reshape(1,9), 9,1).reshape(1,9,9)
+intrinsicnet_tmp = intrinsicnet_tmp.reshape((459,1,9,9))
 
-
-
+prediction_tmp   = (intrinsicnet_tmp+NNpriceFULL.predict(np.concatenate((X_tmp_trafo,rates_tmp),axis=1).reshape(459,14,1,1))).reshape((459,9,9))
+err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp = pricing_plotter(prediction_tmp,y_price_tmp,data_vega_tmp)
+dict_iv_tmp ={"price" : y_price_tmp,"forecast" : prediction_tmp , "vega": data_vega_tmp, "param" : X_tmp,"rates": rates_tmp }
+scipy.io.savemat('data_fullnormal_intrinsic.mat',dict_iv_tmp)
 
 
 

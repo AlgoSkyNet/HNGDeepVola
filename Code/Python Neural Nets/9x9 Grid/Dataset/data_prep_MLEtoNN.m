@@ -1,8 +1,10 @@
 clearvars,clc;
 years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
-path_data = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Calibration Calloption/';
+%path_data = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Calibration Calloption/';
 %path_data = 'D:/GitHub/HNGDeepVola/Code/Calibration Calloption/';
+path_data = 'D:/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
+
 %C:\Users\Henrik\Documents\GitHub\HNGDeepVola\Code\calibration checks\Results for the note\Tables\calibration under Q\data for tables\results calibr h0Calibrated esth0P\MSE
 
 Maturity        = 10:30:250;%30:30:210  10:30:250
@@ -95,14 +97,15 @@ constraint        = constraint(idx);
 %save('MLE_calib_price.mat','data_price')
 %save('MLE_calib_vola.mat','data_vola')
 %save('MLE_calib_vega.mat','data_vega')
-load("data_fullnormal.mat")
+load("data_fullnormal_intrinsic.mat")
 
 
 %Options: path = '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 warning('on')
 
 %parpool()
-path                = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Data/Datasets';
+%path                = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Data/Datasets';
+path                = 'D:/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 %path                =  'C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
@@ -224,13 +227,13 @@ end
 comp_total = comp_total(2:end,:);
 comp_mean = comp_mean(2:end,7:12);
 subplot(2,1,1)
-plot(1:50,comp_mean(:,[1,2,3]));
-legend("MAPE NNvsObs","MAPE HNGvsObs","MAPE NNvsHNG")
+plot(1:50,comp_mean(:,[1,2]));
+legend("MAPE NNvsObs","MAPE HNGvsObs");%"MAPE NNvsHNG")
 title("Mean Price Deviation for every week in 2010")
 %set(gca, 'YScale', 'log')
 subplot(2,1,2)
-plot(1:50,comp_mean(:,[4,5,6]));
-legend("IV-MAPE NNvsObs","IV-MAPE HNGvsObs","IV-MAPE NNvsHNG")
+plot(1:50,comp_mean(:,[4,5]));
+legend("IV-MAPE NNvsObs","IV-MAPE HNGvsObs")%,"IV-MAPE NNvsHNG")
 title("Mean IV Deviation for every week in 2010")
 
 %set(gca, 'YScale', 'log')

@@ -20,8 +20,8 @@ from config_9x9 import ytransform, yinversetransform,myscale,myinverse
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
-from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola
-from py_vollib.black_scholes.implied_volatility import black_scholes
+#from py_vollib.black_scholes.implied_volatility import implied_volatility as bsimpvola
+#from py_vollib.black_scholes.implied_volatility import black_scholes
 import os as os
 from multiprocessing import Pool
 import random

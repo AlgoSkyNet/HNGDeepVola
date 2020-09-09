@@ -34,7 +34,9 @@ name_vega2 = "id_dfc18d626cbb42f1_vega.mat"
 
 
 #path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
-path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
+#path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
+path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
+
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola        = mat['data_vola']
 mat         = scipy.io.loadmat(path+name_price)
