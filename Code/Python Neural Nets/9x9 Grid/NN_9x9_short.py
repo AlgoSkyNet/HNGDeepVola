@@ -129,7 +129,6 @@ error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp = calibration_plotter(prediction_cali
 
 
 
-# In[NEWMODEL]:
 # In[PricingNetwork Sigmoid Activation RelMSE Train]:
 inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
 inputs_val = np.concatenate((X_val_trafo,rates_val.reshape((Nval,Nmaturities,1,1))),axis=1)
@@ -566,7 +565,7 @@ scipy.io.savemat('data_for_IVfullnormal.mat', dict_iv)
 
 
 
-# In[Intrinsic Value Penalty:]
+# In[Intrinsic Value Penalty MAPE]
 
 from tensorflow.compat.v1.keras.optimizers import Adam
 NNpriceFULL = Sequential() 
@@ -624,11 +623,11 @@ pos_ratio1 = np.mean(2000*y_train_trafo1_price[good_train,:,:,:]>intrinsicnet_tr
 pos_ratio2 = np.mean(2000*y_test_trafo1_price[good_test,:,:,:]>intrinsicnet_test)
 pos_ratio3 = np.mean(2000*y_val_trafo1_price[good_val,:,:,:]>intrinsicnet_val)
 
-es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-NNpriceFULL.compile(loss = root_relative_mean_squared_error, optimizer = Adam(clipvalue =1,clipnorm=1),metrics=["MAPE","MSE"])#"adam",metrics=["MAPE",root_mean_squared_error])
-history_Fullnormal_LONG = NNpriceFULL.fit(inputs_train[good_train,:,:,:], 2000*y_train_trafo1_price[good_train,:,:,:]-intrinsicnet_train, batch_size=64, validation_data = (inputs_val[good_val,:,:,:],2000*y_val_trafo1_price[good_val,:,:,:]-intrinsicnet_val), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNpriceFULL.save_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
-#NNpriceFULL.load_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
+#es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+#NNpriceFULL.compile(loss = root_relative_mean_squared_error, optimizer = Adam(clipvalue =1,clipnorm=1),metrics=["MAPE","MSE"])#"adam",metrics=["MAPE",root_mean_squared_error])
+#history_Fullnormal_LONG = NNpriceFULL.fit(inputs_train[good_train,:,:,:], 2000*y_train_trafo1_price[good_train,:,:,:]-intrinsicnet_train, batch_size=64, validation_data = (inputs_val[good_val,:,:,:],2000*y_val_trafo1_price[good_val,:,:,:]-intrinsicnet_val), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNpriceFULL.save_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
+NNpriceFULL.load_weights("price_rrmse_weights_1net_2000_normal_intrinsic2.h5")
 prediction_fullnormal_LONG  = (intrinsicnet_test+NNpriceFULL.predict(inputs_test[good_test,:,:,:])).reshape((n_testg,Nmaturities,Nstrikes))
 y_test_re_g    = 2000*yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:]
 err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(prediction_fullnormal_LONG,y_test_re_g,2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
@@ -690,14 +689,51 @@ err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp = pricing_plotter(prediction
 dict_iv_tmp ={"price" : y_price_tmp,"forecast" : prediction_tmp , "vega": data_vega_tmp, "param" : X_tmp,"rates": rates_tmp }
 scipy.io.savemat('data_fullnormal_intrinsic.mat',dict_iv_tmp)
 
+# In[Intrinsic Value Option Likelyhood]
+NNpriceFULL = Sequential() 
+NNpriceFULL.add(InputLayer(input_shape=(Nparameters+Nmaturities,1,1,)))
+NNpriceFULL.add(ZeroPadding2D(padding=(2, 2)))
+NNpriceFULL.add(Conv2D(32, (2, 2), padding='valid',use_bias =True,strides =(1,1),activation='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (3,2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(ZeroPadding2D(padding=(2,2)))
+NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(2,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(32, (2, 3),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
+NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation =sig_scaled(1000,1,0)))#, kernel_constraint = tf.keras.constraints.NonNeg()))
+#NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
+#NNpriceFULL.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='relu'))#, kernel_constraint = tf.keras.constraints.NonNeg()))
+NNpriceFULL.summary()
 
+def ivrmse_approx(y_true_with_vega, y_pred):
+    return K.sqrt(K.mean(K.square((y_pred - y_true_with_vega[:,0,:,:])/y_true_with_vega[:,1,:,:])))
 
+def mape_intr(y_true_with_vega, y_pred):
+    return 100*(K.mean(K.abs((y_pred - y_true_with_vega[:,0,:,:])/(y_true_with_vega[:,0,:,:]+y_true_with_vega[:,2,:,:]))))
+def mse_intr(y_true_with_vega, y_pred):
+    return K.mean(K.square((y_pred - y_true_with_vega[:,0,:,:])))
 
+y_intr_train = np.concatenate((2000*y_train_trafo1_price[good_train,:,:,:]-intrinsicnet_train,2000*vega_train1[good_train,:,:,:],intrinsicnet_train),axis=1) 
+y_intr_test  = np.concatenate((2000*y_test_trafo1_price[good_test,:,:,:]-intrinsicnet_test,2000*vega_test1[good_test,:,:,:],intrinsicnet_test),axis=1)
+y_intr_val   = np.concatenate((2000*y_val_trafo1_price[good_val,:,:,:]-intrinsicnet_val,2000*vega_val1[good_val,:,:,:],intrinsicnet_val),axis=1)
 
-
-
-
-
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+NNpriceFULL.compile(loss = ivrmse_approx, optimizer = Adam(clipvalue =1,clipnorm=1),metrics=[mape_intr,mse_intr])#"adam",metrics=["MAPE",root_mean_squared_error])
+history_Fullnormal_LONG_optll = NNpriceFULL.fit(inputs_train[good_train,:,:,:], y_intr_train, batch_size=64, validation_data = (inputs_val[good_val,:,:,:],y_intr_val), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+NNpriceFULL.save_weights("price_rrmse_weights_1net_2000_normal_intrinsic_optll.h5")
 
 
 
