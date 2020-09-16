@@ -22,9 +22,10 @@ rel_diff_mse = reshape(nanmean(abs(ivrmse(1:N,:,:)-ivrmse_approx(1:N,:,:))./ivrm
 rel_diff_mse = reshape(nanmean(abs(ivrmse(1:N,:,:)-ivrmse_approx(1:N,:,:))./ivrmse(1:N,:,:),1),9,9);
 
 nancounter = reshape(sum(isnan(ivrmse),1),9,9);
-figure('Name','Vega vs differce')
+
 mape_pw = abs(ivrmse(1:N,:,:)-ivrmse_approx(1:N,:,:))./ivrmse(1:N,:,:);
 mean_mape = reshape(mean(abs(imp_vola_price-imp_vola_forecast)./imp_vola_price,1),9,9);
+figure('Name','Vega vs differce')
 scatter(reshape(vega,81*N,1),reshape(mape_pw,81*N,1))
 set(gca, 'XScale', 'log'),set(gca, 'YScale', 'log')
 
