@@ -170,7 +170,9 @@ data_week_1 = data(:,(weeksprices == 1))';
 data_week_2 = data(:,(weeksprices == 2))';
 %%
 comp =[];
+short_table ={};
 comparison ={};
+iv_table ={};
 for j=2:51
     price_int = 0;
     idx_cal = j;
@@ -213,16 +215,39 @@ for j=2:51
     rel_diff1 = abs(price_int'-real_data(:,1))./real_data(:,1);
     rel_diff2 = abs(alldata{1, 1}{1, j}.hngPrice'-real_data(:,1))./real_data(:,1);
     rel_diff3 = abs(price_int'-alldata{1, 1}{1, j}.hngPrice')./alldata{1, 1}{1, j}.hngPrice';
+    intrinsic_value = data_week_tmp(:,4)-data_week_tmp(:,3).*exp(-r_cur.*data_week_tmp(:,2)/252);
+    intrinsic_value(intrinsic_value<0)=0;
+    intrinsic_sign =  real_data(:,1)>=intrinsic_value;
+    ivrmse1 = (imp_vola_NN-imp_vola_real).^2;
+    ivrmse2 = (imp_vola_hng-imp_vola_real).^2;
+    ivrmse3 = (imp_vola_NN-imp_vola_hng).^2;
+    ivapp1 = ((price_int'-real_data(:,1))./data_week_tmp(:,5)).^2;
+    ivapp2 = ((alldata{1, 1}{1, j}.hngPrice'-real_data(:,1))./data_week_tmp(:,5)).^2;
+    vega_hng =  blsvega(data_week_tmp(:,4),  data_week_tmp(:,3),r_cur,data_week_tmp(:,2)/252, imp_vola_hng);
+    ivapp3 = ((price_int'-alldata{1, 1}{1, j}.hngPrice')./vega_hng).^2;
+    rel_diff_iv1 = abs((ivapp1 -ivrmse1)./ivrmse1);
+    rel_diff_iv2 = abs((ivapp2 -ivrmse2)./ivrmse2);
+    rel_diff_iv3 = abs((ivapp3 -ivrmse3)./ivrmse3);
+    iv_table{j} =[ivrmse1,ivrmse2,ivrmse3,ivapp1,ivapp2,ivapp3,rel_diff_iv1,rel_diff_iv2,rel_diff_iv3];
     %comp(end+1,:) = [mean(rel_diff),mape(idx_cal-1)];
-    comparison{j} = [real_data(:,1),price_int',alldata{1, 1}{1, j}.hngPrice',imp_vola_real,imp_vola_NN,imp_vola_hng,rel_diff1,rel_diff2,rel_diff3,rel_diff_vola1,rel_diff_vola2,rel_diff_vola3,diff1,diff2];
-    
+    comparison{j} = [real_data(:,1),price_int',alldata{1, 1}{1, j}.hngPrice',imp_vola_real,imp_vola_NN,imp_vola_hng,rel_diff1,rel_diff2,rel_diff3,...
+        rel_diff_vola1,rel_diff_vola2,rel_diff_vola3,diff1,diff2,...
+        real_data(:,2),real_data(:,3)./real_data(:,4),intrinsic_value,intrinsic_sign,];
+    short_table{j} = [data_week_tmp(:,1:4),intrinsic_value,intrinsic_sign,r_cur];
 end
-comp_total = zeros(1,14);
-comp_mean = zeros(50,14);
+comp_total = zeros(1,18);
+comp_mean = zeros(50,18);
+total_short = zeros(1,7);
+iv_weakly = zeros(50,9);
 for j=2:51
     tmp = comparison{1,j};
+    tmp2 = short_table{1,j};
+    tmpiv = iv_table{1,j};
+    iv_weakly(j,:) = nanmean(tmpiv);
+    iv_weakly(j,1:6) = sqrt(iv_weakly(j,1:6));
     comp_total(end+1:end+length(tmp),:) = tmp;
     comp_mean(j,:) = nanmean(tmp,1);
+    total_short(end+1:end+length(tmp),:) = tmp2;
 end
 comp_total = comp_total(2:end,:);
 comp_mean = comp_mean(2:end,7:12);
@@ -235,6 +260,33 @@ subplot(2,1,2)
 plot(1:50,comp_mean(:,[4,5]));
 legend("IV-MAPE NNvsObs","IV-MAPE HNGvsObs")%,"IV-MAPE NNvsHNG")
 title("Mean IV Deviation for every week in 2010")
-
 %set(gca, 'YScale', 'log')
 
+figure
+scatter3(comp_total(:,15),comp_total(:,16),comp_total(:,1)); hold on
+scatter3(comp_total(:,15),comp_total(:,16),comp_total(:,2)); hold on 
+scatter3(comp_total(:,15),comp_total(:,16),comp_total(:,3)); 
+ylim([0.9,1.1])
+xlim([10,250])
+
+figure
+tri = delaunay(comp_total(:,15),comp_total(:,16));
+trisurf(tri,comp_total(:,15),comp_total(:,16),comp_total(:,1),"FaceColor",[0.3,0.3,0.3],"EdgeColor",[0.3,0.3,0.3],"FaceAlpha",0.5,"LineStyle","none"); hold on
+scatter3(comp_total(:,15),comp_total(:,16),comp_total(:,2),"+"); hold on 
+scatter3(comp_total(:,15),comp_total(:,16),comp_total(:,3),"filled"); 
+
+shading interp
+figure
+subplot(2,1,1)
+scatter(comp_total(:,1),100*comp_total(:,7),20,"x");hold on
+scatter(comp_total(:,1),100*comp_total(:,8),20,"+");
+set(gca, 'XScale', 'log')
+xlabel("Observed Price (log axis)")
+ylabel("MAPE in %")
+legend("Neuralnetwork","Closedform Solution HNG")%,"IV-MAPE NNvsHNG")
+subplot(2,1,2)
+scatter(comp_total(:,1),100*comp_total(:,7),20,"x");hold on
+scatter(comp_total(:,1),100*comp_total(:,8),20,"+");
+xlabel("Observed Price")
+ylabel("MAPE in %")
+legend("Neuralnetwork","Closedform Solution HNG")%,"IV-MAPE NNvsHNG")

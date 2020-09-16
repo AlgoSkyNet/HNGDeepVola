@@ -315,8 +315,10 @@ def pricing_plotter(prediction,y_test,vega_test):
 def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots = 0):
     prediction_invtrafo= np.array([myinverse(x) for x in prediction_calibration])
     prediction_std = np.std(prediction_calibration,axis=0)
-    error = np.zeros((Ntest,Nparameters))
-    for i in range(Ntest):
+    Ndata = prediction_invtrafo.shape[0]
+    error = np.zeros((Ndata,Nparameters))
+
+    for i in range(Ndata):
         #error[i,:] =  np.abs((X_test_trafo2[i,:]-prediction[i,:])/X_test_trafo2[i,:])
         error[i,:] =  np.abs((X_test[i,:]-prediction_invtrafo[i,:])/X_test[i,:])
     err1 = np.mean(error,axis = 0)
@@ -328,8 +330,9 @@ def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots 
     _,_,c =constraint_violation(prediction_invtrafo)
     _,_,c2 =constraint_violation(X_test)
     
-    
+
     testing_violation = c>=1
+    bad_scenarios = prediction_invtrafo[testing_violation,:]
     testing_violation2 = (c<1)
     vio_error = error[testing_violation,:]
     vio_error2 = error[testing_violation2,:]
@@ -342,24 +345,24 @@ def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots 
         ax=plt.subplot(1,3,1)
         plt.boxplot(error)
         #plt.yscale("log")
-        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.xticks([1, 2, 3,4,5], ['a','b','g*',"w","h0"])
         plt.ylabel("Errors")
         ax=plt.subplot(1,3,2)
         plt.boxplot(vio_error)
         #plt.yscale("log")
-        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.xticks([1, 2, 3,4,5], ['a','b','g*',"w","h0"])
         plt.ylabel("Errors parameter violation")
         ax=plt.subplot(1,3,3)
         plt.boxplot(vio_error2)
         #plt.yscale("log")
-        plt.xticks([1, 2, 3,4], ['w','a','b','g*'])
+        plt.xticks([1, 2, 3,4,5], ['a','b','g*',"w","h0"])
         plt.ylabel("Errors no parameter violation")
         plt.show()
         plt.show()
     #HISTOGRAM
     plt.figure(figsize=(14,4))
     plt.suptitle('Rel Errors Neural Net Calibration per Parameter', fontsize=16)
-    legendlist = ['w','a','b','g*','h0']
+    legendlist = ['a','b','g*',"w",'h0']
     for i in range(Nparameters):
         ax=plt.subplot(2,Nparameters,i+1)
         plt.xscale("log")
@@ -466,7 +469,7 @@ def calibration_plotter(prediction_calibration,X_test_trafo2,X_test,extra_plots 
         plt.ylabel("Relative Deviation")
         plt.legend()
         
-    return error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2
+    return error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2,bad_scenarios
 
 def plotter_autoencoder(forecast,y_true_test,y_test,testing_violation,testing_violation2):
     # Example Plots
