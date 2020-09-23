@@ -253,6 +253,28 @@ NN2u.load_weights("calibrationweights_price_noscale2.h5")
 #error mean in %: [  8.34938273   2.46655531  46.0608626  246.8581466    1.8095703 ]
 #error median in %: [ 3.65276139  1.05874232 10.56845929 28.80609638  1.16847505]
 
+
+
+
+
+
+prediction_calibration2 = NN2t.predict(y_test_price_scale[good_test,:,:,:])
+
+prediction_autoencoder  = np.concatenate((prediction_calibration2,rates_test[good_test,:]),axis=1).reshape((n_testg,14,1,1))
+#forecast performance: 
+price_autoencoder  = (intrinsicnet_test+NNpriceFULL.predict(prediction_autoencoder)).reshape((n_testg,Nmaturities,Nstrikes))
+y_test_re_g    = 2000*yinversetransform(y_test_trafo_price).reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:]
+err_rel_mat,err_mat,err_optll,err_iv_approx,tmp,tmp= pricing_plotter(price_autoencoder,y_test_re_g,2000*vega_test.reshape((Ntest,Nmaturities,Nstrikes))[good_test,:,:])
+
+
+
+
+
+
+
+
+
+
 # In[PricingNetwork Sigmoid Activation RelMSE Train]:
 inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
 inputs_val = np.concatenate((X_val_trafo,rates_val.reshape((Nval,Nmaturities,1,1))),axis=1)
