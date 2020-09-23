@@ -77,14 +77,14 @@ def log_constraint(param,p2=30):
             return K.mean(K.square(y_pred - y_true)) +param*K.mean(1/(1+K.exp(-p2*(constraint-1))))
     return log_mse_constraint
 def l2rel_log_constraint(param,p2=30):
-    def log_mse_constraint(y_true, y_pred):
+    def log_rmse_constraint(y_true, y_pred):
             traf_a = 0.5*(y_pred[:,0]*diff[0]+bound_sum[0])
             traf_g = 0.5*(y_pred[:,2]*diff[2]+bound_sum[2])
             traf_b = 0.5*(y_pred[:,1]*diff[1]+bound_sum[1])
             constraint = traf_a*K.square(traf_g)+traf_b
             #constraint = K.variable(value=constraint, dtype='float64')
             return K.sqrt(K.mean(K.square((y_pred - y_true)/y_true))) +param*K.mean(1/(1+K.exp(-p2*(constraint-1))))
-    return log_mse_constraint
+    return log_rmse_constraint
 
 def mape_constraint(param,p2=30):
     def r_constraint(y_true, y_pred):

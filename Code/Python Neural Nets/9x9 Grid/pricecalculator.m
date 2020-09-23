@@ -13,13 +13,17 @@ for i =1:N
     if mod(i,100)==0,disp(i);end
     for m =1:9
         for s=1:9
-            imp_price(i,m,s) = blsprice(S0, Strikes(s),rates(m), Maturities(m)/252,vola(i,m,s));
-            imp_price_forecast(i,m,s) = blsprice(S0, Strikes(s),rates(m), Maturities(m)/252,vola_forecast(i,m,s));
-            imp_vola(i,m,s) = blsimpv(S0, Strikes(s),rates(m), Maturities(m)/252,price(i,m,s));
-            imp_vola_forecast(i,m,s) = blsimpv(S0, Strikes(s),rates(m), Maturities(m)/252,forecast(i,m,s));
+            imp_price(i,m,s) = blsprice(S0, Strikes(s),rates(i,m), Maturities(m)/252,vola(i,m,s));
+            imp_price_forecast(i,m,s) = blsprice(S0, Strikes(s),rates(i,m), Maturities(m)/252,vola_forecast(i,m,s));
+            imp_vola(i,m,s) = blsimpv(S0, Strikes(s),rates(i,m), Maturities(m)/252,price(i,m,s));
+            imp_vola_forecast(i,m,s) = blsimpv(S0, Strikes(s),rates(i,m), Maturities(m)/252,forecast(i,m,s));
          end
     end
 end
+%
+mean_p = reshape(mean(abs(price-forecast)./price,1),9,9);
+mean_v = reshape(mean(abs(vola-vola_forecast)./vola,1),9,9); 
+
 % Errors from vola network >implied prices
 mape1_impprice = abs(price-imp_price_forecast)./price;
 mape2_impprice = abs(imp_price-imp_price_forecast)./imp_price;

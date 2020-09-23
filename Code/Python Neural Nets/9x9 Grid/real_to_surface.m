@@ -119,7 +119,7 @@ for j=2:51
     surface_for_python2(pos_x1:pos_x2,pos_y1:pos_y2) = interpolatedData_surf;
     surface_for_python2 = flipud(surface_for_python2);
     mv_idx = surface_for_python2==-999;
-    surface_forNN = cat(3,surface_for_python2,mv_idx);
+    surface_forNN = cat(3,surface_for_python2,mv_vegaidx);
     data_1(j-1,:,:) = surface_for_python;
     data_2(j-1,:,:,:) = surface_forNN;
 end

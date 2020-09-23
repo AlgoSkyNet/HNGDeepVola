@@ -162,12 +162,14 @@ history_calib = NN2t.fit(y_train_price_scale,X_train_trafo2, batch_size=120, val
 #error median in %: [ 3.91680533  2.1041695  21.11251931 28.47064688  1.54899471]
 
 NN2t.load_weights("calibrationweights_price_scale3.h5")
-#error mean in %: [  9.59446253   3.3221475   61.35534678 257.13928187   1.98673457]
-#error median in %: [ 3.9278435   2.2255678  13.32730602 24.6635999   1.34492209]
 prediction_calibration2 = NN2t.predict(y_test_price_scale)
 prediction_invtrafo2= np.array([myinverse(x) for x in prediction_calibration2])
+
 #plots
 error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp,bad_scenarios = calibration_plotter(prediction_calibration2,X_test_trafo2,X_test)
+#error mean in %: [  9.59446253   3.3221475   61.35534678 257.13928187   1.98673457]
+#error median in %: [ 3.9278435   2.2255678  13.32730602 24.6635999   1.34492209]
+
 prediction_calibration_train = NN2t.predict(y_train_price_scale)
 error_cal_train,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp,bad_scenarios_train = calibration_plotter(prediction_calibration_train,X_train_trafo2,X_train)
 #violation error mean in %: [6.74096068 7.22387983 5.4740058  6.37823168 0.87656606]
@@ -183,6 +185,73 @@ error_cal_train,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp,bad_scenarios_train = calibratio
 # decrease param1 every 200 epochs (20patience) with param =  1 ,0.1, 0.05, 0.02 
 # 0.02 leads to violations which fit really good luckily
 #hyperparameter league; optimised grid search?,
+path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
+mat         = scipy.io.loadmat(path+"2010_interpolatedgrid_full.mat")
+data_calib1        = ytransform(mat['data_1']/2000,0)
+mat         = scipy.io.loadmat(path+"2010_interpolatedgrid_mv.mat")
+data_calib2       = ytransform(mat['data_2']/2000,0)
+calib_mv1 = np.array([myinverse(x) for x in NN2t.predict(data_calib1.reshape(50,9,9,1))])
+calib_mv2 = np.array([myinverse(x) for x in NN2t.predict(Im2Im.predict(data_calib2))])
+
+
+NN2u = Sequential() 
+NN2u.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
+NN2u.add(Conv2D(64,(3, 3),use_bias= True, padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(MaxPooling2D(pool_size=(2, 2)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(ZeroPadding2D(padding=(1,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(ZeroPadding2D(padding=(1,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(ZeroPadding2D(padding=(1,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(ZeroPadding2D(padding=(1,1)))
+NN2u.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled2(2,1,0,1)))
+NN2u.add(Flatten())
+NN2u.add(Dense(Nparameters,activation = sig_scaled2(2,1,0,1),use_bias=True))
+NN2u.summary()
+es = EarlyStopping(monitor='val_mean_squared_error', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+#NN2u.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#history_calib1 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+#NN2u.compile(loss =log_constraint(param=0.1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#history_calib2 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+#NN2u.compile(loss =log_constraint(param=0.05,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#history_calib3 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+#NN2u.compile(loss =log_constraint(param=0.02,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#history_calib3 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+NN2u.load_weights("calibrationweights_price_noscale.h5")
+prediction_calibration2= NN2u.predict(y_test_trafo2_price)
+prediction_invtrafo2= np.array([myinverse(x) for x in prediction_calibration2])
+#plots
+error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp,bad_scenarios = calibration_plotter(prediction_calibration2,X_test_trafo2,X_test)
+#violation error mean in %: [8.41421396 9.89426299 5.57732473 9.79142987 0.41425912]
+#no violation error mean in %: [ 10.84411513   3.83723956  33.30644314 270.48082549   1.95264569]
+#violation error median in %: [8.41421396 9.89426299 5.57732473 9.79142987 0.41425912]
+#no violation error median in %: [ 4.53147174  2.48029833 12.27446847 28.76238562  1.39845012]
+#error mean in %: [ 10.84400188   3.83752187  33.30515071 270.46867497   1.95257399]
+#error median in %: [ 4.53164383  2.48037491 12.27347941 28.76128185  1.39836023]
+#NN2u.compile(loss =log_constraint(param=0.02,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+#history_calib3 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+es = EarlyStopping(monitor='val_mean_squared_error', mode='min', verbose=1,patience = 30 ,restore_best_weights=True)
+
+NN2u.compile(loss =log_constraint(param=0.01,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history_calib4 = NN2u.fit(y_train_trafo2_price,X_train_trafo2, batch_size=120, validation_data = (y_val_trafo2_price,X_val_trafo2), epochs=1000, verbose = True, shuffle=1,callbacks =[es,TerminateOnNaN()])
+
+prediction_calibration2= NN2u.predict(y_test_trafo2_price)
+prediction_invtrafo2= np.array([myinverse(x) for x in prediction_calibration2])
+#plots
+error_cal2,tmp,tmp,tmp,tmp,tmp,tmp,tmp,tmp,bad_scenarios = calibration_plotter(prediction_calibration2,X_test_trafo2,X_test)
+#NN2u.save_weights("calibrationweights_price_noscale2.h5")
+NN2u.load_weights("calibrationweights_price_noscale2.h5")
+
+#violation error mean in %: [ 8.43303848 19.71777368  3.59140641 23.68943221  2.49093993]
+#no violation error mean in %: [  8.34937103   2.46414277  46.06680183 246.88935609   1.80947501]
+#violation error median in %: [ 7.71004472 13.32453395  3.37973814 11.49818568  1.9625375 ]
+#no violation error median in %: [ 3.64995966  1.05854563 10.57111727 28.80930643  1.16830942]
+#error mean in %: [  8.34938273   2.46655531  46.0608626  246.8581466    1.8095703 ]
+#error median in %: [ 3.65276139  1.05874232 10.56845929 28.80609638  1.16847505]
 
 # In[PricingNetwork Sigmoid Activation RelMSE Train]:
 inputs_train =np.concatenate((X_train_trafo,rates_train.reshape((Ntrain,Nmaturities,1,1))),axis=1)
@@ -852,11 +921,13 @@ NNpriceFULLvola.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(1,
 #NNpriceFULLvola.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='sigmoid', kernel_constraint = tf.keras.constraints.NonNeg()))
 #NNpriceFULLvola.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(2,1),activation ='relu'))#, kernel_constraint = tf.keras.constraints.NonNeg()))
 NNpriceFULLvola.summary()
-
+#es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
 #NNpriceFULLvola.compile(loss = root_mean_squared_error, optimizer ="adam",metrics=["MAPE","MSE"])
 #historyFULLvola = NNpriceFULLvola.fit(inputs_train[good_train,:,:,:], y_train_trafo1[good_train,:,:,:], batch_size=64, validation_data = (inputs_val[good_val,:,:,:], y_val_trafo1[good_val,:,:,:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-#NNpriceFULLvola.save_weights("vola_relmse_weights_1net_full.h5")
-NNpriceFULLvola.load_weights("vola_relmse_weights_1net_full.h5")
+#NNpriceFULLvola.save_weights("vola_relmse_weights_1net_full50pat.h5")
+NNpriceFULLvola.load_weights("vola_relmse_weights_1net_full50pat.h5")
+
+#NNpriceFULLvola.load_weights("vola_relmse_weights_1net_full.h5")
 from add_func_9x9 import vola_plotter
 
 prediction_vola   = NNpriceFULLvola.predict(inputs_test[good_test,:,:,:]).reshape((n_testg,Nmaturities,Nstrikes))
@@ -885,11 +956,11 @@ plt.show()
 
 
 
-es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-NNpriceFULLvola.compile(loss = "MSE", optimizer ="adam",metrics=["MAPE"])
-historyFULLvola_mse = NNpriceFULLvola.fit(inputs_train[good_train,:,:,:], y_train_trafo1[good_train,:,:,:], batch_size=64, validation_data = (inputs_val[good_val,:,:,:], y_val_trafo1[good_val,:,:,:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
-NNpriceFULLvola.save_weights("vola_mse_weights_1net_full.h5")
-#NNpriceFULLvola.load_weights("vola_mse_weights_1net_full.h5")
+#es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
+#NNpriceFULLvola.compile(loss = "MSE", optimizer ="adam",metrics=["MAPE"])
+#historyFULLvola_mse = NNpriceFULLvola.fit(inputs_train[good_train,:,:,:], y_train_trafo1[good_train,:,:,:], batch_size=64, validation_data = (inputs_val[good_val,:,:,:], y_val_trafo1[good_val,:,:,:]), epochs =1000, verbose = True, shuffle=1,callbacks=[es])
+#NNpriceFULLvola.save_weights("vola_mse_weights_1net_full.h5")
+NNpriceFULLvola.load_weights("vola_mse_weights_1net_full.h5")
 
 
 
@@ -1059,9 +1130,13 @@ Im2Im.add(Conv2D(32, (2, 2),padding='valid',use_bias =True,strides =(1,1),activa
 Im2Im.add(Conv2D(1, (2, 2),padding='valid',use_bias =True,strides =(1,1),activation ='elu'))
 Im2Im.summary()
 es_im2im = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 5 ,restore_best_weights=True)
-Im2Im.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
+#Im2Im.compile(loss = "MSE", optimizer = "adam",metrics=["MAPE","MSE"])
+#Im2Im_history = Im2Im.fit(mv_x_train_set[:int(0.8*n1*n2),:,:,:], mv_y_train_set[:int(0.8*n1*n2),:,:,:], batch_size=2500, validation_data = (mv_x_train_set[int(0.8*n1*n2):int(0.9*n1*n2),:,:,:], mv_y_train_set[int(0.8*n1*n2):int(0.9*n1*n2),:,:,:]),epochs =50, verbose = True,callbacks =[es_im2im], use_multiprocessing=True,workers=50)
+#Im2Im.load_weights("missing_value_network_mse.h5")
+Im2Im.compile(loss = root_relative_mean_squared_error, optimizer = "adam",metrics=["MAPE","MSE"])
 Im2Im_history = Im2Im.fit(mv_x_train_set[:int(0.8*n1*n2),:,:,:], mv_y_train_set[:int(0.8*n1*n2),:,:,:], batch_size=2500, validation_data = (mv_x_train_set[int(0.8*n1*n2):int(0.9*n1*n2),:,:,:], mv_y_train_set[int(0.8*n1*n2):int(0.9*n1*n2),:,:,:]),epochs =50, verbose = True,callbacks =[es_im2im], use_multiprocessing=True,workers=50)
-Im2Im.save_weights("missing_value_network_mse.h5")
+Im2Im.save_weights("missing_value_network_relmse.h5")
+
 
 prediction_im2im   = Im2Im.predict(mv_x_train_set[int(0.9*n1*n2):,:,:,:]).reshape((int(0.1*n1*n2),9,9))
 err_rel_mat,err_mat = vola_plotter(prediction_im2im,mv_y_train_set[int(0.9*n1*n2):,:,:,:].reshape((int(0.1*n1*n2),9,9)))
