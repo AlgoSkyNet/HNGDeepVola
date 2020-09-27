@@ -18,6 +18,7 @@ for i = unique(weeksprices)
     
     struc               =  struct();
     struc.numOptions    =  length(data_week(:, 1));
+   
     % compute interest rates for the weekly options
         interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
@@ -34,7 +35,9 @@ for i = unique(weeksprices)
             interestRates(k)=0;
         end
     end
+    if j == 1
     r=max([interestRates',0])/252;
+    end
     j = j + 1;
     r_cur = zeros(length(data_week), 1);
         for k = 1:length(data_week)
@@ -94,7 +97,7 @@ for i = unique(weeksprices)
     struc.hngPrice      =   abs(price_Q(opt_params_clean(i,:), data_week, r_cur./252, sigmaseries(end))) ;
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
-    struc.optionsLikhng =   -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1);
+    struc.optionsLikhng    = -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1 + sum(log(struc.blsvega)) * 2/struc.numOptions);
     values{i}           =   struc;
     totalOLL = totalOLL + struc.optionsLikhng;
     

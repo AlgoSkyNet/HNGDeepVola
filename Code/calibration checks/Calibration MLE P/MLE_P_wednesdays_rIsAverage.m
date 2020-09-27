@@ -55,7 +55,8 @@ sigma2_last                 = NaN*ones(length(index),1);
 useYield = 1;
 
 %path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                = 'C:/GIT/HenrikAlexJP/Data/Datasets';
+path                = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                = 'C:/GIT/HenrikAlexJP/Data/Datasets';
 if useYield
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else
@@ -64,14 +65,13 @@ else
 load(path_r);
 tic;
 for i=1:length(index)
-    tmp = shortdata(i,2)-2009; %  year 
     display(datatable.Date(index(i)));
     toc
-    logret = data(index(i)-win_len:index(i)-1,4);
+    logret = data(index(i)-win_len+1:index(i),4);
     hist_vola(i) = sqrt(252)*std(logret);
     % compute interest rates for the weekly options
     if useYield
-         dates_oi = data(index(i)-win_len:index(i)-1,1);
+        dates_oi = data(index(i)-win_len + 1:index(i),1);
         [ind1,ind2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dates_oi);
         r = SP500_date_prices_returns_realizedvariance_interestRates(8, ind2);
         r = nanmean(r);
@@ -86,7 +86,7 @@ for i=1:length(index)
 %                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
 %         end
     else
-        dates = data(index(i)-win_len:index(i)-1,1);
+        dates = data(index(i)-win_len+1:index(i),1);
         [ig1,ig2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==dates);
         r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
             ig2);
@@ -103,7 +103,8 @@ for i=1:length(index)
     end
     r=max(r,0)/252;
     
-    
+    r_struct(i).rval = r;
+    date(i) = (dates_oi(end));
     if ifEstimateh0
         f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
     else
@@ -183,5 +184,5 @@ else
 end
 
 save('weekly_10to18_mle_opt_h0est_rAv_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
-    'params_Q_mle_weekly','params_P_mle_weekly')
+    'params_Q_mle_weekly','params_P_mle_weekly','date','r_struct')
 save('weekly_10to18_mle_opt_h0est_rAv_rng_allResSaved.mat')
