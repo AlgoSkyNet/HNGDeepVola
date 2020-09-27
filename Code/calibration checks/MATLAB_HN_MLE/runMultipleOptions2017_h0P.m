@@ -144,7 +144,7 @@ opt = optimoptions('fmincon', ...
 xmin_fmincon = xxval.*scaler;
 params = xmin_fmincon;
 
-[fValOut, values]=getCalibratedData(params, weeksprices, sig_tmp(2), data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+[fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp(2), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 save('res2017_h0P_r.mat');
 
 % %local optimization
