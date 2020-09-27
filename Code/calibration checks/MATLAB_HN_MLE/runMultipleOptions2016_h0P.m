@@ -142,13 +142,20 @@ opt = optimoptions('fmincon', ...
 %local optimization
 [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
 xmin_fmincon = xxval.*scaler;
+params = xmin_fmincon;
 
-save('res2016_h0P.mat');
- gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
-            'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
- problem = createOptimProblem('fmincon','x0',Init_scale,...
-                'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-[xmin,fmin] = run(gs,problem);
+[fValOut, values]=getCalibratedData(params, weeksprices, sig_tmp(2), data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+save('res2016_h0P_r.mat');
 
-xmin_gs = xmin.*scaler;
-save('res2016_h0P.mat');
+% %local optimization
+% [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+% xmin_fmincon = xxval.*scaler;
+% 
+% save('res2014_h0P.mat');
+%  gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+%             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
+%  problem = createOptimProblem('fmincon','x0',Init_scale,...
+%                 'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+% [xmin,fmin] = run(gs,problem);
+% 
+% xmin_gs = xmin.*scaler;

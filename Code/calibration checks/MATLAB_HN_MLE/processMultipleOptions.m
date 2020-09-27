@@ -1,5 +1,5 @@
 clear;
-load('res2014.mat');
+load('res2010_r.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 %save('resMultipleOptions2010.mat');
@@ -10,7 +10,7 @@ for i = 1:length(values1)
     IVRMSE1(i)= values1{1,i}.IVRMSE;
     end
 end
-load('res2014_h0P.mat');
+load('res2010_r.mat');
 params = xmin_fmincon;
 [fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp(2), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 
