@@ -1,5 +1,5 @@
 clear;
-load('res2017_r.mat');
+load('res2016_r.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 %save('resMultipleOptions2010.mat');
@@ -34,9 +34,12 @@ end
 %     end
 % end
 
-load('res2017_h0P_r.mat');
+% load('res2017_h0P_new.mat');
+% params = xmin_fmincon;
+% [fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+load('res2016_h0RV.mat');
 params = xmin_fmincon;
-[fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp(2), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+[fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 
 for i = 1:length(values2)
     if ~isempty(values2{1,i})

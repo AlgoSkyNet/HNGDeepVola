@@ -25,7 +25,8 @@ stock_ind           = 'SP500';
 year                = 2012;
 useYield            = 0; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
+useUpdatedh0Q       = 1; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'MSE'; % 'MSE';   'MAPE';  ,'OptLL';
@@ -61,16 +62,21 @@ Dates                   = Dates(wednessdays);
 %load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
 %load(strcat('C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
 %load(strcat('/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
-load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+if useUpdatedh0Q
+    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
 
-if useRealVola || useMLEPh0
+else
+    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+
+end
+if useRealVola || useMLEPh0 || useUpdatedh0Q
     num_params = 4;
 else
     num_params = 5;
 end
 
 Init = params_tmp;
-if ~(useRealVola || useMLEPh0)
+if ~(useRealVola || useMLEPh0 || useUpdatedh0Q)
     Init = [params_tmp,sig_tmp];
 end
 
@@ -117,7 +123,7 @@ sig2_0           =   zeros(1,max(weeksprices));
 Init_scale       =   Init_scale_mat(min(weeksprices), :);
 scaler           =   sc_fac(min(weeksprices), :);
 
-if useMLEPh0
+if useMLEPh0 || useUpdatedh0Q
     f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp(2), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
 else
     f_min_raw = @(params,scaler) runCalibrationh0(params.*scaler, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
