@@ -1,5 +1,5 @@
 clear;
-load('res2016_r.mat');
+load('res2015_r.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 %save('resMultipleOptions2010.mat');
@@ -37,7 +37,7 @@ end
 % load('res2017_h0P_new.mat');
 % params = xmin_fmincon;
 % [fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
-load('res2016_h0RV.mat');
+load('res2015_h0RV.mat');
 params = xmin_fmincon;
 [fValOuth0P, values2]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 
