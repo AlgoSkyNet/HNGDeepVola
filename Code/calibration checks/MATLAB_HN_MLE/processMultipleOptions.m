@@ -30,7 +30,7 @@ mean(IVRMSE1)
 % end
 % end
 
-load('res2016_h0P_6m.mat');
+load('res2018_h0Q_6m.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp(2), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
 %save('resMultipleOptions2010.mat');
