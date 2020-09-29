@@ -2,12 +2,18 @@ clc;
 clearvars;
 close all;
 warning('on')
+ifHalfYear      = 1;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
 years           = (dataRet(:,2)==2010);% | (data(:,2)==2011) | (data(:,2)==2012) | (data(:,2)==2013) | (data(:,2)==2014) | (data(:,2)==2015) | (data(:,2)==2016) | (data(:,2)==2017) | (data(:,2)==2018);
 wednesdays      = (weekday(dataRet(:,1))==4);
-doi             = years & wednesdays; %days of interest
+if ifHalfYear
+    months          = (month(dataRet(:,1))==1 | month(dataRet(:,1))==2 | month(dataRet(:,1))==3 | month(dataRet(:,1))==4 | month(dataRet(:,1))==5 | month(dataRet(:,1))==6);
+    doi             = years & months & wednesdays; %days of interest
+else
+    doi             = years & wednesdays; %days of interest
+end
 index           = find(doi);
 shortdata       = dataRet(doi,:);
 tmp             = shortdata(1,2)-2009; %  year
@@ -24,7 +30,7 @@ path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Dat
 stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
@@ -50,7 +56,11 @@ formatIn                = 'dd-mmm-yyyy';
 % start from the first Wednesday of 2010 and finish with the last Wednesday
 % of 2010
 DateString_start        = strcat('01-January-',num2str(year));
-DateString_end          = strcat('31-December-',num2str(year));
+if ifHalfYear
+    DateString_end          = strcat('30-June-',num2str(year));
+else
+    DateString_end          = strcat('31-December-',num2str(year));
+end
 date_start              = datenum(DateString_start, formatIn);
 date_end                = datenum(DateString_end, formatIn);
 wednessdays             = (weekday(date_start:date_end)==4);
@@ -185,12 +195,24 @@ else
     % xmin_gs = xmin.*scaler;
     
 end
-if useMLEPh0
-    save('res2010_h0P_new.mat');
-elseif useUpdatedh0Q
-    save('res2010_h0Q_new.mat');
-elseif useRealVola
-    save('res2010_h0RV.mat');
+if ifHalfYear
+    if useMLEPh0
+        save('res2010_h0P_6m.mat');
+    elseif useUpdatedh0Q
+        save('res2010_h0Q_6m.mat');
+    elseif useRealVola
+        save('res2010_h0RV_6m.mat');
+    else
+        save('res2010_6m.mat');
+    end
 else
-    save('res2010_new.mat');
+    if useMLEPh0
+        save('res2010_h0P_new.mat');
+    elseif useUpdatedh0Q
+        save('res2010_h0Q_new.mat');
+    elseif useRealVola
+        save('res2010_h0RV.mat');
+    else
+        save('res2010_new.mat');
+    end
 end
