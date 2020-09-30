@@ -56,6 +56,8 @@ for i = unique(weeksprices)
         
         
     struc.Price         =   data_week(:, 1)';
+    struc.Date = dataRet(index(j-1),1);
+    struc.DateStr = datestr(dataRet(index(j-1),1));
     struc.yields        =   interestRates;
     struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
@@ -85,6 +87,7 @@ for i = unique(weeksprices)
     struc.MSE           =   mean((struc.hngPrice - struc.Price).^2);
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
+    struc.sigma2series   = sigmaseries;
     values{i}           =   struc;   
     totalOLL = totalOLL + struc.optionsLikhng;
     

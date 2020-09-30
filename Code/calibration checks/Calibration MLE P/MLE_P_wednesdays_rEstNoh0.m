@@ -58,7 +58,8 @@ sigma2_last                 = NaN*ones(length(index),1);
 useYield = 0;
 
 %path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                = 'C:/GIT/HenrikAlexJP/Data/Datasets';
+%path                = 'C:/GIT/HenrikAlexJP/Data/Datasets';
+path                = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 if useYield
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
 else

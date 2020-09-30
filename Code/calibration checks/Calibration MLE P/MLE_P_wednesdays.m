@@ -185,15 +185,15 @@ for i=1:length(index)
     opt_ll(i)                       = -fmin;
     params_mle_weekly(i,:)          = params;
     params_mle_weekly_original(i,:) = params_original;
-%     if ifEstimateh0
-%         if ~ifEstimater
-%             [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
-%         else
-%             [likVal, sigma2_last(i)] = ll_hng_n_h0r(params_original,logret);
-%         end
-%     else
-%         [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
-%     end
+    if ifEstimateh0
+        if ~ifEstimater
+            [likVal, sigma2_last(i)] = ll_hng_n_h0(params_original,logret,r);
+        else
+            [likVal, sigma2_last(i)] = ll_hng_n_h0r(params_original,logret);
+        end
+    else
+        [likVal, sigma2_last(i)] = ll_hng_n(params_original,logret,r,sigma0);
+    end
     r_all(i) = r;
 end
 

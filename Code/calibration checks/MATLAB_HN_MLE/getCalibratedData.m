@@ -85,6 +85,7 @@ for i = unique(weeksprices)
     struc.MSE           =   mean((struc.hngPrice - struc.Price).^2);
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
+     struc.sigma2series   = sigmaseries;
     values{i}           =   struc;   
 
     totalOLL = totalOLL + struc.optionsLikhng;
