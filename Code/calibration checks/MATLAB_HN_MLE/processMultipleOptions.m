@@ -1,7 +1,7 @@
 clear;
-load('res2018_6m.mat');
+load('res2015_h0calibr_6m_avR.mat');
 params = xmin_fmincon;
-[fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+[fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 %save('resMultipleOptions2010.mat');
 for i = 1:length(values1)
     if ~isempty(values1{1,i})

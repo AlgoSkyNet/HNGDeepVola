@@ -4,6 +4,7 @@ close all;
 warning('on')
 ifHalfYear      = 1;
 currentYear     = 2015;
+useRPrescribed = 1;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
@@ -38,6 +39,9 @@ display(datatable.Date(index(end)));
 display(datatable.Date(indexNextPeriodFirst));
 
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+%pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 0; % uses tbils now
@@ -80,9 +84,11 @@ Dates                   = DatesYear(wednessdays);
 
 % initialize with the data from MLE estimation for each week
 if useUpdatedh0Q
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+elseif useRPrescribed
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0p rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
     
 end
 if useRealVola || useMLEPh0 || useUpdatedh0Q
@@ -120,8 +126,8 @@ data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; Optio
 % Initialization
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
-lb_mat           =   [1e-12, 0, 0, -1300];
-ub_mat           =   [1, 1, 1, 1300];
+lb_mat           =   [1e-12, 0, 0, -1500];
+ub_mat           =   [1, 1, 1, 1500];
 algorithm           = 'interior-point';% 'sqp'
 
 if ~(useRealVola || useMLEPh0 || useUpdatedh0Q)

@@ -1,0 +1,30 @@
+				OptLL		MSE			IVRMSE		PARAMETERS
+2010			
+h0P				
+h0 realVola		
+h0Qunc			
+h0 estimated	
+
+2011			
+h0P				
+h0 realVola		
+h0Qunc			
+h0 estimated	-132.4913	21.6993	 	0.2089		2.20704829184299e-11	1.52306719021617e-06	0.719668813891244	421.668953073711	8.68061357788395e-05
+
+2012			
+h0P				
+h0 realVola		
+h0Qunc			
+h0 estimated	-128.4743	10.7499		0.1478		3.87900804167585e-11	1.89630390043842e-06	0.856525287866423	259.658397216729	0.000151123320109724
+
+2013			
+h0P				
+h0 realVola		
+h0Qunc			
+h0 estimated	
+
+2014			
+h0P				
+h0 realVola		
+h0Qunc			
+h0 estimated	
