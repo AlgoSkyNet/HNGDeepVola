@@ -208,7 +208,7 @@ else
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,rValue,params(5));
-    sigma20forNextPeriod = sigmaseries(last);
+    sigma20forNextPeriod = sigmaseries(end);
 end
 
 strYear = num2str(currentYear);
