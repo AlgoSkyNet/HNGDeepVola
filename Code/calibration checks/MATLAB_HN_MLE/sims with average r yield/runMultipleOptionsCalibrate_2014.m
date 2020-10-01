@@ -37,10 +37,10 @@ display(datatable.Date(index(1)));
 display(datatable.Date(index(end)));
 display(datatable.Date(indexNextPeriodFirst));
 
-%path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
-path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
-%pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
-pathF                =  'C:/GIT/HenrikAlexJP/';
+path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+%pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 1; % uses tbils now
@@ -125,7 +125,7 @@ data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; Optio
 % Initialization
 sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
-lb_mat           =   [1e-12, 0, 0, -1300];
+lb_mat           =   [1e-12, 0, 0, 0];
 ub_mat           =   [1, 1, 1, 1300];
 algorithm           = 'interior-point';% 'sqp'
 
