@@ -189,7 +189,7 @@ if useMLEPh0 || useUpdatedh0Q
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
-    sigma20forNextPeriod = sigmaseries(last);
+    sigma20forNextPeriod = sigmaseries(end);
 elseif useRealVola
     %local optimization
     %     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -207,7 +207,7 @@ elseif useRealVola
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret,rValue, sig_tmp);
-    sigma20forNextPeriod = sigmaseries(last);
+    sigma20forNextPeriod = sigmaseries(end);
 else
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -217,7 +217,7 @@ else
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,rValue,params(5));
-    sigma20forNextPeriod = sigmaseries(last);
+    sigma20forNextPeriod = sigmaseries(end);
 end
 
 strYear = num2str(currentYear);
