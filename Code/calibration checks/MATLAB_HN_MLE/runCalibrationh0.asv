@@ -1,10 +1,10 @@
-function [fValOut]=runCalibration(params, weeksprices, data, sig2_0, SP500_date_prices_returns_realizedvariance_interestRates, ...
-    Dates,dataRet, vola_tmp, index, rValue)
+function [fValOut]=runCalibrationh0(params, weeksprices, data, ...
+                                    SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, ...
+                                    vola_tmp, index, rValue)
 
 %% weekly optimization
 j = 1;
 totalOLL = 0;
-
 for i = unique(weeksprices)
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
@@ -20,9 +20,10 @@ for i = unique(weeksprices)
     if dataRet(index(j),1) ~= Dates(j)
         disp('problem with dates!');
     end
-    
     struc               =  struct();
     struc.numOptions    =  length(data_week(:, 1));
+    
+    
     % compute interest rates for the weekly options
     interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
@@ -39,12 +40,13 @@ for i = unique(weeksprices)
             interestRates(k)=0;
         end
     end
-    
-    if nargin > 8 && rValue
+    if nargin > 8
         % use average r for the vola dynamics
         if rValue
             r = rValue/252;
         end
+        
+            
     else
         if j == 1
             r=max([interestRates',0])/252;
@@ -64,7 +66,7 @@ for i = unique(weeksprices)
             end
         end
     end
-    [~, sigmaseries] = ll_hng_Q_n(params,logret,r,sig2_0);
+    [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,r,params(5));
     
     
     struc.Price         =   data_week(:, 1)';
@@ -74,7 +76,7 @@ for i = unique(weeksprices)
     struc.num_NaN_implVols = length(indNaN);
     struc.blsimpv(indNaN) = data_week(indNaN, 6);
     struc.blsvega = blsvega(data_week(:, 4),  data_week(:, 3), r_cur(:), data_week(:, 2)/252, struc.blsimpv(:));
-    struc.Price         =   data_week(:, 1)';
+    
     struc.hngPrice      =   abs(price_Q(params, data_week, r_cur./252, sigmaseries(end))) ;
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);

@@ -3,15 +3,14 @@ clearvars;
 close all;
 warning('on')
 ifHalfYear      = 0;
-currentYear     = 2010;
+currentYear     = 2012;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
 years           = (dataRet(:,2) == currentYear);
 wednesdays      = (weekday(dataRet(:,1))==4);
-tuesdays        = (weekday(dataRet(:,1))==3);
 if ifHalfYear
-    months      = (month(dataRet(:,1))==1 | month(dataRet(:,1))==2 | month(dataRet(:,1))==3 | month(dataRet(:,1))==4 | month(dataRet(:,1))==5 | month(dataRet(:,1))==6);
+    months      = (month(dataRet(:,1)) == 1 | month(dataRet(:,1)) == 2 | month(dataRet(:,1)) == 3 | month(dataRet(:,1))==4 | month(dataRet(:,1))==5 | month(dataRet(:,1))==6);
     doi         = years & months & wednesdays; %days of interest
 else
     doi         = years & wednesdays; %days of interest
@@ -20,7 +19,7 @@ index           = find(doi);
 display(datatable.Date(index(1)));
 
 %next period
-tuesdays        = (weekday(dataRet(:,1))==3);
+tuesdays        = (weekday(dataRet(:,1)) == 3);
 if ifHalfYear
     monthFirst  = (month(dataRet(:,1)) == 7) ;
     doiNextPeriod   = years & monthFirst & tuesdays; %days of interest of the next period

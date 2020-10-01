@@ -19,23 +19,19 @@ end
 index           = find(doi);
 display(datatable.Date(index(1)));
 
-%next period
+%next year
+yearNext        = (dataRet(:,2) == currentYear + 1);
 tuesdays        = (weekday(dataRet(:,1))==3);
 if ifHalfYear
-    monthFirst  = (month(dataRet(:,1)) == 7) ;
-    doiNextPeriod   = years & monthFirst & tuesdays; %days of interest of the next period
 else
-    monthFirst  = (month(dataRet(:,1)) == 1) ;
-    yearNext        = (dataRet(:,2) == currentYear + 1);
-    doiNextPeriod   = yearNext & monthFirst & tuesdays; %days of interest of the next period
-end
+monthFirst      = (month(dataRet(:,1))==1) ;
+doiNextYear     = yearNext & monthFirst & tuesdays; %days of interest of the next period
 
-
-indexNextPeriod      = find(doiNextPeriod);
-indexNextPeriodFirst = indexNextPeriod(1);
+indexNextYear           = find(doiNextYear);
+indexNextYearFirst = indexNextYear(1);
 display(datatable.Date(index(1)));
 display(datatable.Date(index(end)));
-display(datatable.Date(indexNextPeriodFirst));
+display(datatable.Date(indexNextYearFirst));
 
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
@@ -177,10 +173,6 @@ if useMLEPh0 || useUpdatedh0Q
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
-    
-    logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
-    sigma20forNextPeriod = sigmaseries(last);
 elseif useRealVola
     %local optimization
     %     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -194,19 +186,15 @@ elseif useRealVola
     [xmin,fmin] = run(gs,problem);
     xmin_gs = xmin.*scaler;
     params = xmin_gs;
-    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+    [fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
     
-    logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret,rValue, sig_tmp);
-    sigma20forNextPeriod = sigmaseries(last);
 else
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
     [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
-    
-    logret = dataRet(index(1):indexNextPeriodFirst,4);
+    logret = dataRet(index(1):indexNextYearFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,rValue,params(5));
     sigma20forNextPeriod = sigmaseries(last);
 end

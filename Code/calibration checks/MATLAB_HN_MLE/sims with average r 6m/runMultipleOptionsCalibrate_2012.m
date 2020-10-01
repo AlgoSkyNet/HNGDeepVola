@@ -2,8 +2,8 @@ clc;
 clearvars;
 close all;
 warning('on')
-ifHalfYear      = 0;
-currentYear     = 2010;
+ifHalfYear      = 1;
+currentYear     = 2012;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
