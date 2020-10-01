@@ -22,14 +22,14 @@ for i = unique(weeksprices)
     
     
     % compute interest rates for the weekly options
-    interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+    interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1));
     if isempty(interestRates)
-        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1)-1);
     end
     if all(isnan(interestRates))
-        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
+        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1)-1);
     end
     for k = 1:length(interestRates)
@@ -54,7 +54,11 @@ for i = unique(weeksprices)
             r_cur(k) = interestRates(1);
         else
             notNaN = ~isnan(interestRates);
-            daylengths = [21, 42, 13*5, 126, 252]./252;
+            if length(interestRates) == 4
+                daylengths = [21, 63, 126, 252]./252;
+            else
+                daylengths = [21, 42, 13*5, 126, 252]./252;
+            end
             r_cur(k) = interp1(daylengths(notNaN), interestRates(notNaN), data_week(k, 2)./252);
             if isnan(r_cur(k))
                 b=0;

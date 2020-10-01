@@ -1,5 +1,5 @@
 function [fValOut]=runCalibrationh0(params, weeksprices, data, ...
-                                    SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, ...
+                                    SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, ...
                                     vola_tmp, index, rValue)
 
 %% weekly optimization
@@ -17,36 +17,31 @@ for i = unique(weeksprices)
     else
         logret = dataRet(index(j),4);
     end
-    if dataRet(index(j),1) ~= Dates(j)
-        disp('problem with dates!');
-    end
     struc               =  struct();
     struc.numOptions    =  length(data_week(:, 1));
     
     
     % compute interest rates for the weekly options
-    interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
-        SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
+    interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
+        SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1));
     if isempty(interestRates)
-        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1)-1);
     end
     if all(isnan(interestRates))
-        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:9, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+        interestRates = SP500_date_prices_returns_realizedvariance_interestRates(5:end, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dataRet(index(j),1)-1);
     end
     for k = 1:length(interestRates)
         if interestRates(k)<0
             interestRates(k)=0;
         end
     end
-    if nargin > 8
+    if nargin > 8 && rValue
         % use average r for the vola dynamics
         if rValue
             r = rValue/252;
-        end
-        
-            
+        end            
     else
         if j == 1
             r=max([interestRates',0])/252;
@@ -59,6 +54,7 @@ for i = unique(weeksprices)
             r_cur(k) = interestRates(1);
         else
             notNaN = ~isnan(interestRates);
+            if length(interestRates) == 5
             daylengths = [21, 42, 13*5, 126, 252]./252;
             r_cur(k) = interp1(daylengths(notNaN), interestRates(notNaN), data_week(k, 2)./252);
             if isnan(r_cur(k))
