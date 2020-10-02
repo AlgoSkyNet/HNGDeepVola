@@ -37,7 +37,10 @@ display(datatable.Date(index(1)));
 display(datatable.Date(index(end)));
 display(datatable.Date(indexNextPeriodFirst));
 
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 0; % uses tbils now
@@ -80,9 +83,11 @@ Dates                   = DatesYear(wednessdays);
 
 % initialize with the data from MLE estimation for each week
 if useUpdatedh0Q
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+elseif useRPrescribed
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0p rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
     
 end
 if useRealVola || useMLEPh0 || useUpdatedh0Q
@@ -156,7 +161,7 @@ elseif useRealVola
             SP500_date_prices_returns_realizedvariance_interestRates(1,:)== curIndex);
         curIndex = curIndex - 1;
     end
-    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
+    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
     
 else
     f_min_raw = @(params,scaler) runCalibrationh0(params.*scaler, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
@@ -189,22 +194,22 @@ if useMLEPh0 || useUpdatedh0Q
     sigma20forNextPeriod = sigmaseries(last);
 elseif useRealVola
     %local optimization
-    %     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-    %     xmin_fmincon = xxval.*scaler;
-    %     params = xmin_fmincon;
-    %     [fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
-    gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
-        'StartPointsToRun','bounds-ineqs','NumTrialPoints',1e3,'Display','final');
-    problem = createOptimProblem('fmincon','x0',Init_scale,...
-        'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-    [xmin,fmin] = run(gs,problem);
-    xmin_gs = xmin.*scaler;
-    params = xmin_gs;
-    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+    [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+    xmin_fmincon = xxval.*scaler;
+    params = xmin_fmincon;
+    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+%     gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+%         'StartPointsToRun','bounds-ineqs','NumTrialPoints',1e3,'Display','final');
+%     problem = createOptimProblem('fmincon','x0',Init_scale,...
+%         'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+%     [xmin,fmin] = run(gs,problem);
+%     xmin_gs = xmin.*scaler;
+%     params = xmin_gs;
+%     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret,rValue, sig_tmp);
-    sigma20forNextPeriod = sigmaseries(last);
+    sigma20forNextPeriod = sigmaseries(end);
 else
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
