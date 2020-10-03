@@ -52,7 +52,7 @@ params_mle_weekly           = NaN*ones(length(index),num_params);
 params_mle_weekly_original  = NaN*ones(length(index),num_params);
 hist_vola                   = NaN*ones(length(index),1);
 sigma2_last                 = NaN*ones(length(index),1);
-useYield = 1;
+useYield = 0;
 
 %path                = '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
@@ -70,26 +70,19 @@ for i=1:length(index)
     logret = data(index(i)-win_len+1:index(i),4);
     hist_vola(i) = sqrt(252)*std(logret);
     % compute interest rates for the weekly options
+   
     if useYield
-        dates_oi = data(index(i)-win_len + 1:index(i),1);
-        [ind1,ind2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dates_oi);
-        r = SP500_date_prices_returns_realizedvariance_interestRates(8, ind2);
-        r = nanmean(r);
-%         r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1));
-%         if isempty(r)
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
-%         if all(isnan(r))
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
+        r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1));
+        if isempty(r)
+            r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
+        if all(isnan(r))
+            r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
     else
-        dates = data(index(i)-win_len+1:index(i),1);
-        [ig1,ig2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==dates);
-        r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
-            ig2);
         r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==shortdata(i,1));
         if isempty(r)
@@ -104,13 +97,18 @@ for i=1:length(index)
     r=max(r,0)/252;
     
     r_struct(i).rval = r;
-    date(i) = (dates_oi(end));
+    date(i) = shortdata(i,1);
+%     if ifEstimateh0
+%         f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+%     else
+%         f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
+%     end
     if ifEstimateh0
-        f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
+        f_min_raw = @(par, scaler) ll_hng_n_h0_paper(par.*scaler,logret,r);
     else
-        f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
+        f_min_raw = @(par, scaler) ll_hng_n_paper(par.*scaler,logret,r,sigma0);
     end
-    gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+    gs = GlobalSearch('XTolerance',1e-12,'FunctionTolerance', 1e-12,...
             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
     
 
@@ -189,6 +187,6 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_rAv_rng_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+save('weekly_10to18_mle_opt_h0est_rWeekTbill_rng_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
     'params_Q_mle_weekly','params_P_mle_weekly','date','r_struct', 'sigma2_all')
-save('weekly_10to18_mle_opt_h0est_rAv_rng_LikCorrect_allResSaved.mat')
+save('weekly_10to18_mle_opt_h0est_rWeekTbill_rng_LikCorrect_allResSaved.mat')

@@ -13,11 +13,11 @@ loglik = 0;
 % end
 
 
-h = omega+alpha*(-(gamma)*h)^2+beta*h;
+h = omega+alpha*gamma^2*h+beta*h;
 loglik = loglik-1/2*log(2*pi)-0.5*log(h)-0.5*(x(1)-r-lambda*h)^2/h;
 h_all(1) = h;
 for i = 2:n
-    h = omega+alpha*(x(i)-r-(gamma+lambda)*h)^2/h+beta*h;
+    h = omega+alpha*(x(i-1)-r-(gamma+lambda)*h)^2/h+beta*h;
     h_all(i) = h;
     loglik = loglik-1/2*log(2*pi)-0.5*log(h)-0.5*(x(i)-r-lambda*h)^2/h;
 end
