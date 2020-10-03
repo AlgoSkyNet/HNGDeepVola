@@ -38,14 +38,14 @@ for cur_num = 1:num_years
     year_sig20 = zeros(num_weeks_in_year, 1);
      year_logLikVal = zeros(num_weeks_in_year, 1);
     year_persist = zeros(num_weeks_in_year, 1);
-
+    
     for i=1:length(params_tmp_P)
         if sum(params_tmp_P(i,:))
             year_params(j, :) = params_tmp_P(i,:);
             year_sig20(j, :) = sig0_tmp(i);
             year_data(cur_num).params_tmp(j, :) = year_params(j, :);
             year_data(cur_num).persist(j) = year_params(j, 3)+year_params(j, 2)*year_params(j, 4).^2;
-            year_data(cur_num).logLikVal(j) = logLikVals(j);
+            year_data(cur_num).logLikVal(j) = logLikVals(i);
 %             year_data(cur_num).MSE(j) = values{1,i}.MSE;
 %             year_data(cur_num).IVRMSE(j) = values{1,i}.IVRMSE;
 %             year_data(cur_num).OptionsLikelihood(j) = values{1,i}.optionsLikhng;
@@ -59,6 +59,9 @@ for cur_num = 1:num_years
         end
     end
     n = j - 1;
+    if n~=length(find(params_tmp_P(:,1))) || num_weeks_in_year ~= n
+        disp('problem');
+    end
     std_params_year(cur_num, :) = std(year_params);
     tval = tinv(1-alpha/2,n - 1);
     cil_params_year(cur_num, :) =  tval.* std_params_year(cur_num, :)/sqrt(n); 

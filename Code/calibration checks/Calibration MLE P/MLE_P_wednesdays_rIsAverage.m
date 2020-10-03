@@ -170,12 +170,16 @@ for i = length(index)% i=1:length(index)
     if ifEstimateh0
         [likVal, sigma2_last(i)] = ll_hng_n_h0(params_mle_weekly_original(i,:),logret,r);
     else
-        [likVal, sigma2_last(i), sigma2_all] = ll_hng_n(params_mle_weekly_original(i,:),logret,r,sigma0);
-         [likVal1, sigma2_last1(i), sigma2_all1] = ll_hng_n_paper(params_mle_weekly_original(i,:),logret,r,sigma0);
+%         [likVal, sigma2_last(i), sigma2_all] = ll_hng_n(params_P_mle_weekly(i,:),logret,r,sigma0);
+%          [likVal1, sigma2_last1(i), sigma2_all1] = ll_hng_n_paper(params_P_mle_weekly(i,:),logret,r,sigma0);
+%                  [likVa2, sigma2_last(i), sigma2_all] = ll_hng_n(params_P_mle_weekly(i,:),logret,r,sig2_0(i));
+%          [likVal3, sigma2_last1(i), sigma2_all1] = ll_hng_n_paper(params_P_mle_weekly(i,:),logret,r,sig2_0(i));
+          [likVal, sigma2_last(i), sigma2_all] = ll_hng_n_paper(params_original,logret,r,sigma0);
+
     end
     
 end
-[likVal, sigma2_last(i), sigma2_all] = ll_hng_n(params_P_mle_weekly(i,:),logret,r,sigma0);
+
 params_P_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4),params_mle_weekly_original(:,5)];
 params_Q_mle_weekly = [params_mle_weekly_original(:,1:3),params_mle_weekly_original(:,4)+params_mle_weekly_original(:,5)+0.5];
 if ifEstimateh0
@@ -184,6 +188,6 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_rAv_rng.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
-    'params_Q_mle_weekly','params_P_mle_weekly','date','r_struct')
-save('weekly_10to18_mle_opt_h0est_rAv_rng_allResSaved.mat')
+save('weekly_10to18_mle_opt_h0est_rAv_rng_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+    'params_Q_mle_weekly','params_P_mle_weekly','date','r_struct', 'sigma2_all')
+save('weekly_10to18_mle_opt_h0est_rAv_rng_LikCorrect_allResSaved.mat')
