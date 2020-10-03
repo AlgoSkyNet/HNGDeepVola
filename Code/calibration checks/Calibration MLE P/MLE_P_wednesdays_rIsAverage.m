@@ -115,7 +115,7 @@ for i=1:length(index)
     else
         f_min_raw = @(par, scaler) ll_hng_n_paper(par.*scaler,logret,r,sigma0);
     end
-    gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+    gs = GlobalSearch('XTolerance',1e-12,'FunctionTolerance', 1e-12,...
             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
     
 
