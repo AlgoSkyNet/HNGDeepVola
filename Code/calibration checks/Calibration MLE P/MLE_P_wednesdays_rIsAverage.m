@@ -64,7 +64,7 @@ else
     end
 load(path_r);
 tic;
-for i = length(index)% i=1:length(index)
+for i=1:length(index)
     display(datatable.Date(index(i)));
     toc
     logret = data(index(i)-win_len+1:index(i),4);
@@ -105,70 +105,76 @@ for i = length(index)% i=1:length(index)
     
     r_struct(i).rval = r;
     date(i) = (dates_oi(end));
-    if ifEstimateh0
-        f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
-    else
-        f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
-    end
-%     gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
-%             'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
-%     
-% 
-% 
-%     % Check two different initial values for better results.
-%     % the previous optimal value and the original one
-%     if i~=1 
-%         x0      = [params;Init_scale];
-%         fmin_   = zeros(2,1);
-%         xmin_   = zeros(2,num_params);
-%         for j=1:2
-%             if j
-%                 scaler  = scale_tmp;
-%             else
-%                 scaler  = sc_fac; 
-%             end
-%             f_min = @(params) f_min_raw(params,scaler);
-%             nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
-%             rng('default');
-%             problem = createOptimProblem('fmincon','x0',x0(j,:),...
-%                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
-%             [xmin_(j,:),fmin_(j)] = run(gs,problem);
-%         end
-%         [fmin,idx] = min(fmin_);
-%         xmin = xmin_(idx,:);
-%         if idx
-%             scaler = scale_tmp;    
-%         else 
-%             scaler = sc_fac;
-%         end
-%         
+%     if ifEstimateh0
+%         f_min_raw = @(par, scaler) ll_hng_n_h0(par.*scaler,logret,r);
 %     else
-%         f_min = @(params) f_min_raw(params,scaler);
-%         nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
-%         rng('default');
-%         problem = createOptimProblem('fmincon','x0',Init_scale,...
-%                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
-%        [xmin,fmin] = run(gs,problem);  
-% %         ms = MultiStart('UseParallel', true, 'XTolerance',1e-9,...
-% %             'FunctionTolerance', 1e-9);    
-% %         options_multistart = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
-% %                     'TolFun', 1e-9, 'TolX', 1e-9, 'Display', 'iter', 'UseParallel', 'Always', ...
-% %                     'MaxIter', 200, 'MaxFunEvals', 10000);
-% %         problem = createOptimProblem('fmincon','x0',Init_scale,...
-% %                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun,...
-% %                 'options', options_multistart);
-% %          stpoints = RandomStartPointSet('NumStartPoints',1e5);
-% %         [xmin,fmin] = run(ms,problem,4);    
-%         
-%     end    
-%     params                          = xmin;
-%     params_original                 = xmin.*scaler;
-%     scale_tmp                       = magnitude(params_original);
-%     opt_ll(i)                       = -fmin;
-%     params_mle_weekly(i,:)          = params;
-%     params_mle_weekly_original(i,:) = params_original;
+%         f_min_raw = @(par, scaler) ll_hng_n(par.*scaler,logret,r,sigma0);
+%     end
     if ifEstimateh0
-        [likVal, sigma2_last(i)] = ll_hng_n_h0(params_mle_weekly_original(i,:),logret,r);
+        f_min_raw = @(par, scaler) ll_hng_n_h0_paper(par.*scaler,logret,r);
+    else
+        f_min_raw = @(par, scaler) ll_hng_n_paper(par.*scaler,logret,r,sigma0);
+    end
+    gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+            'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e3,'Display','final');
+    
+
+
+    % Check two different initial values for better results.
+    % the previous optimal value and the original one
+    if i~=1 
+        x0      = [params;Init_scale];
+        fmin_   = zeros(2,1);
+        xmin_   = zeros(2,num_params);
+        for j=1:2
+            if j
+                scaler  = scale_tmp;
+            else
+                scaler  = sc_fac; 
+            end
+            f_min = @(params) f_min_raw(params,scaler);
+            nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
+            rng('default');
+            problem = createOptimProblem('fmincon','x0',x0(j,:),...
+                'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
+            [xmin_(j,:),fmin_(j)] = run(gs,problem);
+        end
+        [fmin,idx] = min(fmin_);
+        xmin = xmin_(idx,:);
+        if idx
+            scaler = scale_tmp;    
+        else 
+            scaler = sc_fac;
+        end
+        
+    else
+        f_min = @(params) f_min_raw(params,scaler);
+        nonlincon_fun = @(params) nonlincon_scale_v2(params,scaler);
+        rng('default');
+        problem = createOptimProblem('fmincon','x0',Init_scale,...
+                'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun);
+       [xmin,fmin] = run(gs,problem);  
+%         ms = MultiStart('UseParallel', true, 'XTolerance',1e-9,...
+%             'FunctionTolerance', 1e-9);    
+%         options_multistart = optimoptions(@fmincon, 'Algorithm', 'interior-point', ...
+%                     'TolFun', 1e-9, 'TolX', 1e-9, 'Display', 'iter', 'UseParallel', 'Always', ...
+%                     'MaxIter', 200, 'MaxFunEvals', 10000);
+%         problem = createOptimProblem('fmincon','x0',Init_scale,...
+%                 'objective',f_min,'lb',lb_h0./scaler,'ub',ub_h0./scaler,'nonlcon',nonlincon_fun,...
+%                 'options', options_multistart);
+%          stpoints = RandomStartPointSet('NumStartPoints',1e5);
+%         [xmin,fmin] = run(ms,problem,4);    
+        
+    end    
+    params                          = xmin;
+    params_original                 = xmin.*scaler;
+    scale_tmp                       = magnitude(params_original);
+    opt_ll(i)                       = -fmin;
+    params_mle_weekly(i,:)          = params;
+    params_mle_weekly_original(i,:) = params_original;
+    if ifEstimateh0
+        %[likVal, sigma2_last(i)] = ll_hng_n_h0(params_mle_weekly_original(i,:),logret,r);
+        [likVal, sigma2_last(i), sigma2_all] = ll_hng_n_h0_paper(params_original,logret,r);
     else
 %         [likVal, sigma2_last(i), sigma2_all] = ll_hng_n(params_P_mle_weekly(i,:),logret,r,sigma0);
 %          [likVal1, sigma2_last1(i), sigma2_all1] = ll_hng_n_paper(params_P_mle_weekly(i,:),logret,r,sigma0);
