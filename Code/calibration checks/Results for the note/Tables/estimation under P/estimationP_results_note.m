@@ -23,9 +23,10 @@ alpha = 1-0.95;
 k = 1;
 for cur_num = 1:num_years
     %load(['data for tables/Results with estimated h0P/weekly_', year_nums{cur_num}, '_mle_opt_h0est.mat']);
-    load(['data for tables/Results with not estimated h0P/weekly_', year_nums{cur_num}, '_mle_opt_noh0est.mat']);
-    %load(['data for tables/Results with estimated h0p rAv/weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
+    %load(['data for tables/Results with not estimated h0P/weekly_', year_nums{cur_num}, '_mle_opt_noh0est.mat']);
+   % load(['data for tables/Results with estimated h0p rAv/weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
     %load(['data for tables/Results with estimated h0p and r/weekly_', year_nums{cur_num}, '_mle_opt_h0est_rest.mat']);
+     load(['weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
     num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
 %     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);
@@ -80,8 +81,9 @@ end
 
 %FID = fopen('estMLEP_results_h0Pest_calls_10_18.tex', 'w');
 %FID = fopen('estMLEP_results_h0Pest_calls_10_18.tex', 'w');
-FID = fopen('estMLEP_results_noh0Pest_calls_10_18.tex', 'w');
+%FID = fopen('estMLEP_results_noh0Pest_calls_10_18.tex', 'w');
 %FID = fopen('estMLEP_results_h0Pest_rAv_calls_10_18.tex', 'w');
+FID = fopen('estMLEP_results_h0Pest_rAv_calls_10_18_check.tex', 'w');
 %fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
