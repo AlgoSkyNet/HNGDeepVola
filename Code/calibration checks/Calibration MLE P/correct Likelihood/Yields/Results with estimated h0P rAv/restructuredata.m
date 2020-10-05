@@ -23,6 +23,7 @@ for y = 2010:2018
 %     sig0_unc_tmp    = zeros(53,1);
     disp([idx,num_]);
     sig                     = sigma2_last(idx:idx+num_-1);
+    
     logLik = opt_ll(idx:idx+num_-1);
     %rvals = r(idx:idx+num_-1);
     sig_old                 = sig2_0(idx:idx+num_-1);
@@ -39,7 +40,9 @@ for y = 2010:2018
     %rVals(weeks,:)       = rvals;
     params_tmp(weeks,:)     = params;
     params_tmp_P(weeks,:)     = params_P;
-   
+%     for j = weeks
+%     [likVal(j), sigma2_last2(j), sigma2_all(j).sig2] = ll_hng_n_h0_paper(params_tmp_P(j,:),logret,r_struct);
+%     end
     name                    = strcat('weekly_',num2str(i+2009),'_mle_opt_h0est_rAv.mat');
     save(name,'sig_tmp','vola_tmp','params_tmp','sig0_tmp','sig0_unc_tmp','params_tmp_P','logLikVals');%,'rVals')
  clearvars params_tmp params_tmp_P logLikVals sig_tmp sig0_tmp sig0_unc_tmp vola_tmp 

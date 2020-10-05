@@ -190,7 +190,7 @@ if useMLEPh0 || useUpdatedh0Q
     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
+    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
     sigma20forNextPeriod = sigmaseries(last);
 elseif useRealVola
     %local optimization
@@ -208,8 +208,7 @@ elseif useRealVola
 %     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-        [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp);
-
+    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret,rValue, sig_tmp);
     sigma20forNextPeriod = sigmaseries(end);
 else
     %local optimization
@@ -219,8 +218,7 @@ else
     [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [sigmaseries] = sim_hng_Q_n(params(1:4),logret,rValue,params(5));
-
+    [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,rValue,params(5));
     sigma20forNextPeriod = sigmaseries(last);
 end
 
@@ -236,11 +234,11 @@ else
     flagNmonths = '_12m';
 end
 if useMLEPh0
-    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, '_new.mat'));
+    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, '.mat'));
 elseif useUpdatedh0Q
-    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, '_new.mat'));
+    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, '.mat'));
 elseif useRealVola
-    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, '_new.mat'));
+    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, '.mat'));
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, '_new.mat'));
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, '.mat'));
 end

@@ -1,5 +1,5 @@
 clear;
-load('res2015_h0calibr_12m_avR.mat');
+load('res2010_h0calibr_12m_avR_yield.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 %save('resMultipleOptions2010.mat');

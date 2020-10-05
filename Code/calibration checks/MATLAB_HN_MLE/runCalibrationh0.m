@@ -12,10 +12,9 @@ for i = unique(weeksprices)
         continue
     end
     
-    if (j - 1)
-        logret = dataRet(index(1):index(j),4);
-    else
-        logret = dataRet(index(j),4);
+    if j > 1
+        logret = dataRet(index(1):index(j) - 1,4);
+    
     end
     struc               =  struct();
     struc.numOptions    =  length(data_week(:, 1));
@@ -47,7 +46,7 @@ for i = unique(weeksprices)
             r=max([interestRates',0])/252;
         end
     end
-    j = j + 1;
+   
     r_cur = zeros(length(data_week), 1);
     for k = 1:length(data_week)
         if data_week(k, 2) < 21 && ~isnan(interestRates(1))
@@ -65,8 +64,12 @@ for i = unique(weeksprices)
             end
         end
     end
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,r,params(5));
-    
+    if j > 1
+        [sigmaseries] = sim_hng_Q_n(params(1:4),logret,r,params(5));
+    else
+        sigmaseries = params(5);
+    end
+     j = j + 1;
     
     struc.Price         =   data_week(:, 1)';
     struc.yields        =   interestRates;
