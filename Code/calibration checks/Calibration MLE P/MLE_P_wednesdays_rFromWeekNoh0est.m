@@ -64,7 +64,7 @@ else
     end
 load(path_r);
 tic;
-for i=1:length(index)
+for i=458:length(index)
     display(datatable.Date(index(i)));
     toc
     logret = data(index(i)-win_len+1:index(i),4);
@@ -187,6 +187,6 @@ else
     sig2_0 = sigma0*ones(length(index),1);
 end
 
-save('weekly_10to18_mle_opt_h0est_rWeekYield_rng_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
+save('weekly_10to18_mle_opt_Noh0est_rWeekYield_rng_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','sigma2_last',...
     'params_Q_mle_weekly','params_P_mle_weekly','date','r_struct', 'sigma2_all')
-save('weekly_10to18_mle_opt_h0est_rWeekYield_rng_LikCorrect_allResSaved.mat')
+save('weekly_10to18_mle_opt_Noh0est_rWeekYield_rng_LikCorrect_allResSaved.mat')
