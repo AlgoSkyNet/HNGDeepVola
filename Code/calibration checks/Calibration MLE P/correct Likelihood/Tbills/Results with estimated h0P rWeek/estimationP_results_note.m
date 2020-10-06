@@ -1,4 +1,4 @@
-%clear;
+clear;
 year_nums = {'2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018'};
 load('num_weeks');
 num_allweeks = sum(num_weeks);
@@ -26,8 +26,8 @@ for cur_num = 1:num_years
     %load(['data for tables/Results with not estimated h0P/weekly_', year_nums{cur_num}, '_mle_opt_noh0est.mat']);
    % load(['data for tables/Results with estimated h0p rAv/weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
     %load(['data for tables/Results with estimated h0p and r/weekly_', year_nums{cur_num}, '_mle_opt_h0est_rest.mat']);
-    % load(['weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
-     load(['weekly_', year_nums{cur_num}, '_mle_opt_noh0est_rAv.mat']);
+   %  load(['weekly_', year_nums{cur_num}, '_mle_opt_h0est_rAv.mat']);
+      load(['weekly_', year_nums{cur_num}, '_mle_opt_h0est_rWeekTbill.mat']);
     num_weeks_in_year = num_weeks(cur_num);
     year_data(cur_num).params_tmp = zeros(num_weeks_in_year, num_params);
 %     year_data(cur_num).MSE = zeros(num_weeks_in_year, 1);
@@ -87,7 +87,7 @@ end
 %FID = fopen('estMLEP_results_h0Pest_calls_10_18.tex', 'w');
 %FID = fopen('estMLEP_results_noh0Pest_calls_10_18.tex', 'w');
 %FID = fopen('estMLEP_results_h0Pest_rAv_calls_10_18.tex', 'w');
-FID = fopen('estMLEP_results_noh0Pest_rAv_calls_10_18_paper.tex', 'w');
+FID = fopen('estMLEP_results_h0Pest_rWeekTbill_calls_10_18_paper.tex', 'w');
 %fprintf(FID, '%%&pdflatex \r%%&cont-en \r%%&pdftex \r');
 fprintf(FID, '\\documentclass[10pt]{article} \n\\usepackage{latexsym,amsmath,amssymb,graphics,amscd} \n');
 fprintf(FID, '\\usepackage{multirow} \n\\usepackage{booktabs} \n');
@@ -95,15 +95,15 @@ fprintf(FID, '\\usepackage{tabularx} \n\\usepackage[hang,footnotesize]{caption} 
 fprintf(FID, '\\usepackage[pdftex]{graphicx} \n\\usepackage{color}\n\\textwidth15.8 cm\n\\textheight20.8 cm\n\\oddsidemargin.4cm\n\\evensidemargin.4cm \n\\begin{document} \n');
 
 %fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$  estimated and $r$ estimated\\end{center} \n');
-fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$ not estimated\\end{center} \n');
-%fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$  estimated\\end{center} \n');
+%fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$ not estimated\\end{center} \n');
+fprintf(FID, '\\noindent\\begin{center} Results are obtained with $h_0^P$  estimated\\end{center} \n');
 
 fprintf(FID, '\\noindent\\makebox[\\textwidth]{ \n');
 fprintf(FID, '\\begin{tabularx}{1.3\\textwidth}{X} \n \\scalebox{0.7}{ \n\\begin{tabular}{cccccccccc} \n');
 fprintf(FID, '\\toprule \n');
 %fprintf(FID, '\\multicolumn{10}{c}{{\\bf ESTIMATED PARAMETERS ON WEDNESDAYS MLE UNDER P (10 YEARS), $h_0^P$ AND $r$ ESTIMATED}} \\\\\n');
 %fprintf(FID, '\\multicolumn{10}{c}{{\\bf ESTIMATED PARAMETERS ON WEDNESDAYS MLE UNDER P (10 YEARS), $h_0^P$ IS NOT ESTIMATED}} \\\\\n');
-fprintf(FID, '\\multicolumn{10}{c}{{\\bf ESTIMATED PARAMETERS ON WEDNESDAYS MLE UNDER P (10 YEARS), $h_0^P$ IS  NOT ESTIMATED, $r$ IS AVERAGE YIELD}} \\\\\n');
+fprintf(FID, '\\multicolumn{10}{c}{{\\bf ESTIMATED PARAMETERS ON WEDNESDAYS MLE UNDER P (10 YEARS), $h_0^P$ IS  ESTIMATED, $r$ IS TAKEN FROM DAY TBILL}} \\\\\n');
 fprintf(FID, '\\midrule \n');
 fprintf(FID, '{$\\boldsymbol{\\theta}$}&{\\bf 2010}&{\\bf 2011}&{\\bf 2012}&{\\bf 2013}&{\\bf 2014}&{\\bf 2015}&{\\bf 2016}&{\\bf 2017}&{\\bf 2018}\\\\ \n');
 fprintf(FID, '\\cmidrule(r){1-10} \\\\\n');
