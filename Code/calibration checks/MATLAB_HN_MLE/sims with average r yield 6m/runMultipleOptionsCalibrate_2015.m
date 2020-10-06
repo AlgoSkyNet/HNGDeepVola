@@ -3,12 +3,13 @@ clearvars;
 close all;
 warning('on')
 ifHalfYear      = 1;
-currentYear     = 2016;
+currentYear     = 2015;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
 years           = (dataRet(:,2) == currentYear);
 wednesdays      = (weekday(dataRet(:,1))==4);
+tuesdays        = (weekday(dataRet(:,1))==3);
 if ifHalfYear
     months      = (month(dataRet(:,1))==1 | month(dataRet(:,1))==2 | month(dataRet(:,1))==3 | month(dataRet(:,1))==4 | month(dataRet(:,1))==5 | month(dataRet(:,1))==6);
     doi         = years & months & wednesdays; %days of interest
@@ -16,17 +17,37 @@ else
     doi         = years & wednesdays; %days of interest
 end
 index           = find(doi);
-shortdata       = dataRet(doi,:);
 display(datatable.Date(index(1)));
 
+%next period
+tuesdays        = (weekday(dataRet(:,1))==3);
+if ifHalfYear
+    monthFirst  = (month(dataRet(:,1)) == 7) ;
+    doiNextPeriod   = years & monthFirst & tuesdays; %days of interest of the next period
+else
+    monthFirst  = (month(dataRet(:,1)) == 1) ;
+    yearNext        = (dataRet(:,2) == currentYear + 1);
+    doiNextPeriod   = yearNext & monthFirst & tuesdays; %days of interest of the next period
+end
 
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+
+indexNextPeriod      = find(doiNextPeriod);
+indexNextPeriodFirst = indexNextPeriod(1);
+display(datatable.Date(index(1)));
+display(datatable.Date(index(end)));
+display(datatable.Date(indexNextPeriodFirst));
+
+% path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
-useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useYield            = 1; % uses tbils now
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
+useRPrescribed      = 1;
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 
@@ -54,15 +75,20 @@ end
 date_start              = datenum(DateString_start, formatIn);
 date_end                = datenum(DateString_end, formatIn);
 wednessdays             = (weekday(date_start:date_end)==4);
-Dates                   = date_start:date_end;
-Dates                   = Dates(wednessdays);
+DatesYear               = date_start:date_end;
+Dates                   = DatesYear(wednessdays);
+
+
+
 
 % initialize with the data from MLE estimation for each week
 if useUpdatedh0Q
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+elseif useRPrescribed
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
-    load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
-
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+    
 end
 if useRealVola || useMLEPh0 || useUpdatedh0Q
     num_params = 4;
@@ -101,6 +127,7 @@ sc_fac           =   magnitude(Init);
 Init_scale_mat   =   Init./sc_fac;
 lb_mat           =   [1e-12, 0, 0, -1300];
 ub_mat           =   [1, 1, 1, 1300];
+algorithm           = 'interior-point';% 'sqp'
 
 if ~(useRealVola || useMLEPh0 || useUpdatedh0Q)
     lb_mat = [lb_mat, 1e-12];
@@ -114,15 +141,35 @@ sig2_0           =   zeros(1,max(weeksprices));
 Init_scale       =   Init_scale_mat(min(weeksprices), :);
 scaler           =   sc_fac(min(weeksprices), :);
 
+if useYield
+    indYearly = 8;
+else
+    indYearly = 9;
+end
+if useRPrescribed
+    r_all_yearly = SP500_date_prices_returns_realizedvariance_interestRates(indYearly, ...
+        SP500_date_prices_returns_realizedvariance_interestRates(1,:) >= DatesYear(1) &...
+        SP500_date_prices_returns_realizedvariance_interestRates(1,:) <= DatesYear(end));
+    rValue = nanmean(r_all_yearly);
+else
+    rValue = 0;
+end
+
 if useMLEPh0 || useUpdatedh0Q
     f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
 elseif useRealVola
     sig_tmp = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:)== dataRet(index(1),1));
-    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
-
+    curIndex = dataRet(index(1),1) - 1;
+    while isempty(sig_tmp)
+        sig_tmp = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:)== curIndex);
+        curIndex = curIndex - 1;
+    end
+    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
+    
 else
-    f_min_raw = @(params,scaler) runCalibrationh0(params.*scaler, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
+    f_min_raw = @(params,scaler) runCalibrationh0(params.*scaler, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
 end
 f_min = @(params) f_min_raw(params(1:num_params), scaler);
 % constraint,scaled
@@ -145,61 +192,66 @@ if useMLEPh0 || useUpdatedh0Q
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
-
-    [fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
+    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
     
+    logret = dataRet(index(1):indexNextPeriodFirst,4);
+    [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
+    sigma20forNextPeriod = sigmaseries(end);
 elseif useRealVola
     %local optimization
-%     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-%     xmin_fmincon = xxval.*scaler;
-%     params = xmin_fmincon;
-% 
-%     [fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
-%     
-    
-    
-    
-     gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
-                'StartPointsToRun','bounds-ineqs','NumTrialPoints',1e3,'Display','final');
-     problem = createOptimProblem('fmincon','x0',Init_scale,...
-                    'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-    [xmin,fmin] = run(gs,problem);
-    
-    
-    xmin_gs = xmin.*scaler;
-      params = xmin_gs;
-   [fValOut, values]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
-  
-else
-
-
-    %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
-    [fValOut, values]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index);
-
+    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+%     gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-9,...
+%         'StartPointsToRun','bounds-ineqs','NumTrialPoints',1e3,'Display','final');
+%     problem = createOptimProblem('fmincon','x0',Init_scale,...
+%         'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+%     [xmin,fmin] = run(gs,problem);
+%     xmin_gs = xmin.*scaler;
+%     params = xmin_gs;
+%     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
+    logret = dataRet(index(1):indexNextPeriodFirst,4);
+        [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp);
+
+    sigma20forNextPeriod = sigmaseries(end);
+else
+    %local optimization
+    [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+    xmin_fmincon = xxval.*scaler;
+    params = xmin_fmincon;
+    [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+    
+    logret = dataRet(index(1):indexNextPeriodFirst,4);
+    [sigmaseries] = sim_hng_Q_n(params(1:4),logret,rValue,params(5));
+
+    sigma20forNextPeriod = sigmaseries(end);
+end
+
+strYear = num2str(currentYear);
+if useRPrescribed
+    flagR = '_avR';
+else
+    flagR = '';
 end
 if ifHalfYear
-    if useMLEPh0
-        save('res2016_h0P_6m.mat');
-    elseif useUpdatedh0Q
-        save('res2016_h0Q_6m.mat');
-    elseif useRealVola
-        save('res2016_h0RV_6m.mat');
-    else
-        save('res2016_6m.mat');
-    end
+    flagNmonths = '_6m';
 else
-    if useMLEPh0
-        save('res2016_h0P_new.mat');
-    elseif useUpdatedh0Q
-        save('res2016_h0Q_new.mat');
-    elseif useRealVola
-        save('res2016_h0RV.mat');
-    else
-        save('res2016_new.mat');
-    end
+    flagNmonths = '_12m';
+end
+if useYield
+    flagYield = '_yield';
+else
+     flagYield = '_tbill';
+end
+
+if useMLEPh0
+    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '.mat'));
+elseif useUpdatedh0Q
+    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '.mat'));
+elseif useRealVola
+    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
+else
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '.mat'));
 end

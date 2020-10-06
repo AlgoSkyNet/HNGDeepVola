@@ -2,8 +2,8 @@ clc;
 clearvars;
 close all;
 warning('on')
-ifHalfYear      = 0;
-currentYear     = 2010;
+ifHalfYear      = 1;
+currentYear     = 2013;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
@@ -43,8 +43,8 @@ path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
-useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useYield            = 1; % uses tbils now
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 useRPrescribed      = 1;
@@ -85,7 +85,7 @@ Dates                   = DatesYear(wednessdays);
 if useUpdatedh0Q
     load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
 elseif useRPrescribed
-    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0p rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
     load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
     
@@ -141,8 +141,13 @@ sig2_0           =   zeros(1,max(weeksprices));
 Init_scale       =   Init_scale_mat(min(weeksprices), :);
 scaler           =   sc_fac(min(weeksprices), :);
 
+if useYield
+    indYearly = 8;
+else
+    indYearly = 9;
+end
 if useRPrescribed
-    r_all_yearly = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
+    r_all_yearly = SP500_date_prices_returns_realizedvariance_interestRates(indYearly, ...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) >= DatesYear(1) &...
         SP500_date_prices_returns_realizedvariance_interestRates(1,:) <= DatesYear(end));
     rValue = nanmean(r_all_yearly);
@@ -190,8 +195,8 @@ if useMLEPh0 || useUpdatedh0Q
     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
-    sigma20forNextPeriod = sigmaseries(last);
+    [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));
+    sigma20forNextPeriod = sigmaseries(end);
 elseif useRealVola
     %local optimization
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
@@ -208,7 +213,8 @@ elseif useRealVola
 %     [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4), logret,rValue, sig_tmp);
+        [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp);
+
     sigma20forNextPeriod = sigmaseries(end);
 else
     %local optimization
@@ -218,8 +224,9 @@ else
     [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
-    [~, sigmaseries] = ll_hng_Q_n(params(1:4),logret,rValue,params(5));
-    sigma20forNextPeriod = sigmaseries(last);
+    [sigmaseries] = sim_hng_Q_n(params(1:4),logret,rValue,params(5));
+
+    sigma20forNextPeriod = sigmaseries(end);
 end
 
 strYear = num2str(currentYear);
@@ -233,12 +240,18 @@ if ifHalfYear
 else
     flagNmonths = '_12m';
 end
-if useMLEPh0
-    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, '.mat'));
-elseif useUpdatedh0Q
-    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, '.mat'));
-elseif useRealVola
-    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, '.mat'));
+if useYield
+    flagYield = '_yield';
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, '.mat'));
+     flagYield = '_tbill';
+end
+
+if useMLEPh0
+    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '.mat'));
+elseif useUpdatedh0Q
+    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '.mat'));
+elseif useRealVola
+    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
+else
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '.mat'));
 end
