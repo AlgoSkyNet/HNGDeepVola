@@ -18,10 +18,11 @@ index           = find(doi);
 shortdata       = data(doi,:);
 
 
-useYield = 1;
+useYield = 0;
 path                = 'C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 
-load('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv for Update/weekly_10to18_mle_opt_h0est_rAv_rng_unCond_LikCorrect.mat');
+%load('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rWeek for Update/weekly_10to18_mle_opt_h0est_rWeekYield_rng_unCond_LikCorrect.mat');
+load('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Tbills/Results with estimated h0P rWeek for Update/weekly_10to18_mle_opt_h0est_rWeekTbill_rng_unCond_LikCorrect.mat');
 
 if useYield
     path_r       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
@@ -47,38 +48,37 @@ for i=1:length(index)
     sigma2_upd_0(i) = (alpha+omega)/(1-beta-alpha*gamma_star.^2);
     % compute interest rates for the weekly options
     if useYield
-         dates_oi = data(index(i)-win_start + 1:index(i)-win_end,4);
-        [ind1,ind2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dates_oi);
-        r = SP500_date_prices_returns_realizedvariance_interestRates(8, ind2);
-        r = nanmean(r);
-%         r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1));
-%         if isempty(r)
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
-%         if all(isnan(r))
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
-%     else
-%         r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
-%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==shortdata(i,1));
-%         if isempty(r)
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
-%         if all(isnan(r))
-%             r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
-%                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
-%         end
-%     end
+        r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1));
+        if isempty(r)
+            r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
+        if all(isnan(r))
+            r = SP500_date_prices_returns_realizedvariance_interestRates(8, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
+    else
+        r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) ==shortdata(i,1));
+        if isempty(r)
+            r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
+        if all(isnan(r))
+            r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
+                SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
+        end
+    end
     r=max(r,0)/252;    
-
+    
     [likValQ(i), sigma2_vals] = ll_hng_Q_n_paper(params_Q_mle_weekly(i, :), logret, r, sigma2_upd_0(i));
     sigma2_last(i) = sigma2_vals(end);
     
 end
 
-save('weekly_10to18_mle_opt_h0est_check_rng_unCond.mat','sig2_0','hist_vola', 'opt_ll','likValQ','sigma2_last',...
-     'sigma2_upd_0', 'hist_vola', '-append');
+
+%save('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rWeek for Update/weekly_10to18_mle_opt_h0est_rWeekYield_rng_unCond_LikCorrect',...
+save('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Tbills/Results with estimated h0P rWeek for Update/weekly_10to18_mle_opt_h0est_rWeekTbill_rng_unCond_LikCorrect',...
+'hist_vola', 'likValQ','sigma2_last',...
+     'sigma2_upd_0', '-append');

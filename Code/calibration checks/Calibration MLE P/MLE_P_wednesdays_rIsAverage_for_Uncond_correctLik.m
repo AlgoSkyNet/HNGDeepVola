@@ -72,7 +72,7 @@ for i=1:length(index)
    
     % compute interest rates for the weekly options
     if useYield
-        dates_oi = data(index(i)-win_start + 1:index(i)-win_end,4);
+        dates_oi = data(index(i)-win_start + 1:index(i)-win_end,1);
         [ind1,ind2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dates_oi);
         r = SP500_date_prices_returns_realizedvariance_interestRates(8, ind2);
         r = nanmean(r);
