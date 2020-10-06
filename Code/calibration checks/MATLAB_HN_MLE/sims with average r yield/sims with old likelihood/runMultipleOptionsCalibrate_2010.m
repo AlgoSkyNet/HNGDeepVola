@@ -3,7 +3,7 @@ clearvars;
 close all;
 warning('on')
 ifHalfYear      = 0;
-currentYear     = 2016;
+currentYear     = 2010;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
@@ -247,11 +247,11 @@ else
 end
 
 if useMLEPh0
-    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '.mat'));
+    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '_new.mat'));
 elseif useUpdatedh0Q
-    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '.mat'));
+    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '_new.mat'));
 elseif useRealVola
-    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
+    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '_new.mat'));
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '.mat'));
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '_new.mat'));
 end

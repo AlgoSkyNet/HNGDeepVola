@@ -64,6 +64,7 @@ for i = unique(weeksprices)
             end
         end
     end
+    % gives h_t based on y_{t-1} that is why we take logret up to yesterday
     if j > 1
         [sigmaseries] = sim_hng_Q_n(params(1:4),logret,r,params(5));
     else

@@ -247,11 +247,11 @@ else
 end
 
 if useMLEPh0
-    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '_new.mat'));
+    save(strcat('res', strYear, '_h0P', flagNmonths, flagR, flagYield, '.mat'));
 elseif useUpdatedh0Q
-    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '_new.mat'));
+    save(strcat('res', strYear, '_h0Q', flagNmonths, flagR, flagYield, '.mat'));
 elseif useRealVola
-    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '_new.mat'));
+    save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '_new.mat'));
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '.mat'));
 end
