@@ -4,8 +4,8 @@ function [fValOut]=runCalibration(params, weeksprices, data, sig2_0, SP500_date_
 %% weekly optimization
 j = 1;
 totalOLL = 0;
-
-for i = unique(weeksprices)
+curWeeks = unique(weeksprices);
+for i = curWeeks
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
         disp(strcat('no data for week !'))
@@ -71,22 +71,23 @@ for i = unique(weeksprices)
      end
      j = j + 1;
     
-    struc.Price         =   data_week(:, 1)';
-    struc.yields        =   interestRates;
-    struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
-    indNaN = find(isnan(struc.blsimpv));
-    struc.num_NaN_implVols = length(indNaN);
-    struc.blsimpv(indNaN) = data_week(indNaN, 6);
-    struc.blsvega = blsvega(data_week(:, 4),  data_week(:, 3), r_cur(:), data_week(:, 2)/252, struc.blsimpv(:));
-    struc.Price         =   data_week(:, 1)';
-    struc.hngPrice      =   abs(price_Q(params, data_week, r_cur./252, sigmaseries(end))) ;
-    struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
-    s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
-    struc.optionsLikhng    = -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1 + sum(log(struc.blsvega)) * 2/struc.numOptions);
+    Price         =   data_week(:, 1)';
+    %yields        =   interestRates;
+    blsimpvVal       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
+    indNaN = find(isnan(blsimpvVal));
+    %num_NaN_implVols = length(indNaN);
+    blsimpvVal(indNaN) = data_week(indNaN, 6);
+    blsvegaVal = blsvega(data_week(:, 4),  data_week(:, 3), r_cur(:), data_week(:, 2)/252, blsimpvVal(:));
     
-    values{i}           =   struc;
-    totalOLL = totalOLL + struc.optionsLikhng;
+    hngPrice      =   abs(price_Q(params, data_week, r_cur./252, sigmaseries(end))) ;
+    epsilonhng    =   (Price - hngPrice) ./  blsvegaVal';
+    s_epsilon2hng       =   mean(epsilonhng(:).^2);
+    %struc.optionsLikhng    = -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1 + sum(log(struc.blsvega)) * 2/struc.numOptions);
+    optionsLikNorm    = - log(s_epsilon2hng);
+    %values{i}           =   struc;
+    %totalOLL = totalOLL + struc.optionsLikhng;
+    totalOLL = totalOLL + optionsLikNorm;
     
 end
-fValOut = -totalOLL/length(values);
+fValOut = -totalOLL/length(curWeeks);
 
