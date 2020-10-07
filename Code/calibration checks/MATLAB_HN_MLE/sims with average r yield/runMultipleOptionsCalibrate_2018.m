@@ -37,10 +37,10 @@ display(datatable.Date(index(1)));
 display(datatable.Date(index(end)));
 display(datatable.Date(indexNextPeriodFirst));
 
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
-pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
-% path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
-% pathF                =  'C:/GIT/HenrikAlexJP/';
+% path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 1; % uses tbils now
@@ -253,5 +253,5 @@ elseif useUpdatedh0Q
 elseif useRealVola
     save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, '.mat'));
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, 'norm.mat'));
 end
