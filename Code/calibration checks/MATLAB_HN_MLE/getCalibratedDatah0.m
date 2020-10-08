@@ -3,7 +3,8 @@ function [fValOut, values]=getCalibratedDatah0(params, weeksprices, data, SP500_
 %% weekly optimization
 j = 1;
 totalOLL = 0;
-for i = unique(weeksprices)
+curWeeks = unique(weeksprices);
+for i = curWeeks
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
         disp(strcat('no data for week !'))
@@ -84,7 +85,7 @@ for i = unique(weeksprices)
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
     struc.optionsLikhng    = -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1 + sum(log(struc.blsvega)) * 2/struc.numOptions);
-    struc.optionsLikNorm    = - log(sum(((struc.hngPrice - struc.Price).^2)./(struc.blsvega'.^2))/struc.numOptions);
+    struc.optionsLikNorm    = - struc.numOptions*log(sum(((struc.hngPrice - struc.Price).^2)./(struc.blsvega'.^2))/struc.numOptions);
     struc.sig20         =   sigmaseries(end);
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
@@ -108,5 +109,5 @@ for i = unique(weeksprices)
     totalOLL = totalOLL + struc.optionsLikNorm;
     
 end
-fValOut = -totalOLL/length(values);
+fValOut = -totalOLL/length(curWeeks);
 

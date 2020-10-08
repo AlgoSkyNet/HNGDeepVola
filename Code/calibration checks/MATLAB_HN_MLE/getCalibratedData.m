@@ -3,7 +3,8 @@ function [fValOut, values]=getCalibratedData(params, weeksprices, data, sig2_0, 
 %% weekly optimization
 j = 1;
 totalOLL = 0;
-for i = unique(weeksprices)
+curWeeks = unique(weeksprices);
+for i = curWeeks
     data_week = data(:,(weeksprices == i))';
     if isempty(data_week)
         disp(strcat('no data for week !'))
@@ -99,10 +100,10 @@ for i = unique(weeksprices)
     struc.RMSE          =   sqrt(struc.MSE);
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     struc.sigma2series   = sigmaseries;
-    values{i}           =   struc;
-    
-    totalOLL = totalOLL + struc.optionsLikhng;
+   values{i}           =   struc;
+    %totalOLL = totalOLL + struc.optionsLikhng;
+    totalOLL = totalOLL + struc.optionsLikNorm;
     
 end
-fValOut = -totalOLL/length(values);
+fValOut = -totalOLL/length(curWeeks);
 
