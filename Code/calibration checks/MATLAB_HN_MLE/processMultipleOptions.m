@@ -1,13 +1,16 @@
 clear;
-load('res2011_h0calibr_6m_avR_yield.mat');
+load('res2011_h0calibr_12m_avR_yield.mat');
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 %save('resMultipleOptions2010.mat');
+j = 1;
 for i = 1:length(values1)
     if ~isempty(values1{1,i})
-    optLL_val1(i)= values1{1,i}.optionsLikhng;
-    MSE1(i)= values1{1,i}.MSE;
-    IVRMSE1(i)= values1{1,i}.IVRMSE;
+    optLL_val1(j)= values1{1,i}.optionsLikhng;
+    optLL_valNorm1(j)= values1{1,i}.optionsLikNorm;
+    MSE1(j)= values1{1,i}.MSE;
+    IVRMSE1(j)= values1{1,i}.IVRMSE;
+    j=j+1;
     end
 end
 mean(optLL_val1)

@@ -65,7 +65,7 @@ else
     end
 load(path_r);
 tic;
-for i=1:length(index)
+for i=175:length(index)
     display(datatable.Date(index(i)));
     toc
     logret = data(index(i)-win_start + 1:index(i)-win_end,4);

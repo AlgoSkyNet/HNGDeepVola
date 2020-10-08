@@ -84,6 +84,7 @@ for i = unique(weeksprices)
     struc.epsilonhng    =   (struc.Price - struc.hngPrice) ./  struc.blsvega';
     s_epsilon2hng       =   mean(struc.epsilonhng(:).^2);
     struc.optionsLikhng    = -.5 * struc.numOptions * (log(2 * pi) + log(s_epsilon2hng) + 1 + sum(log(struc.blsvega)) * 2/struc.numOptions);
+    struc.optionsLikNorm    = - log(sum(((struc.hngPrice - struc.Price).^2)./(struc.blsvega'.^2))/struc.numOptions);
     struc.sig20         =   sigmaseries(end);
     struc.blsimpvhng    =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, struc.hngPrice');
     struc.epsilonbls    =   (struc.Price - struc.blsPrice) ./ data_week(:,5)';
@@ -103,7 +104,8 @@ for i = unique(weeksprices)
     struc.RMSEbls       =   sqrt(mean((struc.blsPrice - struc.Price).^2));
     struc.sigma2series   = sigmaseries;
     values{i}           =   struc;
-    totalOLL = totalOLL + struc.optionsLikhng;
+    %totalOLL = totalOLL + struc.optionsLikhng;
+    totalOLL = totalOLL + struc.optionsLikNorm;
     
 end
 fValOut = -totalOLL/length(values);
