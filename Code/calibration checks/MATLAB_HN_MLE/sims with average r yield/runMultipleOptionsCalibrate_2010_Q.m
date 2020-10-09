@@ -2,8 +2,8 @@ clc;
 clearvars;
 close all;
 warning('on')
-ifHalfYear      = 1;
-currentYear     = 2012;
+ifHalfYear      = 0;
+currentYear     = 2010;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
 win_len         = 2520; % around 10years
@@ -44,9 +44,9 @@ pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 1; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
+useUpdatedh0Q       = 1; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 useRPrescribed      = 1;
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
@@ -83,7 +83,7 @@ Dates                   = DatesYear(wednessdays);
 
 % initialize with the data from MLE estimation for each week
 if useUpdatedh0Q
-    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
 elseif useRPrescribed
     load(strcat(pathF,'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
@@ -156,7 +156,7 @@ else
 end
 
 if useMLEPh0 || useUpdatedh0Q
-    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
+    f_min_raw = @(params,scaler,sig2_0) runCalibration(params.*scaler, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
 elseif useRealVola
     sig_tmp = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:)== dataRet(index(1),1));
@@ -192,7 +192,7 @@ if useMLEPh0 || useUpdatedh0Q
     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
-    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
+    [fValOut, values] = getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
     
     logret = dataRet(index(1):indexNextPeriodFirst,4);
     [sigmaseries] = sim_hng_Q_n(params(1:4), logret, rValue, sig_tmp(indSigma));

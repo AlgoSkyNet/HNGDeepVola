@@ -47,7 +47,7 @@ for i=1:length(index)
     sigma2_upd_0(i) = (alpha+omega)/(1-beta-alpha*gamma_star.^2);
     % compute interest rates for the weekly options
     if useYield
-         dates_oi = data(index(i)-win_start + 1:index(i)-win_end,4);
+         dates_oi = data(index(i)-win_start + 1:index(i)-win_end,1);
         [ind1,ind2] = find(SP500_date_prices_returns_realizedvariance_interestRates(1,:) == dates_oi);
         r = SP500_date_prices_returns_realizedvariance_interestRates(8, ind2);
         r = nanmean(r);
@@ -72,13 +72,13 @@ for i=1:length(index)
 %             r = SP500_date_prices_returns_realizedvariance_interestRates(9, ...
 %                 SP500_date_prices_returns_realizedvariance_interestRates(1,:) == shortdata(i,1)-1);
 %         end
-%     end
+     end
     r=max(r,0)/252;    
 
     [likValQ(i), sigma2_vals] = ll_hng_Q_n_paper(params_Q_mle_weekly(i, :), logret, r, sigma2_upd_0(i));
     sigma2_last(i) = sigma2_vals(end);
-    
+    rValues(i) = r;
 end
 
-save('weekly_10to18_mle_opt_h0est_check_rng_unCond.mat','sig2_0','hist_vola', 'opt_ll','likValQ','sigma2_last',...
-     'sigma2_upd_0', 'hist_vola', '-append');
+save('weekly_10to18_mle_opt_h0est_rAv_rng_unCond_LikCorrect.mat','sig2_0','hist_vola', 'opt_ll','likValQ','sigma2_last',...
+     'sigma2_upd_0', 'hist_vola', 'rValues', '-append');
