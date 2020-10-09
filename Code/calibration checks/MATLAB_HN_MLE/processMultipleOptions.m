@@ -1,9 +1,9 @@
 clear;
-load('res2011_h0calibr_12m_avR_yield.mat');
+k=1;
+for year=2010:2018
+load(strcat('res', num2str(year), '_h0calibr_12m_avR_yield.mat'));
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
-%save('resMultipleOptions2010.mat');
-%values1=values;
 j = 1;
 for i = 1:length(values1)
     if ~isempty(values1{1,i})
@@ -14,11 +14,14 @@ for i = 1:length(values1)
     j=j+1;
     end
 end
-mean(optLL_val1)
-mean(MSE1)
-mean(IVRMSE1)
+row(k,1) = mean(optLL_val1);
+row(k,2) = mean(MSE1);
+row(k,3) = mean(IVRMSE1);
+row(k,4:8)=params;
 mean(optLL_valNorm1)
-
+k = k+1;
+clearvars params fValOut1 values1 optLL_val1 optLL_valNorm1 MSE1 IVRMSE1
+end
 
 clear;
 load('res2011_h0RV_12m_avR_yield.mat');
