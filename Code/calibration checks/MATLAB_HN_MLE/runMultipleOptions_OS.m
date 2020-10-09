@@ -24,33 +24,33 @@ display(datatable.Date(index(1)));
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = currentYear;
-useYield            = 0; % uses tbils now
+useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
+useUpdatedh0Q       = 1; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 if ifHalfYear
     if useMLEPh0
-    load(strcat('res', num2str(currentYear), '_h0P_6m.mat'),'values');
+    load(strcat('res', num2str(currentYear), '_h0P_6m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useUpdatedh0Q
-    load(strcat('res', num2str(currentYear), '_h0Q_6m.mat'),'values');
+    load(strcat('res', num2str(currentYear), '_h0Q_6m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useRealVola
-    load(strcat('res', num2str(currentYear), '_h0RV_6m.mat'),'values');
+    load(strcat('res', num2str(currentYear), '_h0RV_6m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 else
-    load(strcat('res', num2str(currentYear), '_6m.mat'),'values');
+    load(strcat('res', num2str(currentYear), '_h0calibr_6m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
     
 end
 
 else
 if useMLEPh0
-    load(strcat('res', num2str(currentYear - 1), '_h0P.mat'),'values');
+    load(strcat('res', num2str(currentYear - 1), '_h0P_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useUpdatedh0Q
-    load(strcat('res', num2str(currentYear - 1), '_h0Q.mat'),'values');
+    load(strcat('res', num2str(currentYear - 1), '_h0Q_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useRealVola
-    load(strcat('res', num2str(currentYear - 1), '_h0RV.mat'),'values');
+    load(strcat('res', num2str(currentYear - 1), '_h0RV_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
 else
-    load(strcat('res', num2str(currentYear - 1), '.mat'),'values');
+    load(strcat('res', num2str(currentYear - 1), '_h0calibr_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
     
 end
 end
@@ -58,8 +58,8 @@ end
 %
 
 hngparams = values{1,length(values)}.hngparams(1:4);
-sig20 = values{1,length(values)}.sig20;
-
+% sig20 = values{1,length(values)}.sig20;
+sig20 = sigma20forNextPeriod;
 
 % load Interest rates
 % load the corresponding data
@@ -111,49 +111,90 @@ indSigma = uniqueWeeks(1);
 data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
 % save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
 
-load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+load(strcat('/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 
 
 MSE = 0;
-[fValOut, values]=getCalibratedData(hngparams, weeksprices, data, sig20, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index);
+[fValOut, values]=getCalibratedData(hngparams, weeksprices, data, sig20, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index, rValue);
 if useMLEPh0
+    j = 1;
     for i = 1:length(values)
         if ~isempty(values{1,i})
-            optLL_val_P(i)= values{1,i}.optionsLikhng;
-            MSE_P(i)= values{1,i}.MSE;
-            IVRMSE_P(i)= values{1,i}.IVRMSE;
+            optLL_val_P(j)= values{1,i}.optionsLikhng;
+            MSE_P(j)= values{1,i}.MSE;
+            IVRMSE_P(j)= values{1,i}.IVRMSE;
+            j = j+1;
         end
     end
-    save(strcat('s', num2str(currentYear), '.mat'),'MSE_P', 'optLL_val_P','IVRMSE_P','-append' );
+    meanoptLL_P = mean(optLL_val_P);
+    meanMSE_P = mean(MSE_P);
+    meanIVRMSE_P = mean(IVRMSE_P);
+    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_P', 'optLL_val_P','IVRMSE_P','meanoptLL_P', 'meanMSE_P', 'meanIVRMSE_P', '-append' );
 elseif useUpdatedh0Q
+    j = 1;
     for i = 1:length(values)
         if ~isempty(values{1,i})
-            optLL_val_Q(i)= values{1,i}.optionsLikhng;
-            MSE_Q(i)= values{1,i}.MSE;
-            IVRMSE_Q(i)= values{1,i}.IVRMSE;
+            optLL_val_Q(j)= values{1,i}.optionsLikhng;
+            MSE_Q(j)= values{1,i}.MSE;
+            IVRMSE_Q(j)= values{1,i}.IVRMSE;
+            j = j+1;
         end
     end
-    save(strcat('s', num2str(currentYear), '.mat'),'MSE_Q', 'optLL_val_Q','IVRMSE_Q','-append' );
+    meanoptLL_Q = mean(optLL_val_Q);
+    meanMSE_Q = mean(MSE_Q);
+    meanIVRMSE_Q = mean(IVRMSE_Q);
+    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_Q', 'optLL_val_Q','IVRMSE_Q','meanoptLL_Q', 'meanMSE_Q', 'meanIVRMSE_Q','-append'  );
 elseif useRealVola
+    j = 1;
     for i = 1:length(values)
         if ~isempty(values{1,i})
-            optLL_val_RV(i)= values{1,i}.optionsLikhng;
-            MSE_RV(i)= values{1,i}.MSE;
-            IVRMSE_RV(i)= values{1,i}.IVRMSE;
+            optLL_val_RV(j)= values{1,i}.optionsLikhng;
+            MSE_RV(j)= values{1,i}.MSE;
+            IVRMSE_RV(j)= values{1,i}.IVRMSE;
+            j = j+1;
         end
     end
-    save(strcat('s', num2str(currentYear), '.mat'),'MSE_RV', 'optLL_val_RV','IVRMSE_RV','-append' );
+    meanoptLL_RV = mean(optLL_val_RV);
+    meanMSE_RV = mean(MSE_RV);
+    meanIVRMSE_RV = mean(IVRMSE_RV);
+    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_RV', 'optLL_val_RV','IVRMSE_RV','meanoptLL_RV', 'meanMSE_RV', 'meanIVRMSE_RV','-append'  );
 else
+    j = 1;
     for i = 1:length(values)
         if ~isempty(values{1,i})
-            optLL_val_est(i)= values{1,i}.optionsLikhng;
-            MSE_est(i)= values{1,i}.MSE;
-            IVRMSE_est(i)= values{1,i}.IVRMSE;
+            optLL_val_est(j)= values{1,i}.optionsLikhng;
+            MSE_est(j)= values{1,i}.MSE;
+            IVRMSE_est(j)= values{1,i}.IVRMSE;
+            j = j+1;
         end
     end
-    save(strcat('s', num2str(currentYear), '.mat'),'MSE_est', 'optLL_val_est','IVRMSE_est','-append' );
+    meanoptLL_est = mean(optLL_val_est);
+    meanMSE_est = mean(MSE_est);
+    meanIVRMSE_est = mean(IVRMSE_est);
+    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_est', 'optLL_val_est','IVRMSE_est','meanoptLL_est', 'meanMSE_est', 'meanIVRMSE_est','-append'  );
     
 end
-clearvars -except 'iii';
-end
 
+clearvars -except 'iii' 'row';
+end
+%%
+clear
+i = 1;
+row(i,1) = meanoptLL_P;
+row(i,2) = meanMSE_P;
+row(i,3)=meanIVRMSE_P;
+
+i = 2;
+row(i,1) = meanoptLL_RV;
+row(i,2) = meanMSE_RV;
+row(i,3)=meanIVRMSE_RV;
+
+i = 3;
+row(i,1) = meanoptLL_Q;
+row(i,2) = meanMSE_Q;
+row(i,3)=meanIVRMSE_Q;
+
+i = 4;
+row(i,1) = meanoptLL_est;
+row(i,2) = meanMSE_est;
+row(i,3)=meanIVRMSE_est;

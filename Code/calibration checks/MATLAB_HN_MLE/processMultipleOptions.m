@@ -23,6 +23,74 @@ k = k+1;
 clearvars params fValOut1 values1 optLL_val1 optLL_valNorm1 MSE1 IVRMSE1
 end
 
+
+clear;
+k=1;
+for year=[2010:2018]
+load(strcat('res', num2str(year), '_h0Q_12m_avR_yield.mat'));
+params = xmin_fmincon;
+[fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+j = 1;
+for i = 1:length(values1)
+    if ~isempty(values1{1,i})
+    optLL_val1(j)= values1{1,i}.optionsLikhng;
+    optLL_valNorm1(j)= values1{1,i}.optionsLikNorm;
+    MSE1(j)= values1{1,i}.MSE;
+    IVRMSE1(j)= values1{1,i}.IVRMSE;
+    j=j+1;
+    end
+end
+row(k,1) = mean(optLL_val1);
+row(k,2) = mean(MSE1);
+row(k,3) = mean(IVRMSE1);
+row(k,4:7)=params;
+mean(optLL_valNorm1)
+k = k+1;
+clearvars params fValOut1 values1 optLL_val1 optLL_valNorm1 MSE1 IVRMSE1
+end
+
+
+
+
+clear;
+k=1;
+for year=[2018]
+load(strcat('res', num2str(year), '_h0P_12m_avR_yield.mat'));
+params = xmin_fmincon;
+[fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+j = 1;
+for i = 1:length(values1)
+    if ~isempty(values1{1,i})
+    optLL_val1(j)= values1{1,i}.optionsLikhng;
+    optLL_valNorm1(j)= values1{1,i}.optionsLikNorm;
+    MSE1(j)= values1{1,i}.MSE;
+    IVRMSE1(j)= values1{1,i}.IVRMSE;
+    j=j+1;
+    end
+end
+row(k,1) = mean(optLL_val1);
+row(k,2) = mean(MSE1);
+row(k,3) = mean(IVRMSE1);
+row(k,4:7)=params;
+mean(optLL_valNorm1)
+k = k+1;
+clearvars params fValOut1 values1 optLL_val1 optLL_valNorm1 MSE1 IVRMSE1
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 clear;
 load('res2011_h0RV_12m_avR_yield.mat');
 params = xmin_fmincon;
