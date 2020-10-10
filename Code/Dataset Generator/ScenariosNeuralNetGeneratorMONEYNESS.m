@@ -53,7 +53,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 1500000;
+Nsim            = 9000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
@@ -318,12 +318,12 @@ for i = 1:Nsim
         yieldcurve = repmat(interest_rates_test(i,:),1,9)';
         price         = price_Q_clear([w,a,b,g],data_vec,yieldcurve/252,sig);        
     end
-    if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >1.1*S))
+    if any(any(price <= 0)) || any(any(isnan(price))) || any(any(price >S))
         fail2 = fail2+1;
         continue
     end
     if price_cleaner
-        if any(any(price<=(1e-5)))
+        if any(any(price<=(1e-3)))
             fail4 = fail4+1;
             continue
         end
@@ -359,7 +359,7 @@ for i = 1:size(data_price,1)
         bad_idx(end+1) = i;
     else
         vega(i,:) = blsvega(data_vec(:,3),  data_vec(:, 1),yield_matrix(:,i), data_vec(:,2)/252, vola(i,:)');
-        if any(isnan(vega(i,:))) || any(vega(i,:)==0) || any(vega(i,:) < S*(1e-5))
+        if any(isnan(vega(i,:))) || any(vega(i,:)==0) %|| any(vega(i,:) < S*(1e-5))
             bad_idx(end+1) = i;
         end
     end
