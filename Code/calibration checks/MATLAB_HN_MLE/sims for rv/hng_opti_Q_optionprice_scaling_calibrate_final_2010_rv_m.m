@@ -11,8 +11,8 @@ warning('on')
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2010;
-useYield            = 0; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useYield            = 1; % uses tbils now
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 2; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
@@ -50,7 +50,7 @@ Dates                   = Dates(wednessdays);
 % initialize with the data from MLE estimation for each week
 %load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 %load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
-load(strcat('C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
+load(strcat('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 
 if useRealVola || useMLEPh0
     num_params = 4;
@@ -331,7 +331,7 @@ for i = unique(weeksprices)
     %parameter bounds, scaled
     lb = lb_mat./scaler;
     ub = ub_mat./scaler;
-     %optimization specs
+    %optimization specs
     if useRealVola || useMLEPh0
         opt = optimoptions('fmincon', ...
             'Display', 'iter',...
@@ -347,8 +347,8 @@ for i = unique(weeksprices)
             'Algorithm', algorithm,...
             'MaxIterations', 4000,...
             'MaxFunctionEvaluations',2500, ...
-            'TolFun', 1e-6,...
-            'TolX', 1e-9,...
+            'TolFun', 1e-15,...
+            'TolX', 1e-15,...
             'TypicalX',Init(i,:)./scaler);
     end
     
@@ -356,20 +356,20 @@ for i = unique(weeksprices)
     struc.optispecs.optiopt = opt;
     
     %local optimization
-   % [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-            rng('default');
-            gs = GlobalSearch('XTolerance',1e-9,'FunctionTolerance', 1e-6,...
-                'StartPointsToRun','bounds-ineqs','NumTrialPoints',2e2,  'Display', 'iter');
-            problem = createOptimProblem('fmincon','x0',Init_scale,...
-                    'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-           [xxval,fval,exitflag] = run(gs,problem);
-%            
-%            ms = MultiStart('XTolerance',1e-9,'FunctionTolerance', 1e-6,...
-%                 'Display', 'iter');
-%             problem = createOptimProblem('fmincon','x0',Init_scale,...
-%                     'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-%            [xmin,fmin] = run(ms,problem, 40);
-           
+    % [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+    rng('default');
+    gs = GlobalSearch('XTolerance',1e-15,'FunctionTolerance', 1e-15,...
+        'StartPointsToRun','bounds-ineqs','NumTrialPoints',5e2,  'Display', 'iter');
+    problem = createOptimProblem('fmincon','x0',Init_scale,...
+        'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+    [xxval,fval,exitflag] = run(gs,problem);
+    %
+    %            ms = MultiStart('XTolerance',1e-9,'FunctionTolerance', 1e-6,...
+    %                 'Display', 'iter');
+    %             problem = createOptimProblem('fmincon','x0',Init_scale,...
+    %                     'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+    %            [xmin,fmin] = run(ms,problem, 40);
+    
     % initialisation for first week
     best_fval = 0;
     f_vec = 0;
@@ -476,7 +476,7 @@ if useRealVola
 elseif useMLEPh0
     save(strcat('params_options_',num2str(year),'_h0ashtMLEP_',goal,'_',algorithm,'_',txt,'_m.mat'),'values');
 else
-    save(strcat('params_options_',num2str(year),'_h0_calibrated_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 end
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');

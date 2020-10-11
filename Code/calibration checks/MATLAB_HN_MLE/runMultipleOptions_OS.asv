@@ -2,7 +2,7 @@ clc;
 clearvars;
 close all;
 warning('on')
-for iii=[2010:2018]
+for iii=[2018]
 ifHalfYear      = 1;
 currentYear     = iii;
 datatable       = readtable('SP500_220320.csv');
@@ -25,9 +25,9 @@ path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Dat
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 1; % uses tbils now
-useRealVola         = 1; % alwas use realized vola
+useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
+useUpdatedh0Q       = 1; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 if ifHalfYear
@@ -178,22 +178,23 @@ end
 clearvars -except 'iii' 'row';
 end
 %%
-% i = 1;
-% row(i,1) = meanoptLL_P;
-% row(i,2) = meanMSE_P;
-% row(i,3)=meanIVRMSE_P;
-% 
-% i = 2;
-% row(i,1) = meanoptLL_RV;
-% row(i,2) = meanMSE_RV;
-% row(i,3)=meanIVRMSE_RV;
-% 
-% i = 3;
-% row(i,1) = meanoptLL_Q;
-% row(i,2) = meanMSE_Q;
-% row(i,3)=meanIVRMSE_Q;
-% 
-% i = 4;
-% row(i,1) = meanoptLL_est;
-% row(i,2) = meanMSE_est;
-% row(i,3)=meanIVRMSE_est;
+clear
+i = 1;
+row(i,1) = meanoptLL_P;
+row(i,2) = meanMSE_P;
+row(i,3)=meanIVRMSE_P;
+
+i = 2;
+row(i,1) = meanoptLL_RV;
+row(i,2) = meanMSE_RV;
+row(i,3)=meanIVRMSE_RV;
+
+i = 3;
+row(i,1) = meanoptLL_Q;
+row(i,2) = meanMSE_Q;
+row(i,3)=meanIVRMSE_Q;
+
+i = 4;
+row(i,1) = meanoptLL_est;
+row(i,2) = meanMSE_est;
+row(i,3)=meanIVRMSE_est;
