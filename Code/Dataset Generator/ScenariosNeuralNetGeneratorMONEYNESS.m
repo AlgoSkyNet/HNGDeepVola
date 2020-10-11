@@ -53,7 +53,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 9000000;
+Nsim            = 1000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
@@ -323,7 +323,7 @@ for i = 1:Nsim
         continue
     end
     if price_cleaner
-        if any(any(price<=(1e-3)))
+        if any(any(price<(1e-2)))
             fail4 = fail4+1;
             continue
         end
