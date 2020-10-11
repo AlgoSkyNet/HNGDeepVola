@@ -2,8 +2,8 @@ clc;
 clearvars;
 close all;
 warning('on')
-for iii=[2010:2018]
-ifHalfYear      = 1;
+for iii=[2016]
+ifHalfYear      = 0;
 currentYear     = iii;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
@@ -27,7 +27,7 @@ year                = currentYear;
 useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useUpdatedh0Q       = 1; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
+useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
 load(path_);
 if ifHalfYear

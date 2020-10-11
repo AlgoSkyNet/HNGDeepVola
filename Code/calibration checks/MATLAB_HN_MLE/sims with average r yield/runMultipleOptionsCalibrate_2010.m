@@ -218,7 +218,21 @@ elseif useRealVola
     sigma20forNextPeriod = sigmaseries(end);
 else
     %local optimization
-    [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+%     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+%     xmin_fmincon = xxval.*scaler;
+%     params = xmin_fmincon;
+%     [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+%     
+%     logret = dataRet(index(1):indexNextPeriodFirst,4);
+%     [sigmaseries] = sim_hng_Q_n(params(1:4),logret,rValue,params(5));
+% 
+%     sigma20forNextPeriod = sigmaseries(end);
+    
+    gs = GlobalSearch('XTolerance',1e-15,'FunctionTolerance', 1e-15,...
+        'StartPointsToRun','bounds-ineqs','NumTrialPoints',500,'Display','iter');
+    problem = createOptimProblem('fmincon','x0',Init_scale,...
+        'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+    [xxval,fmin] = run(gs,problem);
     xmin_fmincon = xxval.*scaler;
     params = xmin_fmincon;
     [fValOut, values] = getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
@@ -227,6 +241,7 @@ else
     [sigmaseries] = sim_hng_Q_n(params(1:4),logret,rValue,params(5));
 
     sigma20forNextPeriod = sigmaseries(end);
+
 end
 
 strYear = num2str(currentYear);
@@ -253,5 +268,5 @@ elseif useUpdatedh0Q
 elseif useRealVola
     save(strcat('res', strYear, '_h0RV', flagNmonths, flagR, flagYield, '.mat'));
 else
-    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, 'norm1.mat'));
+    save(strcat('res', strYear, '_h0calibr', flagNmonths, flagR, flagYield, 'gs.mat'));
 end
