@@ -23,8 +23,8 @@ name_vega = ["id_Moneyness_47595cdd50804669_data_vega_norm_4862_bigprice.mat",..
             "id_Moneyness_6b82aed7ce7b48f9_data_vega_norm_4978_bigprice.mat",...
             "Moneyness_vega_norm_46842.mat"];
 [data_price,data_vola,data_vega] = data_merger(name_price,name_vola,name_vega,1e-2);
-save("Moneyness_vola_norm_81509.mat","data_vola")
-save("Moneyness_vega_norm_81509.mat","data_vega")
-save("Moneyness_price_norm_81509.mat","data_price")
+save("Moneyness_vola_norm_46842.mat","data_vola")
+save("Moneyness_vega_norm_46842.mat","data_vega")
+save("Moneyness_price_norm_46842.mat","data_price")
 mean(data_price(:,1:5))
 median(data_price(:,1:5))
