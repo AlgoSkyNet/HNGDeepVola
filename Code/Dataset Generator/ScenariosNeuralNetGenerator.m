@@ -27,13 +27,15 @@ id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(
 % Configuration of underlying data
 years     = 2010:2018;
 goals     = ["MSE"];%,"MAPE","OptLL"];
-path_data = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Calibration Calloption/';
+%path_data = 'C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Calibration Calloption/';
 %path_data = 'D:/GitHub/HNGDeepVola/Code/Calibration Calloption/';
+path_data = 'D:/GitHub/MasterThesisHNGDeepVola/Code/Calibration Calloption/';
+
 saver     = 1; % want to save data or not externally  
 % Configuration of dataset
 %rng('default') % in case we want to check results set to fixed state
 choice          = "norm"; % 1."norm" 2."uni" 3."unisemiscale" 4."log" 5."tanh" 6."tanhscale" 7"unisymmetric"
-yieldstype      = "testing";%"szenario"; % "PCA" only! "szenario" not working yet.
+yieldstype      = "szenario";%"szenario"; % "PCA" only! "szenario" not working yet.
 scenario_cleaner = 0;% boolean value indicating whether outlier should be cleaned from the underlying data
 disp(strcat("Generation of prices for '",choice,"' scaling and interestrate type '",yieldstype,"'."))
 price_cleaner  = 1; %01%sort out too small prices
