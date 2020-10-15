@@ -1,7 +1,7 @@
 clear;
 k=1;
 for year=2010
-load(strcat('res', num2str(year), '_h0calibr_12m_avR_yieldf.mat'));
+load(strcat('res', num2str(year), '_h0calibr_12m_avR_yield.mat'));
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedDatah0(params, weeksprices, data, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 j = 1;
