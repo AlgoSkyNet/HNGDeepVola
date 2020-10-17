@@ -16,7 +16,7 @@ year                = 2010;
 useYield            = 1; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useMLEPUncondh0     = 1; % use the uncond. variance from MLE under P as h0
+useMLEPUncondh0     = 0; % use the uncond. variance from MLE under P as h0
 num_voladays        = 1; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
@@ -51,7 +51,11 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
-load(strcat('C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
+if 
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
+else
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+end
 
 if useRealVola || useMLEPh0 || useMLEPUncondh0
     num_params = 4;
