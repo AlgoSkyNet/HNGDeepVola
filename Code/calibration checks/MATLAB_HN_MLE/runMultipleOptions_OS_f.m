@@ -2,7 +2,7 @@ clc;
 clearvars;
 close all;
 warning('on')
-for iii=[2010]
+for iii=[2011]
 ifHalfYear      = 0;
 currentYear     = iii;
 datatable       = readtable('SP500_220320.csv');
@@ -25,7 +25,7 @@ path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Dat
 stock_ind           = 'SP500';
 year                = currentYear;
 useYield            = 1; % uses tbils now
-useRealVola         = 0; % alwas use realized vola
+useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
 useUpdatedh0Q       = 0; % use last h_t from MLE under P for 10 years, then updated under Q for one more year
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
@@ -44,13 +44,13 @@ end
 
 else
 if useMLEPh0
-    load(strcat('res', num2str(currentYear - 1), '_h0P_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
+    load(strcat('res', num2str(currentYear - 1), '_h0P_12m_avR_yieldf.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useUpdatedh0Q
-    load(strcat('res', num2str(currentYear - 1), '_h0Q_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
+    load(strcat('res', num2str(currentYear - 1), '_h0Q_12m_avR_yieldf.mat'),'values', 'sigma20forNextPeriod','rValue');
 elseif useRealVola
-    load(strcat('res', num2str(currentYear - 1), '_h0RV_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
+    load(strcat('res', num2str(currentYear - 1), '_h0RV_12m_avR_yieldf.mat'),'values', 'sigma20forNextPeriod','rValue');
 else
-    load(strcat('res', num2str(currentYear - 1), '_h0calibr_12m_avR_yield.mat'),'values', 'sigma20forNextPeriod','rValue');
+    load(strcat('res', num2str(currentYear - 1), '_h0calibr_12m_avR_yieldf.mat'),'values', 'sigma20forNextPeriod','rValue');
     
 end
 end
@@ -96,7 +96,7 @@ IfCleanNans             = 1;
 TimeToMaturityInterval  = [8, 250];
 MoneynessInterval       = [0.9, 1.1];
 
-[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptions(Dates, Type, ...
+[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptionsFilt(Dates, Type, ...
     TimeToMaturityInterval, MoneynessInterval, MinimumVolume, MinimumOpenInterest,IfCleanNans,...
     TheDateofthisPriceInSerialNumber, CCallPPut, TradingDaysToMaturity, Moneyness, Volume, ...
     OpenInterestfortheOption, StrikePriceoftheOptionTimes1000, MeanOptionPrice, TheSP500PriceThisDate, ...
@@ -129,7 +129,7 @@ if useMLEPh0
     meanoptLL_P = mean(optLL_val_P);
     meanMSE_P = mean(MSE_P);
     meanIVRMSE_P = mean(IVRMSE_P);
-    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_P', 'optLL_val_P','IVRMSE_P','meanoptLL_P', 'meanMSE_P', 'meanIVRMSE_P', '-append' );
+    save(strcat('OfoS', num2str(currentYear), '.mat'),'MSE_P', 'optLL_val_P','IVRMSE_P','meanoptLL_P', 'meanMSE_P', 'meanIVRMSE_P', '-append' );
 elseif useUpdatedh0Q
     j = 1;
     for i = 1:length(values)
@@ -143,7 +143,7 @@ elseif useUpdatedh0Q
     meanoptLL_Q = mean(optLL_val_Q);
     meanMSE_Q = mean(MSE_Q);
     meanIVRMSE_Q = mean(IVRMSE_Q);
-    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_Q', 'optLL_val_Q','IVRMSE_Q','meanoptLL_Q', 'meanMSE_Q', 'meanIVRMSE_Q','-append'  );
+    save(strcat('OfoS', num2str(currentYear), '.mat'),'MSE_Q', 'optLL_val_Q','IVRMSE_Q','meanoptLL_Q', 'meanMSE_Q', 'meanIVRMSE_Q','-append'  );
 elseif useRealVola
     j = 1;
     for i = 1:length(values)
@@ -157,7 +157,7 @@ elseif useRealVola
     meanoptLL_RV = mean(optLL_val_RV);
     meanMSE_RV = mean(MSE_RV);
     meanIVRMSE_RV = mean(IVRMSE_RV);
-    save(strcat('OoS', num2str(currentYear), '.mat'),'MSE_RV', 'optLL_val_RV','IVRMSE_RV','meanoptLL_RV', 'meanMSE_RV', 'meanIVRMSE_RV','-append'  );
+    save(strcat('OfoS', num2str(currentYear), '.mat'),'MSE_RV', 'optLL_val_RV','IVRMSE_RV','meanoptLL_RV', 'meanMSE_RV', 'meanIVRMSE_RV','-append'  );
 else
     j = 1;
     for i = 1:length(values)
@@ -171,7 +171,7 @@ else
     meanoptLL_est = mean(optLL_val_est);
     meanMSE_est = mean(MSE_est);
     meanIVRMSE_est = mean(IVRMSE_est);
-    save(strcat('OfoS', num2str(currentYear), '.mat'),'MSE_est', 'optLL_val_est','IVRMSE_est','meanoptLL_est', 'meanMSE_est', 'meanIVRMSE_est','-append'  );
+    save(strcat('OfoS', num2str(currentYear), '.mat'),'MSE_est', 'optLL_val_est','IVRMSE_est','meanoptLL_est', 'meanMSE_est', 'meanIVRMSE_est'  );
     
 end
 

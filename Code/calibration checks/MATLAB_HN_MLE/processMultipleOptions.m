@@ -1,4 +1,4 @@
-clear;
+%clear;
 k=1;
 for year=2010
 load(strcat('res', num2str(year), '_h0calibr_12m_avR_yieldf.mat'));
@@ -26,8 +26,8 @@ end
 
 clear;
 k=1;
-for year=[2018]
-load(strcat('res', num2str(year), '_h0Q_12m_avR_yield.mat'));
+for year=[2010]
+load(strcat('res', num2str(year), '_h0Q_12m_avR_yieldf.mat'));
 params = xmin_fmincon;
 [fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 j = 1;
@@ -54,10 +54,10 @@ end
 
 clear;
 k=1;
-for year=[2018]
-load(strcat('res', num2str(year), '_h0P_12m_avR_yield.mat'));
+for year=[2010]
+load(strcat('res', num2str(year), '_h0RV_12m_avR_yieldf.mat'));
 params = xmin_fmincon;
-[fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp(indSigma), SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
+[fValOut1, values1]=getCalibratedData(params, weeksprices, data, sig_tmp, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index, rValue);
 j = 1;
 for i = 1:length(values1)
     if ~isempty(values1{1,i})

@@ -10,10 +10,10 @@ warning('on')
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
-year                = 2010;
+year                = 2011;
 useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 2; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
@@ -50,7 +50,6 @@ Dates                   = Dates(wednessdays);
 % initialize with the data from MLE estimation for each week
 %load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
 %load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
-%load(strcat('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 load(strcat('C:/Users/lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 
 if useRealVola || useMLEPh0
@@ -72,7 +71,7 @@ IfCleanNans             = 1;
 TimeToMaturityInterval  = [8, 250];
 MoneynessInterval       = [0.9, 1.1];
 
-[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptionsFilt(Dates, Type, ...
+[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptions(Dates, Type, ...
     TimeToMaturityInterval, MoneynessInterval, MinimumVolume, MinimumOpenInterest,IfCleanNans,...
     TheDateofthisPriceInSerialNumber, CCallPPut, TradingDaysToMaturity, Moneyness, Volume, ...
     OpenInterestfortheOption, StrikePriceoftheOptionTimes1000, MeanOptionPrice, TheSP500PriceThisDate, ...
@@ -357,13 +356,13 @@ for i = unique(weeksprices)
     struc.optispecs.optiopt = opt;
     
     %local optimization
-    % [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
-    rng('default');
-    gs = GlobalSearch('XTolerance',1e-15,'FunctionTolerance', 1e-15,...
-        'StartPointsToRun','bounds-ineqs','NumTrialPoints',5e2,  'Display', 'iter');
-    problem = createOptimProblem('fmincon','x0',Init_scale,...
-        'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
-    [xxval,fval,exitflag] = run(gs,problem);
+     [xxval,fval,exitflag] = fmincon(f_min, Init_scale, [], [], [], [], lb, ub, nonlincon_fun, opt);
+%     rng('default');
+%     gs = GlobalSearch('XTolerance',1e-15,'FunctionTolerance', 1e-15,...
+%         'StartPointsToRun','bounds-ineqs','NumTrialPoints',5e2,  'Display', 'iter');
+%     problem = createOptimProblem('fmincon','x0',Init_scale,...
+%         'objective',f_min,'lb',lb,'ub',ub,'nonlcon',nonlincon_fun);
+%     [xxval,fval,exitflag] = run(gs,problem);
     %
     %            ms = MultiStart('XTolerance',1e-9,'FunctionTolerance', 1e-6,...
     %                 'Display', 'iter');
@@ -473,11 +472,11 @@ if strcmp(algorithm,'interior-point') %for file naming purposes
     algorithm = 'interiorpoint';
 end
 if useRealVola
-    save(strcat('params_options_',num2str(year),'_h0asRealVolaGS',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asRealVola',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 elseif useMLEPh0
-    save(strcat('params_options_',num2str(year),'_h0ashtMLEPGS_',goal,'_',algorithm,'_',txt,'_m.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0ashtMLEP_',goal,'_',algorithm,'_',txt,'_m.mat'),'values');
 else
-    save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0_calibratedfmincon_',goal,'_',algorithm,'_',txt,'.mat'),'values');
 end
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');

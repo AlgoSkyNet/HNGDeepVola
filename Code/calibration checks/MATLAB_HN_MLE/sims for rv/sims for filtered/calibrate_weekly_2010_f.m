@@ -13,7 +13,7 @@ stock_ind           = 'SP500';
 year                = 2010;
 useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
 num_voladays        = 2; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
