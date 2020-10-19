@@ -37,8 +37,10 @@ display(datatable.Date(index(1)));
 display(datatable.Date(index(end)));
 display(datatable.Date(indexNextPeriodFirst));
 
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
-pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+% path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% pathF                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'Users/Lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
+pathF                =  'Users/Lyudmila/Dropbox/GIT/HenrikAlexJP/';
 % path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 % pathF                =  'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
@@ -85,7 +87,7 @@ Dates                   = DatesYear(wednessdays);
 if useUpdatedh0Q
     load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P for Update/','weekly_',num2str(year),'_mle_opt_h0est_UpdateQ.mat'));
 elseif useRPrescribed
-    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+    load(strcat(pathF,'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 else
     load(strcat(pathF,'Code/calibration checks/Calibration MLE P/Results with estimated h0P/','weekly_',num2str(year),'_mle_opt_h0est.mat'));
     

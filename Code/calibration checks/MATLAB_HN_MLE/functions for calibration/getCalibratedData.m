@@ -1,4 +1,4 @@
-function [fValOut, values]=getCalibratedData(params, weeksprices, data, sig2_0, SP500_date_prices_returns_realizedvariance_interestRates, Dates,dataRet, vola_tmp, index,rValue)
+function [fValOut, values]=getCalibratedData(params, weeksprices, data, sig2_0, SP500_date_prices_returns_realizedvariance_interestRates, Dates, dataRet, vola_tmp, index,rValue)
 
 %% weekly optimization
 j = 1;
@@ -34,7 +34,7 @@ for i = curWeeks
             interestRates(k)=0;
         end
     end
-    if nargin > 8 && rValue
+    if nargin > 9 && rValue
         % use average r for the vola dynamics
         if rValue
             r = rValue/252;

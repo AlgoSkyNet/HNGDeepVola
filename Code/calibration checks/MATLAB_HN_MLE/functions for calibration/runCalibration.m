@@ -34,7 +34,7 @@ for i = curWeeks
         end
     end
     
-    if nargin > 8 && rValue
+    if nargin > 9 && rValue
         % use average r for the vola dynamics
         if rValue
             r = rValue/252;

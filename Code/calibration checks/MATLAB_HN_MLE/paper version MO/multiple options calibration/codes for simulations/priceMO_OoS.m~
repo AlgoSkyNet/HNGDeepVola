@@ -2,12 +2,13 @@ clc;
 clearvars;
 close all;
 warning('on')
+
+
 for iii=[2010]
 ifHalfYear      = 0;
 currentYear     = iii;
 datatable       = readtable('SP500_220320.csv');
 dataRet         = [datenum(datatable.Date),year(datatable.Date),datatable.AdjClose,[0;log(datatable.AdjClose(2:end))-log(datatable.AdjClose(1:end-1))]];
-win_len         = 2520; % around 10years
 years           = (dataRet(:,2) == currentYear);
 wednesdays      = (weekday(dataRet(:,1)) == 4);
 if ifHalfYear
