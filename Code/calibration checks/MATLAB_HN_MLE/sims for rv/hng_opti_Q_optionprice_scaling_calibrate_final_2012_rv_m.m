@@ -7,8 +7,8 @@ warning('on')
 
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
-%path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 stock_ind           = 'SP500';
 year                = 2012;
 useYield            = 0; % uses tbils now
