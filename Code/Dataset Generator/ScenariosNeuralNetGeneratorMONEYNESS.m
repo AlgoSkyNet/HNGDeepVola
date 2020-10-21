@@ -323,7 +323,7 @@ for i = 1:Nsim
         continue
     end
     if price_cleaner
-        if any(any(price<(1e-6)))
+        if any(any(price<(1e-8)))
             fail4 = fail4+1;
             continue
         end

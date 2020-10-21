@@ -12,17 +12,18 @@ from sklearn.model_selection import train_test_split
 
 
 ### Data Import
-#path = "D:/GitHub/MasterThesisHNGDeepVola/Code/Python Neural Nets/Current Version (Tbill Yield Curves)/9x9 Grid/Dataset/"
-#path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid/Dataset/"
-path = "D:\GitHub\MasterThesisHNGDeepVola\Code\Python Neural Nets\9x9 Grid_Moneyness/Dataset/"
+path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid_Moneyness/Dataset/"
+#path = "D:\GitHub\MasterThesisHNGDeepVola\Code\Python Neural Nets\9x9 Grid_Moneyness/Dataset/"
 
 #name_price = "id_Moneyness_8cd524ab1cd9408b_data_price_norm_53392_bigprice.mat"#"id_aa11a111a1aa1a1a_data_price_norm_143032.mat"
 #name_vola  = "id_Moneyness_8cd524ab1cd9408b_data_vola_norm_53392_bigprice.mat"
 #name_vega  = "id_Moneyness_8cd524ab1cd9408b_data_vega_norm_53392_bigprice.mat"
-
-name_price = "Moneyness_price_norm_46842.mat"
-name_vola  = "Moneyness_vola_norm_46842.mat"
-name_vega  = "Moneyness_vega_norm_46842.mat"
+#name_price = "Moneyness_price_norm_81509_1e-2.mat"
+#name_vola  = "Moneyness_vola_norm_81509_1e-2.mat"
+#name_vega  = "Moneyness_vega_norm_81509_1e-2.mat"
+name_price = "Moneyness_price_norm_400_1e-6.mat"
+name_vola  = "Moneyness_vola_norm_400_1e-6.mat"
+name_vega  = "Moneyness_vega_norm_400_1e-6.mat"
 
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola   = mat['data_vola']

@@ -1,9 +1,10 @@
 clc; clearvars;
-load("data_for_IVfullnormal_intrinsic.mat")
-load("data_for_price_from_vola.mat")
+load("data_for_IV_moneyness.mat")
+load("data_for_IVvola_moneyness.mat")
 N = length(param);
 S0 = 2000;
-Strikes = S0*[0.9:0.025:1.1];
+Moneyness = 1.1:-0.025:0.9;
+Strikes = S0./Moneyness;
 Maturities = [10:30:250];
 imp_price = zeros(N,9,9);
 imp_price_forecast = zeros(N,9,9);
