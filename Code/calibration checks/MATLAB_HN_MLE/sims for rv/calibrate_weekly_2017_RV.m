@@ -12,7 +12,7 @@ warning('on')
 path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 pathbeg = 'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2016;
+year                = 2017;
 useYield            = 1; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
