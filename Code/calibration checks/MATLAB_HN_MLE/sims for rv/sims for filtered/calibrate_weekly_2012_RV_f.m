@@ -138,11 +138,11 @@ for i = unique(weeksprices)
 %             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
 %         vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
 %             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
-%         for vola_idx = 1:num_voladays
-%             if ~isempty(vola_cell{vola_idx})
-%                 vola_vec(vola_idx) = vola_cell{vola_idx};
-%             end
-%         end
+        for vola_idx = 1:num_voladays
+            if ~isempty(vola_cell{vola_idx})
+                vola_vec(vola_idx) = vola_cell{vola_idx};
+            end
+        end
          [~,vola_idx] =max(vola_vec>0);
 %         sig2_0(i) = vola_vec(vola_idx);
         sig2_0(i) = vola_cell{1};
