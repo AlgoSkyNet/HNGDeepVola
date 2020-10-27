@@ -11,7 +11,7 @@ warning('on')
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2011;
+year                = 2012;
 useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
