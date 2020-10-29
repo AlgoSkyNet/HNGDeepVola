@@ -117,7 +117,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = unique(weeksprices)
+for i = 6:53%unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
