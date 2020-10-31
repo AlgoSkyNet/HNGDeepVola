@@ -13,7 +13,7 @@ path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Dat
 % pathbeg = 'C:/GIT/HenrikAlexJP/';
 pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2012;
+year                = 2016;
 useYield            = 1; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
@@ -117,15 +117,15 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = [26,28:52]
+for i = unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
         vola_cell = {};
         vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
-         vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+        vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
 %         vola_cell{3} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
 %             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
 %         vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
@@ -145,10 +145,10 @@ for i = [26,28:52]
         end
          [~,vola_idx] =max(vola_vec>0);
 %         sig2_0(i) = vola_vec(vola_idx);
-        if ~isempty(vola_cell{1})
-            sig2_0(i) = vola_cell{1};
+        if isempty(vola_cell{1})
+                sig2_0(i) = vola_cell{2};
         else
-            sig2_0(i) = vola_cell{2};
+            sig2_0(i) = vola_cell{1};
         end
     elseif useMLEPh0
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 = h_t from MLE under P.'))

@@ -117,7 +117,7 @@ scaler           =   sc_fac(min(weeksprices), :);
 j = 1;
 good_i =[];
 bad_i =[];
-for i = 6:53%unique(weeksprices)
+for i = unique(weeksprices)
     if useRealVola
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
         vola_vec = zeros(1,num_voladays);
@@ -145,11 +145,11 @@ for i = 6:53%unique(weeksprices)
         end
          [~,vola_idx] =max(vola_vec>0);
 %         sig2_0(i) = vola_vec(vola_idx);
-if i==2
-        sig2_0(i) = vola_cell{2};
-else
-    sig2_0(i) = vola_cell{1};
-end
+        if isempty(vola_cell{1})
+            sig2_0(i) = vola_cell{2};
+        else
+            sig2_0(i) = vola_cell{1};
+        end
     elseif useMLEPh0
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 = h_t from MLE under P.'))
         sig2_0(i) = sig_tmp(i);
