@@ -7,12 +7,13 @@ warning('on')
 
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
-%path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-%path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+% path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+% pathbeg = 'C:/GIT/HenrikAlexJP/';
 pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2018;
+year                = 2017;
 useYield            = 1; % uses tbils now
 useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
@@ -54,7 +55,7 @@ Dates                   = Dates(wednessdays);
 if useMLEPUncondh0
     load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
 else
-    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P//Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
 end
 
 if useRealVola || useMLEPh0 || useMLEPUncondh0
@@ -76,7 +77,7 @@ IfCleanNans             = 1;
 TimeToMaturityInterval  = [8, 250];
 MoneynessInterval       = [0.9, 1.1];
 
-[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptions(Dates, Type, ...
+[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptionsFilt(Dates, Type, ...
     TimeToMaturityInterval, MoneynessInterval, MinimumVolume, MinimumOpenInterest,IfCleanNans,...
     TheDateofthisPriceInSerialNumber, CCallPPut, TradingDaysToMaturity, Moneyness, Volume, ...
     OpenInterestfortheOption, StrikePriceoftheOptionTimes1000, MeanOptionPrice, TheSP500PriceThisDate, ...
@@ -142,7 +143,7 @@ for i = unique(weeksprices)
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
         end
-        [~,vola_idx] =max(vola_vec>0);
+         [~,vola_idx] =max(vola_vec>0);
 %         sig2_0(i) = vola_vec(vola_idx);
         if isempty(vola_cell{1})
                 sig2_0(i) = vola_cell{2};
@@ -466,13 +467,13 @@ if strcmp(algorithm,'interior-point') %for file naming purposes
     algorithm = 'interiorpoint';
 end
 if useRealVola
-    save(strcat('params_options_',num2str(year),'_h0asRealVolaGS',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asRealVolaGS',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
 elseif useMLEPh0
-    save(strcat('params_options_',num2str(year),'_h0ashtMLEPGS_', goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0ashtMLEPGS_', goal,'_',algorithm,'_',txt,'f.mat'),'values');
 elseif useMLEPUncondh0
-    save(strcat('params_options_',num2str(year),'_h0asUncVarUpdQGS_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asUncVarUpdQGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
 else
-    save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
 end
 %for specific weeks
 %save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
