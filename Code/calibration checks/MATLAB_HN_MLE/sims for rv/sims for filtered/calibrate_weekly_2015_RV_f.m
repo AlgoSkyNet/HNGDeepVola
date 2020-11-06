@@ -7,11 +7,13 @@ warning('on')
 
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 %path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 % path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
 % pathbeg = 'C:/GIT/HenrikAlexJP/';
-pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+%pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathbeg = 'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = 2015;
 useYield            = 1; % uses tbils now

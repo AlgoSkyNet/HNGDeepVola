@@ -8,8 +8,10 @@ warning('on')
 %parpool()
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
-pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+% path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+% pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathbeg = 'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
 year                = 2018;
 useYield            = 1; % uses tbils now
