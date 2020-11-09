@@ -9,14 +9,15 @@ warning('on')
 %path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
 %path                =  '/Users/lyudmila/Dropbox/GIT/HenrikAlexJP/Data/Datasets';
 %path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
-path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+pathbeg = 'C:/GIT/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2013;
+year                = 2017;
 useYield            = 1; % uses tbils now
-useRealVola         = 0; % alwas use realized vola
+useRealVola         = 1; % alwas use realized vola
 useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useMLEPUncondh0     = 1; % use the uncond. variance from MLE under P as h0
-num_voladays        = 6; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
+useMLEPUncondh0     = 0; % use the uncond. variance from MLE under P as h0
+num_voladays        = 1; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
 path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
@@ -50,7 +51,11 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
-load(strcat('C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Code/calibration checks/Calibration MLE P/correct Likelihood/Yields/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
+if useMLEPUncondh0
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
+else
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+end
 
 if useRealVola || useMLEPh0 || useMLEPUncondh0
     num_params = 4;
@@ -118,27 +123,28 @@ for i = unique(weeksprices)
         vola_cell = {};
         vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
-        vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
-        vola_cell{3} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
-        vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
-        vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
-        vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
-        vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
-        vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
-            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
+%         vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+%         vola_cell{3} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
+%         vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
+%         vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
+%         vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
+%         vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
+%         vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
         for vola_idx = 1:num_voladays
             if ~isempty(vola_cell{vola_idx})
                 vola_vec(vola_idx) = vola_cell{vola_idx};
             end
         end
         [~,vola_idx] =max(vola_vec>0);
-        sig2_0(i) = vola_vec(vola_idx);
+%         sig2_0(i) = vola_vec(vola_idx);
+        sig2_0(i) = vola_cell{1};
     elseif useMLEPh0
         disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 = h_t from MLE under P.'))
         sig2_0(i) = sig_tmp(i);

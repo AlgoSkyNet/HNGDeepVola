@@ -11,11 +11,11 @@ warning('on')
 path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
 pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
 stock_ind           = 'SP500';
-year                = 2011;
+year                = 2014;
 useYield            = 1; % uses tbils now
 useRealVola         = 0; % alwas use realized vola
-useMLEPh0           = 0; % use last h_t from MLE under P as h0
-useMLEPUncondh0 = 0;
+useMLEPh0           = 1; % use last h_t from MLE under P as h0
+useMLEPUncondh0     = 0;
 num_voladays        = 2; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
 algorithm           = 'interior-point';% 'sqp'
 goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
@@ -50,8 +50,6 @@ Dates                   = date_start:date_end;
 Dates                   = Dates(wednessdays);
 
 % initialize with the data from MLE estimation for each week
-%load(strcat('C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Code/Calibration MLE/','weekly_',num2str(year),'_mle_opt.mat'));
-%load(strcat('C:/Users/TEMP/Documents/GIT/HenrikAlexJP/Code/calibration checks/MATLAB_HN_MLE/MLE_P estimation results/','weekly_',num2str(year),'_mle_opt.mat'));
 if useMLEPUncondh0
     load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
 else
@@ -478,9 +476,9 @@ if strcmp(algorithm,'interior-point') %for file naming purposes
     algorithm = 'interiorpoint';
 end
 if useRealVola
-    save(strcat('params_options_',num2str(year),'_h0asRealVola',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0asRealVolaGS',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
 elseif useMLEPh0
-    save(strcat('params_options_',num2str(year),'_h0ashtMLEP_',goal,'_',algorithm,'_',txt,'_f.mat'),'values');
+    save(strcat('params_options_',num2str(year),'_h0ashtMLEPGS_',goal,'_',algorithm,'_',txt,'_f.mat'),'values');
 else
     save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
 end

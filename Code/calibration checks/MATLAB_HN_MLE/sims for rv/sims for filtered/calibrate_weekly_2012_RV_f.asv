@@ -1,0 +1,179 @@
+%HNG-Optimization under Q 
+%Options: path = '/Users/User/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+clc; 
+clearvars; 
+close all;
+warning('on')
+
+%parpool()
+%path                = 'C:/Users/Henrik/Documents/GitHub/MasterThesisHNGDeepVola/Data/Datasets';
+path                =  'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/Data/Datasets';
+%path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+% path                =  'C:/GIT/HenrikAlexJP/Data/Datasets';
+% pathbeg = 'C:/GIT/HenrikAlexJP/';
+pathbeg = 'C:/Users/Lyudmila/Documents/GitHub/HenrikAlexJP/';
+stock_ind           = 'SP500';
+year                = 2012;
+useYield            = 1; % uses tbils now
+useRealVola         = 1; % alwas use realized vola
+useMLEPh0           = 0; % use last h_t from MLE under P as h0
+useMLEPUncondh0     = 0; % use the uncond. variance from MLE under P as h0
+num_voladays        = 1; % if real vola, give the number of historic volas used (6 corresponds to today plus 5 days = 1week);
+algorithm           = 'interior-point';% 'sqp'
+goal                =  'OptLL'; % 'MSE';   'MAPE';  ,'OptLL';
+path_               = strcat(path, '/', stock_ind, '/', 'Calls', num2str(year), '.mat');
+load(path_);
+
+% load Interest rates
+% load the corresponding data
+if useYield
+    path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateYield_090320.mat');
+    txt = 'useYield';
+else
+    path_vola       =  strcat(path, '/', 'InterestRates', '/', 'SP500_date_prices_returns_realizedvariance_intRateTbill_090320.mat');
+    txt = 'noYield';
+end
+load(path_vola);
+
+% if use realized volatility data then load the corresponding data
+
+
+bound                   = [100, 100];
+formatIn                = 'dd-mmm-yyyy';
+
+% start from the first Wednesday of 2015 and finish with the last Wednesday of 2015
+
+DateString_start        = strcat('01-January-',num2str(year));
+DateString_end          = strcat('31-December-',num2str(year));
+date_start              = datenum(DateString_start, formatIn);
+date_end                = datenum(DateString_end, formatIn);
+wednessdays             = (weekday(date_start:date_end)==4);
+Dates                   = date_start:date_end;
+Dates                   = Dates(wednessdays);
+
+% initialize with the data from MLE estimation for each week
+if useMLEPUncondh0
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P/Results with estimated h0P rAv for Update/','weekly_',num2str(year),'_mle_opt_h0est_rAv_Unc.mat'));
+else
+    load(strcat(pathbeg, 'Code/calibration checks/Calibration MLE P/paper version/data for tables/Yields/r average/estimated h0P//Results with estimated h0P rAv/','weekly_',num2str(year),'_mle_opt_h0est_rAv.mat'));
+end
+
+if useRealVola || useMLEPh0 || useMLEPUncondh0
+    num_params = 4;
+else
+    num_params = 5;
+end
+
+Init = params_tmp;
+if ~(useRealVola || useMLEPh0 || useMLEPUncondh0)
+    Init = [params_tmp, sig_tmp];
+end
+    
+% bounds for maturity, moneyness, volumes, interest rates
+Type                    = 'call';
+MinimumVolume           = 100;
+MinimumOpenInterest     = 100;
+IfCleanNans             = 1;
+TimeToMaturityInterval  = [8, 250];
+MoneynessInterval       = [0.9, 1.1];
+
+[OptionsStruct, OptFeatures, DatesClean, LongestMaturity] = SelectOptionsFilt(Dates, Type, ...
+    TimeToMaturityInterval, MoneynessInterval, MinimumVolume, MinimumOpenInterest,IfCleanNans,...
+    TheDateofthisPriceInSerialNumber, CCallPPut, TradingDaysToMaturity, Moneyness, Volume, ...
+    OpenInterestfortheOption, StrikePriceoftheOptionTimes1000, MeanOptionPrice, TheSP500PriceThisDate, ...
+    TheSP500ReturnThisDate, VegaKappaoftheOption, ImpliedVolatilityoftheOption);
+
+weeksprices             = week(datetime([OptionsStruct.date], 'ConvertFrom', 'datenum'));
+
+idxj  = 1:length(unique(weeksprices));
+
+
+
+data = [OptionsStruct.price; OptionsStruct.maturity; OptionsStruct.strike; OptionsStruct.priceunderlying; OptionsStruct.vega; OptionsStruct.implied_volatility];
+% save('generaldata2015.mat', 'data', 'DatesClean', 'OptionsStruct', 'OptFeatures', 'idx');
+%% Optimization
+
+% Initialization  
+sc_fac           =   magnitude(Init);
+Init_scale_mat   =   Init./sc_fac;
+lb_mat           =   [1e-12, 0, 0, -1500];
+ub_mat           =   [1, 1, 1, 1500];  
+
+if ~(useRealVola || useMLEPh0 || useMLEPUncondh0)
+    lb_mat = [lb_mat, 1e-12];
+    ub_mat = [ub_mat, 1];
+end
+opt_params_raw   =   zeros(max(weeksprices), num_params);
+opt_params_clean =   zeros(max(weeksprices), num_params);
+values           =   cell(1,max(weeksprices));
+sig2_0           =   zeros(1,max(weeksprices));        
+
+%values in first iteration:
+Init_scale       =   Init_scale_mat(min(weeksprices), :);
+scaler           =   sc_fac(min(weeksprices), :);  
+
+       
+%% weekly optimization
+j = 1;
+good_i =[];
+bad_i =[];
+for i = unique(weeksprices)
+    if useRealVola
+        disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 is not calibrated.'))
+        vola_vec = zeros(1,num_voladays);
+        vola_cell = {};
+        vola_cell{1} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+            SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j));
+%         vola_cell{2} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-1);
+%         vola_cell{3} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-2);
+%         vola_cell{4} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-3);
+%         vola_cell{5} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-4);
+%         vola_cell{6} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-5);
+%         vola_cell{7} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-6);
+%         vola_cell{8} = SP500_date_prices_returns_realizedvariance_interestRates(4, ...
+%             SP500_date_prices_returns_realizedvariance_interestRates(1,:) == Dates(j)-7);
+        for vola_idx = 1:num_voladays
+            if ~isempty(vola_cell{vola_idx})
+                vola_vec(vola_idx) = vola_cell{vola_idx};
+            end
+        end
+         [~,vola_idx] =max(vola_vec>0);
+%         sig2_0(i) = vola_vec(vola_idx);
+        sig2_0(i) = vola_cell{1};
+    elseif useMLEPh0
+        disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 = h_t from MLE under P.'))
+        sig2_0(i) = sig_tmp(i);
+    elseif useMLEPUncondh0
+        disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 = UncondVar from MLE under P and then updated under Q.'))
+        sig2_0(i) = sig_tmp(i);
+    else
+        disp(strcat('Optimization (',goal ,') of week ',num2str(i),' in ',num2str(year),'. h_0 will be calibrated.'))     
+    end
+    data_week = data(:,(weeksprices == i))';
+    if isempty(data_week)
+        disp(strcat('no data for week ',num2str(i),' in ',num2str(year),'!'))
+        continue
+    end
+
+    kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+end 
+if strcmp(algorithm,'interior-point') %for file naming purposes
+    algorithm = 'interiorpoint';
+end
+if useRealVola
+    save(strcat('params_options_',num2str(year),'_h0asRealVolaGS',num2str(num_voladays),'days_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
+elseif useMLEPh0
+    save(strcat('params_options_',num2str(year),'_h0ashtMLEPGS_', goal,'_',algorithm,'_',txt,'f.mat'),'values');
+elseif useMLEPUncondh0
+    save(strcat('params_options_',num2str(year),'_h0asUncVarUpdQGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
+else
+    save(strcat('params_options_',num2str(year),'_h0_calibratedGS_',goal,'_',algorithm,'_',txt,'f.mat'),'values');
+end
+%for specific weeks
+%save(strcat('params_Options_',num2str(year),'week2and4','_h0asRealVola_',goal,'_',algorithm,'_',txt,'.mat'),'values');
