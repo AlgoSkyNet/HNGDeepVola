@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 
 ### Data Import
-path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid_Moneyness/Dataset/"
+path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid_SmallGrid/Dataset/"
 #path = "D:\GitHub\MasterThesisHNGDeepVola\Code\Python Neural Nets\9x9 Grid_Moneyness/Dataset/"
 
 #name_price = "id_Moneyness_8cd524ab1cd9408b_data_price_norm_53392_bigprice.mat"#"id_aa11a111a1aa1a1a_data_price_norm_143032.mat"
@@ -21,9 +21,9 @@ path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9
 #name_price = "Moneyness_price_norm_81509_1e-2.mat"
 #name_vola  = "Moneyness_vola_norm_81509_1e-2.mat"
 #name_vega  = "Moneyness_vega_norm_81509_1e-2.mat"
-name_price = "Moneyness_price_norm_400_1e-6.mat"
-name_vola  = "Moneyness_vola_norm_400_1e-6.mat"
-name_vega  = "Moneyness_vega_norm_400_1e-6.mat"
+name_price = "id_Moneyness_SmallGrid_data_price_norm_70387_bigprice.mat"
+name_vola  = "id_Moneyness_SmallGrid_data_vola_norm_70387_bigprice.mat"
+name_vega  = "id_Moneyness_SmallGrid_data_vega_norm_70387_bigprice.mat"
 
 mat         = scipy.io.loadmat(path+name_vola)
 data_vola   = mat['data_vola']
@@ -36,7 +36,7 @@ vega        = mat['data_vega']
 ### Initialisation
 S0              = 2000
 Nparameters     = 5
-maturities      = np.array([10,40,70,100,130,160,190,220,250])
+maturities      = np.array([9,15,22,30,50,80,110,140,170])
 moneyness       = np.array([1.1, 1.075, 1.05, 1.025, 1, 0.975, 0.95, 0.925, 0.9])
 strikes         = 1/moneyness
 Nstrikes        = len(strikes)   

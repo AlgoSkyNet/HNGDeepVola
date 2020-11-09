@@ -103,7 +103,7 @@ constraint        = constraint(idx);
 %save('MLE_calib_vega_full.mat','data_vega')
 
 %% load NN forecasts
-load("data_intrinsic_full.mat")
+load("data_intrinsic_smallgird.mat")
 
 %% get call data
 
@@ -204,7 +204,7 @@ for year = 2010:2018
                 real_data = data_week_tmp(:,[1,2,3,4]);
                 price_int = zeros(1,length(real_data));
                 for i = 1:length(real_data)
-                   [pos1,lam1] = conv_comb_maturity(real_data(i,2));
+                   [pos1,lam1] = conv_comb_maturity_small(real_data(i,2));
                    [pos2,lam2] = conv_comb_strike_moneyness(real_data(i,4)/real_data(i,3));
                    price_surface = real_data(i,4)*NN1_surface;
                    %2D interpolation without gridded data
@@ -269,7 +269,7 @@ total_short = zeros(1,7);
 iv_weakly = zeros(50,9);
 for j=1:run_idx2
     tmp = comparison{1,j};
-    tmp_idx = tmp(:,15)<50;
+    tmp_idx = tmp(:,15)>0;
     tmp = tmp(tmp_idx,:);
     tmp2 = short_table{1,j};
     tmp2 = tmp2(tmp_idx,:);

@@ -20,17 +20,17 @@ print(device_lib.list_local_devices())
 K.set_floatx('float64')  
 
 ## import variables from the data 
-from config_moneyness import Nparameters, Nstrikes, Nmaturities, Ntotal, Ntest, Ntrain, Nval  
-from config_moneyness import S0, maturities, moneyness, strikes, strike_net, maturity_net 
-from config_moneyness import ub, lb, ub_vola, lb_vola, ub_price, lb_price
-from config_moneyness import idx_train,idx_test,idx_val 
-from config_moneyness import vega,vega_1
-from config_moneyness import rates, rates_net
-from config_moneyness import parameters, parameters_trafo   
-from config_moneyness import vola, vola_trafo, vola_1, vola_trafo_1       
-from config_moneyness import price, price_1, price_trafo_1, intrinsic_net   
+from config_moneyness2 import Nparameters, Nstrikes, Nmaturities, Ntotal, Ntest, Ntrain, Nval  
+from config_moneyness2 import S0, maturities, moneyness, strikes, strike_net, maturity_net 
+from config_moneyness2 import ub, lb, ub_vola, lb_vola, ub_price, lb_price
+from config_moneyness2 import idx_train,idx_test,idx_val 
+from config_moneyness2 import vega,vega_1
+from config_moneyness2 import rates, rates_net
+from config_moneyness2 import parameters, parameters_trafo   
+from config_moneyness2 import vola, vola_trafo, vola_1, vola_trafo_1       
+from config_moneyness2 import price, price_1, price_trafo_1, intrinsic_net   
 ## scaling / transformation functions
-from config_moneyness import ytransform,yinversetransform,myscale,myinverse
+from config_moneyness2 import ytransform,yinversetransform,myscale,myinverse
 ##custom errors
 from add_func_moneyness import root_mean_squared_error,root_relative_mean_squared_error,mse_constraint,rmse_constraint
 from add_func_moneyness import constraint_violation,log_constraint,miss_count,mape_constraint
@@ -154,13 +154,13 @@ NNprice_Intrinsic.add(Conv2D(9, (2, 2),padding='valid',use_bias =True,strides =(
 NNprice_Intrinsic.summary()
 
 ## Training
-#es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 150 ,restore_best_weights=True)
-#NNprice_Intrinsic.compile(loss = root_relative_mean_squared_error, optimizer =Adam(clipvalue=10,learning_rate=1e-4),metrics=["MAPE","MSE"])
-#history_intrinsic = NNprice_Intrinsic.fit(input_train, outputs_train, batch_size=32, validation_data = (input_val, outputs_val), epochs =2000, verbose = True, shuffle=0,callbacks=[es])
-#NNprice_Intrinsic.compile(loss = root_relative_mean_squared_error, optimizer =Adam(clipvalue=10,learning_rate=1e-5),metrics=["MAPE","MSE"])
-#history_intrinsic = NNprice_Intrinsic.fit(input_train, outputs_train, batch_size=120, validation_data = (input_val, outputs_val), epochs =2000, verbose = True, shuffle=0,callbacks=[es])
+es = EarlyStopping(monitor='val_loss', mode='min', verbose=1,patience = 150 ,restore_best_weights=True)
+NNprice_Intrinsic.compile(loss = root_relative_mean_squared_error, optimizer =Adam(clipvalue=10,learning_rate=1e-4),metrics=["MAPE","MSE"])
+history_intrinsic = NNprice_Intrinsic.fit(input_train, outputs_train, batch_size=250, validation_data = (input_val, outputs_val), epochs =2000, verbose = True, shuffle=0,callbacks=[es])
+NNprice_Intrinsic.compile(loss = root_relative_mean_squared_error, optimizer =Adam(clipvalue=10,learning_rate=1e-5),metrics=["MAPE","MSE"])
+history_intrinsic = NNprice_Intrinsic.fit(input_train, outputs_train, batch_size=120, validation_data = (input_val, outputs_val), epochs =2000, verbose = True, shuffle=0,callbacks=[es])
 #NNprice_Intrinsic.save_weights("intrinsic_price_rrmse_weights_1net_2000_moneynesss.h5")
-NNprice_Intrinsic.load_weights("intrinsic_price_rrmse_weights_1net_2000_moneynesss.h5")
+#NNprice_Intrinsic.load_weights("intrinsic_price_rrmse_weights_1net_2000_moneynesss.h5")
 #NNprice_Intrinsic.compile(loss = root_relative_mean_squared_error, optimizer =Adam(clipvalue=10,learning_rate=5e-6),metrics=["MAPE","MSE"])
 #history_intrinsic = NNprice_Intrinsic.fit(input_train, outputs_train, batch_size=250, validation_data = (input_val, outputs_val), epochs =2000, verbose = True, shuffle=0,callbacks=[es])
 #NNprice_Intrinsic.save_weights("intrinsic_price_rrmse_weights_1net_2000_moneynesss.h5")
@@ -289,7 +289,7 @@ mean_mape_realdata = np.mean(err_rel_mat,axis=0)
 mean_mse_realdata  = np.mean(err_mat,axis=0)
 
 dict_iv_tmp ={"price" : y_price_tmp,"forecast" : prediction_tmp , "vega": data_vega_tmp, "param" : X_tmp,"rates": rates_tmp2 }
-scipy.io.savemat('data_intrinsic_full.mat',dict_iv_tmp)
+scipy.io.savemat('data_intrinsic_smallgird.mat',dict_iv_tmp)
 
 
 
@@ -475,58 +475,53 @@ plt.show()
 
 
 # In[Calibration]:
-
+"""
 #SCALE PRICES BEFORE!!!!!
-inputs =price_1.reshape((Ntotal,Nmaturities,Nstrikes,1))
+inputs =np.concatenate((price_trafo_1.reshape((Ntotal,Nmaturities,Nstrikes,1)),rates_net.reshape((Ntotal,Nmaturities,Nstrikes,1))),axis=3)
 
 input_train = inputs[idx_train,:,:,:]
 input_val = inputs[idx_val,:,:,:]
 input_test = inputs[idx_test,:,:,:]
-
-NNcalibrationP = Sequential() 
-NNcalibrationP.add(InputLayer(input_shape=(Nmaturities,Nstrikes,1)))
-NNcalibrationP.add(ZeroPadding2D(padding=(1,1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True, padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True, padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(ZeroPadding2D(padding=(1,1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(ZeroPadding2D(padding=(1,1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(ZeroPadding2D(padding=(1,1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
-NNcalibrationP.add(Flatten())
-NNcalibrationP.add(Dense(Nparameters,activation = sig_scaled(2,1,0,-1),use_bias=True))
-NNcalibrationP.summary()
-es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 50 ,restore_best_weights=True)
-NNcalibrationP.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
-history_calib1 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
-history_calib2 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.02,p2=15), optimizer = Adam(learning_rate=1e-4),metrics=["MAPE", "MSE",miss_count])
-history_calib3 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.005,p2=15), optimizer = Adam(learning_rate=1e-4),metrics=["MAPE", "MSE",miss_count])
-history_calib4 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.0005,p2=15), optimizer = Adam(learning_rate=1e-4),metrics=["MAPE", "MSE",miss_count])
-history_calib5 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.0002,p2=15), optimizer = Adam(learning_rate=5e-5),metrics=["MAPE", "MSE",miss_count])
-history_calib6 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.00015,p2=15), optimizer = Adam(learning_rate=5e-6),metrics=["MAPE", "MSE",miss_count])
-history_calib7 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=5, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.compile(loss =log_constraint(param=0.00005,p2=15), optimizer = Adam(learning_rate=2e-6),metrics=["MAPE", "MSE",miss_count])
-history_calib8 = NNcalibrationP.fit(input_train,parameters_trafo[idx_train,:], batch_size=250, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=2000, verbose = True, shuffle=1,callbacks =[es])
-NNcalibrationP.save_weights("calibrationweights_Price.h5")
-
+NNcalibration = Sequential() 
+NNcalibration.add(InputLayer(input_shape=(Nmaturities,Nstrikes,2)))
+NNcalibration.add(ZeroPadding2D(padding=(1,1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True, padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True, padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(MaxPooling2D(pool_size=(2, 2)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(ZeroPadding2D(padding=(1,1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(ZeroPadding2D(padding=(1,1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(ZeroPadding2D(padding=(1,1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Conv2D(64,(2, 2),use_bias= True,padding='valid',strides =(1,1),activation =sig_scaled(2,1,0,-1)))
+NNcalibration.add(Flatten())
+NNcalibration.add(Dense(Nparameters,activation = sig_scaled(2,1,0,-1),use_bias=True))
+NNcalibration.summary()
+es = EarlyStopping(monitor='val_MSE', mode='min', verbose=1,patience = 20 ,restore_best_weights=True)
+NNcalibration.compile(loss =log_constraint(param=1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history_calib1 = NNcalibration.fit(input_train,parameters_trafo[idx_train,:], batch_size=240, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=1000, verbose = True, shuffle=1,callbacks =[es])
+NNcalibration.compile(loss =log_constraint(param=0.1,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history_calib2 = NNcalibration.fit(input_train,parameters_trafo[idx_train,:], batch_size=120, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=1000, verbose = True, shuffle=1,callbacks =[es])
+NNcalibration.compile(loss =log_constraint(param=0.05,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history_calib3 = NNcalibration.fit(input_train,parameters_trafo[idx_train,:], batch_size=120, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=1000, verbose = True, shuffle=1,callbacks =[es])#
+NNcalibration.compile(loss =log_constraint(param=0.02,p2=15), optimizer = "adam",metrics=["MAPE", "MSE",miss_count])
+history_calib4 = NNcalibration.fit(input_train,parameters_trafo[idx_train,:], batch_size=120, validation_data = (input_val,parameters_trafo[idx_val,:]), epochs=1000, verbose = True, shuffle=1,callbacks =[es])
+#NNcalibration.save_weights("calibrationweights_price_scale.h5")
+NNcalibration.load_weights("calibrationweights_price_scale.h5")
+#error mean in %: [ 12.65046436   1.88101337  18.22682322 121.62693572  16.03671059]
+#error median in %: [ 3.37519672  1.35066321  8.92520557 10.98832693  1.12920175]
+#error max in % : [3.72135249e+04, 3.01093580e+02, 5.76727687e+04, 7.32935607e+05, 3.59270113e+05]
+#error 95qu in % :[ 53.01078992,   4.80586492,  32.07408447, 144.67171103,       6.03768085]
+#error 5qu in % : [0.2385793 , 0.13190749, 0.77972109, 0.95170923, 0.10152413]
+#errror 75qu in % : [12.33816926,  2.25984515, 15.42927149, 24.77151527,  2.1740383 ]
+#errror 25qu in % : [1.25614122, 0.65717499, 4.1210808 , 4.8363425 , 0.5123959 ]
 
 prediction_calibration1 = NNcalibration.predict(input_test)
 prediction_invtrafo1= np.array([myinverse(x) for x in prediction_calibration1])
@@ -539,7 +534,7 @@ error,err1,err2,vio_error,vio_error2,c,c2,testing_violation,testing_violation2,b
 
 
 
-"""
+
 
 
 #SCALE PRICES BEFORE!!!!!
@@ -729,22 +724,6 @@ summary_calibration = 100*np.asarray([np.quantile(error,0.05,axis=0),np.quantile
 dict_calib ={"price_calibtrue":price_1[idx_test,:,:], "params_calib" : prediction_invtrafo1, "vega_calib":vega_1[idx_test,:,:], "param_true" : parameters[idx_test,:],"rates_calib": rates[idx_test,:] }
 scipy.io.savemat('data_calib_moneyness.mat', dict_calib)
 
-
-#Interpolation of real surfarces
-path = "C:/Users/Henrik/Documents/GitHub/HNGDeepVola/Code/Python Neural Nets/9x9 Grid_Moneyness/"
-mat         = scipy.io.loadmat(path+"2010_interpolatedgrid_filledvalues.mat")
-surfaces_interpolated   = mat['data_3']
-price_surface =  ytransform(surfaces_interpolated,0)
-surfaces_vola   = mat['data_vola']
-rates_interpolation  = mat['rates']
-rates_interpolation_net  = [npm.repmat(rates_interpolation[i,:].reshape((9,1)),1,9) for i in range(50)]
-rates_interpolation_net = np.asarray(rates_interpolation_net).reshape(50,9,9)
-calib_realdata = np.concatenate((price_surface.reshape(50,9,9,1),surfaces_vola.reshape(50,9,9,1),rates_interpolation_net.reshape(50,9,9,1)),axis=3)
-params_forecasts = NNcalibration.predict(calib_realdata)
-params_forecasts= np.array([myinverse(x) for x in params_forecasts])
-
-forecasts_real = NNprice
-#
 # In[Surface to Surface Autoencoder]
 input_test = np.concatenate((prediction_calibration1,rates[idx_test,:]),axis=1).reshape((Ntest,Nparameters+Nmaturities,1,1))
 forecast = intrinsic_net[idx_test,:,:]+intrinsicInverse(NNprice_Intrinsic.predict(input_test).reshape((Ntest,Nmaturities,Nstrikes)),0)

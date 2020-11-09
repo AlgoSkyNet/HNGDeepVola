@@ -262,24 +262,19 @@ for year = 2010:2018
         end
     end
 end
-
 comp_total = zeros(1,18);
 comp_mean = zeros(50,18);
 total_short = zeros(1,7);
 iv_weakly = zeros(50,9);
 for j=1:run_idx2
     tmp = comparison{1,j};
-    tmp_idx = tmp(:,15)<50;
-    tmp = tmp(tmp_idx,:);
     tmp2 = short_table{1,j};
-    tmp2 = tmp2(tmp_idx,:);
     tmpiv = iv_table{1,j};
-    tmpiv = tmpiv(tmp_idx,:);
     iv_weakly(j,:) = nanmean(tmpiv);
     iv_weakly(j,1:6) = sqrt(iv_weakly(j,1:6));
-    comp_total(end+1:end+size(tmp,1),:) = tmp;
+    comp_total(end+1:end+length(tmp),:) = tmp;
     comp_mean(j,:) = nanmean(tmp,1);
-    total_short(end+1:end+size(tmp,1),:) = tmp2;
+    total_short(end+1:end+length(tmp),:) = tmp2;
 end
 
 total_short = total_short(2:end,:);
