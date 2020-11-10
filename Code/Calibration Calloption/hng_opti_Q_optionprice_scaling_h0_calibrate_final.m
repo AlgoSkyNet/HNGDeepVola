@@ -210,7 +210,7 @@ for i = unique(weeksprices)
     end
     struc.Price         =   data_week(:, 1)';
     struc.yields        =   interestRates;
-    struc.blsPrice      =   blsprice(data_week(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
+    struc.blsPrice      =   blsprice(data_w eek(:, 4), data_week(:, 3), r_cur, data_week(:, 2)/252, vola_tmp(i), 0)';
     struc.blsimpv       =   blsimpv(data_week(:, 4),  data_week(:, 3), r_cur, data_week(:, 2)/252, data_week(:, 1));
     indNaN = find(isnan(struc.blsimpv));
     struc.num_NaN_implVols = length(indNaN);    

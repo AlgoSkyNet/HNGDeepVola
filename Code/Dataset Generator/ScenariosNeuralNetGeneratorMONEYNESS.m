@@ -20,8 +20,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %parpool(10);
 clearvars; clc;close all;
-id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
-
+%id =  java.util.UUID.randomUUID;id = char(id.toString);id=convertCharsToStrings(id([1:8,10:13,15:18]));
+id = "SmallGrid";
 %% Initialisation
 
 % Configuration of underlying data
@@ -45,7 +45,7 @@ end
 if scenario_cleaner
     disp('Extreme scenarios in the underlying data are filtered out.')
 end
-Maturity        = 10:30:250;%30:30:210  10:30:250
+Maturity        = [9,15,22,30,50,80,110,140,170];%10:30:250
 Moneyness       = 1.1:-0.025:0.9;
 K               = 1./Moneyness;
 S               = 2000;%1;
@@ -53,7 +53,7 @@ K               = K*S;
 Nmaturities     = length(Maturity);
 Nstrikes        = length(K);
 data_vec        = [combvec(K,Maturity);S*ones(1,Nmaturities*Nstrikes)]';
-Nsim            = 1000000;
+Nsim            = 2000000;
 % At the moment, to ensure good pseudo random numbers, all randoms numbers are drawn at once.
 % Hence it is only possible to specify the total number of draws (Nsim). 
 % The approx. size of the final dataset is 14% of Nsim for norm dist and
@@ -285,7 +285,8 @@ for i = 1:Nsim
     a   = inv_data(i,2);
     b   = inv_data(i,3);
     g   = inv_data(i,4);
-    sig = inv_data(i,5);
+    %sig = inv_data(i,5);
+    sig = (w+a)/(1-a*g^2-b);
     if w<=0 || a<0 || b<0 || sig<=0
         fail3 = fail3+1;
         continue
@@ -323,7 +324,7 @@ for i = 1:Nsim
         continue
     end
     if price_cleaner
-        if any(any(price<(1e-8)))
+        if any(any(price<(1e-6)))
             fail4 = fail4+1;
             continue
         end
